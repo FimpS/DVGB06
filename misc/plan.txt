@@ -1,0 +1,165 @@
+TODO:
+	- code structure
+		- fix header guards
+
+	- Finish enemyAI
+
+	- Add more enemies
+
+	- Items
+
+	- Maps
+		- decide on hubworld/main menu
+		- fix flexible screen
+
+
+		IN PROGRESS:
+
+
+Notes:
+	- max: 64x64, min: 16x16
+
+	- nextknockback function for st.
+	- enemy idea first balista then becomes angry and becomes runner
+	- rot complete = you deal 2x dmg to enemies with rot
+	- frost complete = frozen enemies get stunned if you hit 3+ times?
+	drawbacks for every runes????
+
+#	/*
+	   switch(mObject->type)
+	   {
+	   case runner:
+	   state_enemy_default(mObject, player, map);
+	   switch(mObject->st.type)
+	   {
+	   case st_spawn:
+	   mObject_idle_moving(mObject, player, map, cam);
+	   break;
+	   case st_m1:
+	   case st_runner_m2:
+	   mObject_active_chase(mObject, player, map, cam);
+	   break;
+	   case st_enemyknockback:
+	   state_enemy_knockbacked(mObject, player, map);
+	   break;
+	   case st_placeholder:
+	   return;
+	   break;
+	   }
+	   break;
+	   case crawler:
+	   identify_status_effect(mObject, player);
+	   state_enemy_default(mObject, player, map);
+	//C++ POOOOOG
+	mObject->st.acp(mObject, player, map);
+	break;
+	case rusher:
+	state_enemy_default(mObject, player, map);
+	mObject->st.acp(mObject, player, map);
+	break;
+	case balista:
+	state_enemy_default(mObject, player, map);
+	mObject->st.acp(mObject, player, map);
+	break;
+	case MO_ARCHER:
+	state_enemy_default(mObject, player, map);
+	mObject->st.acp(mObject, player, map);
+	break;
+	case MO_SWORDSMAN:
+	state_enemy_default(mObject, player, map);
+	mObject->st.acp(mObject, player, map);
+	break;
+	case summoner:
+	//printf("%d\n", mObject->st.type);
+	state_enemy_default(mObject, player, map);
+	mObject->st.acp(mObject, player, map);
+	break;
+	case rune_shard:
+	case interactable:
+	if(mObject->st.type == st_deathrattle)
+	{
+	if(mObject->st.timer > mObject->st.limit)
+	{
+	mObject->st.type = st_clear;
+	return;
+	}
+	mObject->st.timer++;
+	return;
+	}
+	exit_player_hitbox(mObject, player, ev_list, map);
+	break;
+	}
+	*/	
+#if 0
+	switch(pObject->type)
+	{
+		case fire:
+			state_spell_fire(pObject, player, map);
+			break;
+		case sword:
+			state_sword_swing(pObject, player, map);
+			break;
+		case PO_SWORDSMAN_SWORD:
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				return;
+			}
+			state_swordsman_sword_swing(pObject, player, map);
+			break;
+		case balista_bolt:
+			//printf("%f\n", pObject->x);
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				return;
+			}
+			state_balista_shot(pObject, player, map);
+			break;
+		case frost_storm:
+			state_rot_smog_flower(pObject, player, map);
+			break;
+		case rot_smog:
+			state_rot_smog_flower(pObject, player, map);
+			break;
+		case wraith_big:
+		case wraith:
+			state_wraith_follow(pObject, player, map);
+			//pObject->acp(pObject, player, map);
+			break;
+		case gravity_well:
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				break;
+			}
+			state_gravity_well_travel(pObject, player, map);
+			break;
+		case gravity_bolt:
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				break;
+			}
+			state_gravity_bolt_travel(pObject, player, map);
+			break;
+			//TODO add break later
+		case blood_tax:
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				return;
+			}
+			state_blood_tax(pObject, player, map);
+			break;
+		case brimstone:
+			if(pObject->global_state == st_pO_deathrattle)
+			{
+				state_pObject_deathrattle(pObject, player, map);
+				return;
+			}
+			state_brimstone_beam(pObject, player, map);
+			break;
+	}
+#endif
+

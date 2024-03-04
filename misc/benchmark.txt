@@ -1,0 +1,8 @@
+without SDL: AVG 364000 fps
+With only SDL: AVG 1364 fps
+With SDL and update: AVG 1347 fps
+With SDL and draw: AVG 983 fps
+With SDL and update and draw: AVG 995 fps
+With all + Vsync: AVG 60 fps
+						    ^
+halfway through development |

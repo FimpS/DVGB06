@@ -1,0 +1,27 @@
+
+
+sturct {
+    SDL_Rect r;
+
+    }
+
+textures,
+make an array and an enum and use doom logic to differentiate
+and send the matrix to the render func and in render func
+
+void render(SDL_Texture **textures)
+
+SDL_Texture *t = textures[TEX_POBJECT_SPRITE_SHEET]
+
+init specifies first part in tex
+
+if(getTicks() > nextframe)
+{
+	update_frames
+}
+
+if(anim_timer > 16)
+    &re.x += 16;
+if(anim_timer > anim_giga_limit)
+    &re.x = 0
+

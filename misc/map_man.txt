@@ -1,0 +1,5 @@
+# = block
+. = empty
+1 = default enemy
+E = EXIT
+T,D = Teleport to Destination
