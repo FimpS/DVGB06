@@ -103,9 +103,12 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	pObject->knockbacker = true;
 	pObject->knockkoef = 1;
 	pObject->dir = dir;
+
 	pObject->anim_tile_length = 16;
 	pObject->anim_frames = 4;
 	pObject->anim_limit = 4;
+	pObject->anim_start_frame = 0;
+
 	pObject->status_effect = player->sword_effect_type;
 	switch(pObject->type)
 	{
@@ -122,12 +125,13 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case balista_bolt:
 			pObject->width = TILE_LENGTH/2;
 			pObject->height = TILE_LENGTH/2;
-			pObject->speed = 0.4;
+			pObject->speed = 0.3;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
 			pObject->pen_wall = true;
 			pObject->status_effect = status_none;
+			pObject->anim_frames = 1;
 			pObject->sprite = init_sprite(0, 16, 16, 16);
 			pObject->st = init_pObject_state(state_balista_shot, 0, 120);
 			break;
@@ -608,8 +612,8 @@ void update_pObjects(dynList *pObject_list, struct player *player, struct map* m
 	for(int i = 0; i < pObject_list->size; i++)
 	{
 		struct pObject *curr_pObj = (struct pObject*)dynList_get(pObject_list, i);
-		update_pObject(curr_pObj, player, map);
 
+		update_pObject(curr_pObj, player, map);
 		if(curr_pObj->st.type == ST_PO_DEAD)
 		{
 			dynList_del_index(pObject_list, i);
@@ -867,7 +871,8 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 
 	if(hit_wall /* &&? */)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		//pObject->st.acp = NULL;
 		/*
 		   pObject->timer = 0;
 		   pObject->limit = 16;
@@ -1083,11 +1088,13 @@ void update_mObject(struct mObject *mObject, struct player *player, struct map *
 
 void update_pObject(struct pObject *pObject, struct player *player, struct map *map)
 {
+#if 0
 	if(pObject->st.type == ST_PO_DEATHRATTLE)
 	{
 		state_pObject_deathrattle(pObject, player, map);
 		return;
 	}
+#endif
 	if(pObject->st.acp == NULL)
 		return;
 	pObject->st.acp(pObject, player, map);

@@ -32,6 +32,7 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 		pObject->anim_timer = 0;
 		pObject->sprite.x += pObject->anim_tile_length;
 		pObject->sprite.x %= pObject->anim_frames * pObject->anim_tile_length;
+		pObject->sprite.x += pObject->anim_start_frame;
 		return;
 	}
 	pObject->anim_timer ++;
