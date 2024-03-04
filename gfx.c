@@ -3,6 +3,8 @@
 #include "objects.h"
 #include "global.h"
 
+#define TEXTURE_AMOUNT 8
+
 void gfx_init(SDL_Texture **textures, SDL_Surface *sur, SDL_Renderer *renderer)
 {
 	for(int i = 0; i < 2; i++)
