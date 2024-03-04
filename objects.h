@@ -100,6 +100,7 @@ struct pObject
 	struct mObject *seeking_target;
 	struct pObj_state st;
 
+	int anim_start_frame;
 	int anim_tile_length;
 	int anim_frames;
 	int anim_limit;

@@ -40,6 +40,26 @@ void set_mObject_state(struct mObject *mObject, mObject_state type,
 	mObject->st.limit = limit;
 }
 
+
+void identify_sprite_location(struct pObject *pObject)
+{
+	switch(pObject->st.type)
+	{
+		case ST_PO_DEATHRATTLE:
+			pObject->anim_timer = 0;
+			pObject->anim_limit = 4;
+			pObject->sprite.x = 64;
+			pObject->anim_start_frame = 64;
+			break;
+		case ST_PO_DEAD:
+			pObject->anim_timer = 0;
+			pObject->anim_limit = 0;
+			pObject->sprite.x = 0;
+			pObject->anim_start_frame = 0;
+			break;
+	}
+}
+
 void set_pObject_state(struct pObject *pObject, pObject_global_state type,
 												void (*acp)(struct pObject*,
 															struct player*,
@@ -51,6 +71,8 @@ void set_pObject_state(struct pObject *pObject, pObject_global_state type,
 	pObject->st.acp = acp;
 	pObject->st.timer = timer;
 	pObject->st.limit = limit;
+
+	identify_sprite_location(pObject);
 }
 
 void state_crawler_idle(struct mObject *mObj, struct player *player, struct map *map)
@@ -439,6 +461,7 @@ void state_pObject_deathrattle(struct pObject *pObject, struct player* player, s
 	if(pObject->st.timer > pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
 	}
 	pObject->st.timer ++;
 }
@@ -462,7 +485,7 @@ void state_magic_bolt_travel(struct pObject* pObject, struct player* player, str
 	pObject_move(pObject, player, map);
 	if(pObject->st.timer > pObject->st.limit)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
 	pObject->st.timer ++;
@@ -476,7 +499,7 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 {
 	if(pObject->st.timer > pObject->st.limit)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
 	double dx = player->x - pObject->x, dy = player->y - pObject->y;
@@ -485,7 +508,7 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 	if(!player->invuln && AABBpp(pObject, player))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, DEATHRATTLE_LIMIT);
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, DEATHRATTLE_LIMIT);
 	}
 	pObject->st.timer ++;
 }
@@ -707,7 +730,7 @@ void state_blood_tax(struct pObject *pObject, struct player *player, struct map 
 {
 	if(pObject->st.timer > pObject->st.limit || pObject->penetration_index <= 0)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
 #if 1
@@ -941,7 +964,7 @@ void state_gravity_well_travel(struct pObject *pObject, struct player* player, s
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
-	pObject_move(pObject, player, map);
+	//pObject_move(pObject, player, map);
 	if(getTick() % 20 == 0)
 	{
 		double angle = get_frand(2*PI);
@@ -1020,7 +1043,7 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		if(rune != NULL && rune->info.rune_type == frost)
 			rune->attribute ++;
 
-		rune = (struct rune*)dynList_get(player->rune_list, 0);
+		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == rot)
 			rune->attribute ++;
 

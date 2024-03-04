@@ -167,7 +167,7 @@ void gravity_anchor_ability(struct player* player, struct map *map, struct rune*
 {
 	const Uint8* ck = SDL_GetKeyboardState(NULL);
 	double offset = 0.5;
-	if(player->attack_speed_timer > 16 && 0) //change to 32 for brimcharge
+	if(player->attack_speed_timer > 16 && 1) //change to 32 for brimcharge
 	{
 		if(ck[SDL_SCANCODE_RIGHT])
 		{
@@ -244,6 +244,7 @@ void rot_mending_ability(struct player* player, struct map* map, struct rune* ru
 {
 	if(rune->attribute > 0)
 	{
+		printf("done\n");
 		spawn_pObject(map->pObject_list, player->x - 1, player->y - 1, rot_smog, EAST, player->sword_damage / 10, 0.0, player);
 		rune->attribute = 0;
 	}
@@ -336,7 +337,9 @@ struct rune init_rune(struct rune_info i)
 				case anchor:
 					printf("#WISH GRANTED#\nblood anchor rune acquired\n");
 					new.ability = NULL;
-					new.initial = blood_anchor_initial;
+					new.initial = blood_mending_initial;
+					new.ability = blood_mending_ability;
+					//new.initial = blood_anchor_initial;
 					break;
 				case support:
 					printf("#WISH GRANTED#\nblood support rune acquired\n");
