@@ -73,6 +73,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
+	player->sprite = init_sprite(16, 0, 16, 16);
 	player->sword_effect_type = status_none;
 }
 
@@ -102,6 +103,9 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	pObject->knockbacker = true;
 	pObject->knockkoef = 1;
 	pObject->dir = dir;
+	pObject->anim_tile_length = 16;
+	pObject->anim_frames = 4;
+	pObject->anim_limit = 4;
 	pObject->status_effect = player->sword_effect_type;
 	switch(pObject->type)
 	{
@@ -113,6 +117,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = false;
 			pObject->penetration_index = 2;
 			pObject->pen_wall = true;
+			pObject->sprite = init_sprite(0, 0, 16, 16);
 			break;
 		case balista_bolt:
 			pObject->width = TILE_LENGTH/2;
@@ -123,6 +128,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 1;
 			pObject->pen_wall = true;
 			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 16, 16, 16);
 			pObject->st = init_pObject_state(state_balista_shot, 0, 120);
 			break;
 		case wraith_big:
@@ -135,6 +141,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = false;
 			pObject->penetration_index = 1;
 			pObject->pen_wall = false;
+			pObject->sprite = init_sprite(0, 32, 16, 16);
 			pObject->st = init_pObject_state(state_wraith_follow, 0, player->health * 2.4);
 			if(pObject->type == wraith_big)
 			{
@@ -149,6 +156,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->pen_wall = false;
 			pObject->knockbacker = false;
 			pObject->status_effect = status_frostbite;
+			pObject->sprite = init_sprite(0, 48, 16, 16);
 			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
 			break;
 		case rot_smog:
@@ -160,6 +168,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->pen_wall = false;
 			pObject->knockbacker = false;
 			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 64, 16, 16);
 			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
 			break;
 		case gravity_well:
@@ -169,6 +178,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = 0;
 			pObject->transp = true;
 			pObject->pen_wall = true;
+			pObject->sprite = init_sprite(0, 80, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_well_travel, 0, 300);
 			break;
 		case gravity_bolt:
@@ -179,6 +189,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = true;
 			pObject->pen_wall = true;
 			pObject->thetaacc = 0;
+			pObject->sprite = init_sprite(0, 96, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_bolt_travel, 0, 120);
 			break;
 		case blood_tax:
@@ -189,6 +200,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = true;
 			pObject->penetration_index = 1;
 			pObject->pen_wall = true;
+			pObject->sprite = init_sprite(0, 0, 16, 16);
 			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
 			break;
 		case brimstone:
@@ -226,6 +238,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->pen_wall = false;
 			pObject->penetration_index = 0;
 			pObject->knockbacker = false;
+			pObject->sprite = init_sprite(0, 128, 16, 16);
 			pObject->st = init_pObject_state(state_brimstone_beam, 0, 48);
 			break;
 		case PO_SWORDSMAN_SWORD:
@@ -236,16 +249,18 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = true;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 144, 16, 16);
 			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 24);
 			break;
 		case PO_MAGIC_BOLT:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.20;
+			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
 		case sword:
@@ -257,6 +272,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 100;
 			pObject->pen_wall = false;
 			pObject->knockkoef = player->pObject_knockkoef;
+			pObject->sprite = init_sprite(0, 160, 16, 16);
 			pObject->st = init_pObject_state(state_sword_swing, 0, 5);
 			break;
 		case placeholder:
@@ -1091,85 +1107,8 @@ void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, 
 void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *cam, SDL_Texture* tex)
 {
 	SDL_Rect r = {(pObject->x - cam->offset_x) * TILE_LENGTH, (pObject->y - cam->offset_y) * TILE_LENGTH, pObject->width, pObject->height};
-	SDL_Rect R = {0, 32, 16, 16};
-	if(pObject->st.type == ST_PO_DEATHRATTLE)
-	{
-		render_pObject_deathrattle(renderer, tex, R, r);
-		return;
-	}
 
-	switch(pObject->type)
-	{
-		case fire:
-			SDL_SetRenderDrawColor(renderer, 0xDF, 0x40, 0x05, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case sword:
-			switch(pObject->dir)
-			{
-				case EAST:
-					SDL_RenderCopy(renderer, tex, &R, &r);
-					break;
-				case WEST:
-					R.x += 16;
-					SDL_RenderCopy(renderer, tex, &R, &r);
-					break;
-				case NORTH:
-					R.x += 32;
-					SDL_RenderCopy(renderer, tex, &R, &r);
-					break;
-				case SOUTH:
-					R.x += 48;
-					SDL_RenderCopy(renderer, tex, &R, &r);
-					break;
-			}
-
-			break;
-		case PO_SWORDSMAN_SWORD:
-			SDL_SetRenderDrawColor(renderer, 0x11, 0x00, 0x98, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case PO_MAGIC_BOLT:
-			R.x += 64;
-			process_symmetric_animation(renderer, tex, R, r, pObject);
-			//SDL_SetRenderDrawColor(renderer, 0x11, 0xDD, 0xAA, 0xFF);
-			//SDL_RenderFillRect(renderer, &r);
-			break;
-		case balista_bolt:
-			SDL_SetRenderDrawColor(renderer, 0x44, 0x44, 0x44, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case frost_storm:
-			SDL_SetRenderDrawColor(renderer, 0xAA, 0xFF, 0xAA, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-		case rot_smog:
-			SDL_SetRenderDrawColor(renderer, 0xEE, 0xDD, 0xEE, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case wraith_big:
-		case wraith:
-			SDL_SetRenderDrawColor(renderer, 0x10, 0x10, 0x50, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case gravity_well:
-			SDL_SetRenderDrawColor(renderer, 0xAA, 0x1A, 0xFF, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case gravity_bolt:
-			SDL_SetRenderDrawColor(renderer, 0x32, 0x13, 0x22, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case blood_tax:
-			R.x += 64;
-			process_symmetric_animation(renderer, tex, R, r, pObject);
-			break;
-		case brimstone:
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0x13, 0x22, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-
-	}
-
+	render_animation(pObject, tex, r, renderer);
 }
 
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)

@@ -1,6 +1,14 @@
 #ifndef ENUM_HEADER
 #define ENUM_HEADER
 
+typedef enum 
+{
+	MAP_SPRITESHEET,
+	POBJECT_SPRITESHEET,
+	MOBJECT_SPRITESHEET,
+	PLAYER_SPRITESHEET,
+} textureID;
+
 typedef enum
 {
 	st_p_normal,

@@ -163,3 +163,85 @@ Notes:
 	}
 #endif
 
+#if 0
+	SDL_Rect R = {0, 32, 16, 16};
+	if(pObject->st.type == ST_PO_DEATHRATTLE)
+	{
+		render_pObject_deathrattle(renderer, tex, R, r);
+		return;
+	}
+
+	switch(pObject->type)
+	{
+		case fire:
+			SDL_SetRenderDrawColor(renderer, 0xDF, 0x40, 0x05, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case sword:
+			switch(pObject->dir)
+			{
+				case EAST:
+					SDL_RenderCopy(renderer, tex, &R, &r);
+					break;
+				case WEST:
+					R.x += 16;
+					SDL_RenderCopy(renderer, tex, &R, &r);
+					break;
+				case NORTH:
+					R.x += 32;
+					SDL_RenderCopy(renderer, tex, &R, &r);
+					break;
+				case SOUTH:
+					R.x += 48;
+					SDL_RenderCopy(renderer, tex, &R, &r);
+					break;
+			}
+
+			break;
+		case PO_SWORDSMAN_SWORD:
+			SDL_SetRenderDrawColor(renderer, 0x11, 0x00, 0x98, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case PO_MAGIC_BOLT:
+			R.x += 64;
+			process_symmetric_animation(renderer, tex, R, r, pObject);
+			//SDL_SetRenderDrawColor(renderer, 0x11, 0xDD, 0xAA, 0xFF);
+			//SDL_RenderFillRect(renderer, &r);
+			break;
+		case balista_bolt:
+			SDL_SetRenderDrawColor(renderer, 0x44, 0x44, 0x44, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case frost_storm:
+			SDL_SetRenderDrawColor(renderer, 0xAA, 0xFF, 0xAA, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+		case rot_smog:
+			SDL_SetRenderDrawColor(renderer, 0xEE, 0xDD, 0xEE, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case wraith_big:
+		case wraith:
+			SDL_SetRenderDrawColor(renderer, 0x10, 0x10, 0x50, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case gravity_well:
+			SDL_SetRenderDrawColor(renderer, 0xAA, 0x1A, 0xFF, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case gravity_bolt:
+			SDL_SetRenderDrawColor(renderer, 0x32, 0x13, 0x22, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+		case blood_tax:
+			R.x += 64;
+			process_symmetric_animation(renderer, tex, R, r, pObject);
+			break;
+		case brimstone:
+			SDL_SetRenderDrawColor(renderer, 0xFF, 0x13, 0x22, 0xFF);
+			SDL_RenderFillRect(renderer, &r);
+			break;
+
+	}
+#endif
+
+
