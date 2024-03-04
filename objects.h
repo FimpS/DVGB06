@@ -72,6 +72,8 @@ struct player
 	card_dir dir;
 	int anim1counter;
 	int kills;
+
+	SDL_Rect sprite;
 };
 
 struct pObject
@@ -82,7 +84,6 @@ struct pObject
 	double vel_y;
 	double width;
 	double height;
-	int anim_timer;
 	double knockkoef;
 	double speed;
 	double damage;
@@ -99,6 +100,11 @@ struct pObject
 	struct mObject *seeking_target;
 	struct pObj_state st;
 
+	int anim_tile_length;
+	int anim_frames;
+	int anim_limit;
+	int anim_timer;
+	SDL_Rect sprite;
 };
 
 struct mObject
@@ -130,6 +136,7 @@ struct mObject
 	struct status_effect status_effect;
 
 	mObject_type type;
+	SDL_Rect sprite;
 };
 
 

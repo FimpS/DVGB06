@@ -20,7 +20,6 @@ int main() {
 	struct map map = map_init();
 	struct cam cam = cam_init();
 	double reduce;
-	gfx_init();
 
 	//char maps[1024][32];
 	struct player player;
@@ -61,10 +60,8 @@ int main() {
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
 	map_load_scene(&map, map.s_map.content[map.s_map.index], map.mObject_list, &player);
 	//INIT
-	SDL_Surface *sur[32];
-	*sur = IMG_Load("assets/Untitled.png");
 	SDL_Texture *tex[32];
-	*tex = SDL_CreateTextureFromSurface(renderer, sur[0]);
+	gfx_init(tex, renderer);
 	int start = SDL_GetTicks();
 	int framecount = 0;
 	while(!quit)
@@ -111,7 +108,7 @@ int main() {
 		//draw
 		map_draw(&map, &cam, renderer, *tex);
 		draw_all_mObjects(renderer, map.mObject_list, &cam, *tex);
-		draw_pObjects(renderer, map.pObject_list, &cam, *tex);
+		draw_pObjects(renderer, map.pObject_list, &cam, tex[POBJECT_SPRITESHEET]);
 		drawPlayer(renderer, &player, &cam, *tex);
 
 		render_hpbar(renderer, &player, &cam, &reduce);

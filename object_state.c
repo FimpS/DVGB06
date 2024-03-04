@@ -414,16 +414,17 @@ void check_sword_dir(struct pObject *pObject, struct player *player)
 		case NORTH:
 			pObject->x = player->x;
 			pObject->y = player->y - 1;
-			pObject->theta = PI/2;
+			pObject->theta = -PI/2;
 			break;
 		case SOUTH:
 			pObject->x = player->x;
 			pObject->y = player->y + 1;
-			pObject->theta = 2*PI/3;
+			pObject->theta = PI/2;
 			break;
 		case EAST:
 			pObject->x = player->x + 1;
 			pObject->y = player->y;
+			pObject->theta = 0;
 			break;
 		case WEST:
 			pObject->x = player->x - 1;

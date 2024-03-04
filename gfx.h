@@ -1,4 +1,7 @@
 
+SDL_Rect init_sprite();
+void render_animation();
+
 void gfx_init();
 void load_textures();
 void process_symmetric_animation();
