@@ -320,6 +320,17 @@ void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_st
 	mObject->status_effect.type = type;
 }
 
+struct render_info init_render_info(int s, int ti, int f, int t, int l)
+{
+	struct render_info new = {0};
+	new.start_frame = s;
+	new.tile_length= ti;
+	new.frames = f;
+	new.timer = t;
+	new.limit = l;
+	return new;
+}
+
 void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 {
 	mObject->x = x;
@@ -328,6 +339,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 	mObject->vel_y = 0;
 	mObject->inv_frames = 0;
 	mObject->base_speed = 1;
+	mObject->type_reg = ST_MAGUS_IDLE;
 	mObject->status_effect = init_status_effect();
 	switch(mObject->type)
 	{
@@ -352,6 +364,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->killable = true;
 			mObject->st.acp = NULL;
 			mObject->contact_damage = 20;
+			mObject->anim = init_render_info(0, TILE_LENGTH, 4, 0, 4);
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, NULL);
 			break;
 		case crawler:
@@ -365,6 +378,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->contact_damage = 22;
+			mObject->anim = init_render_info(32, TILE_LENGTH, 16, 0, 4);
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, state_crawler_stay);
 			break;
 		case rusher:
@@ -378,6 +392,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 20;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->anim = init_render_info(64, TILE_LENGTH, 16, 0, 4);
 			mObject->st = init_mObject_state(state_rusher_idle, 0, 40, state_rusher_idle);
 			if(mObject->id == 'g')
 			{
@@ -388,7 +403,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			}
 			break;
 		case balista:
-			mObject->base_speed = 0;
+			//TODO weird stuff with balista and blood_tax maybe target_hit problem
+			//mObject->base_speed = 0;
 			mObject->speed = mObject->base_speed;
 			mObject->health = 500;
 			mObject->width = TILE_LENGTH;
@@ -433,11 +449,14 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->hit = false;
-			mObject->mass = 50;
+			mObject->mass = 25;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->sprite = init_sprite(0, 0, 16, 24);
+			mObject->anim = init_render_info(0, 16, 4, 0, 16);
+			mObject->type_reg = ST_MAGUS_AWARE;
 			mObject->st = init_mObject_state(state_magus_idle, 0, 40, state_magus_aware);
 			break;
 		case summoner:
@@ -1008,15 +1027,12 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	check_damage_modifiers(target, source, player);
 	//this segfaulted for no reason before be careful
 	set_status_effect(target, 0, 360, source->status_effect);
-	//printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
+	printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker)
 		return;
-	target->st.timer = 0;
-	target->st.limit = 20; //maybe
 	target->speed = 0.2 * source->knockkoef - target->mass / 1024;
 	target->speed = target->speed <= 0 ? 0 : target->speed;
-	target->st.type = st_enemyknockback;
-	target->st.acp = state_enemy_knockbacked;
+	set_mObject_state(target, st_enemyknockback, state_enemy_knockbacked, 0, 20);
 }
 
 void mObject_player_hitbox(struct mObject *mObject, struct player *player)
@@ -1120,7 +1136,14 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)
 {
-	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - mObject->width/2 * 0, (mObject->y - cam->offset_y) * TILE_LENGTH - mObject->height/2 * 0, mObject->height, mObject->width};
+	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - mObject->width/2 * 0, (mObject->y - cam->offset_y) * TILE_LENGTH - mObject->height/2 * 0, mObject->width, mObject->height * 1.5};
+
+	if(mObject->id != '6')
+		return;
+#if 1
+	render_mObject_animation(mObject, r, renderer, tex);
+#endif 
+#if 0
 	SDL_Rect it = {48, 0, 16, 16};
 	SDL_Rect it2 = {64, 0, 16, 16};
 	SDL_Rect it3 = {80, 0, 16, 16};
@@ -1224,6 +1247,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 
 	}
 	//SDL_RenderFillRect(renderer, &r);
+#endif
 }
 #if 0
 mobj_t*

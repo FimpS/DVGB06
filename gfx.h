@@ -1,6 +1,7 @@
 
 SDL_Rect init_sprite();
 void render_animation();
+void render_mObject_animation();
 
 void gfx_init();
 void load_textures();
