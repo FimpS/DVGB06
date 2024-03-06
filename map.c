@@ -420,8 +420,8 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 	//SDL_Surface *sur = IMG_Load("assets/Untitled.png");
 	//SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, sur);
 	//tmp stuff
-	SDL_Rect img_tile = {0, 0, 16, 16};
-	SDL_Rect img_tile2 = {0, 16, 16, 16};
+	SDL_Rect img_tile = {32, 16, 16, 16};
+	SDL_Rect img_tile2 = {48, 16, 16, 16};
 	SDL_Rect img_tile3 = {16, 16, 16, 16};
 	SDL_Rect img_tile4 = {80, 0, 16, 16};
 
@@ -439,12 +439,12 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			switch(tile)
 			{
 				case '.':
-					SDL_RenderCopy(renderer, tex, &img_tile, &r_tile);
+					SDL_RenderCopy(renderer, tex, &img_tile2, &r_tile);
 					//SDL_SetRenderDrawColor(renderer, 0x11, 0x11, 0x11, 0xFF);
 					//SDL_RenderFillRect(renderer, &r_tile);
 					break;
 				case '#':
-					SDL_RenderCopy(renderer, tex, &img_tile2, &r_tile);
+					SDL_RenderCopy(renderer, tex, &img_tile, &r_tile);
 					//SDL_SetRenderDrawColor(renderer, 0x10, 0xBB, 0xAA, 0xFF);
 					//SDL_RenderFillRect(renderer, &r_tile);
 					break;

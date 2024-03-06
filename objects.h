@@ -108,6 +108,15 @@ struct pObject
 	SDL_Rect sprite;
 };
 
+struct render_info
+{
+	int start_frame;
+	int tile_length;
+	int frames;
+	int limit;
+	int timer;
+};
+
 struct mObject
 {
 	double x;
@@ -137,6 +146,9 @@ struct mObject
 	struct status_effect status_effect;
 
 	mObject_type type;
+
+	mObject_global_state type_reg;
+	struct render_info anim;
 	SDL_Rect sprite;
 };
 

@@ -27,6 +27,49 @@ void clueless(struct mObject *mObject, struct player *player, struct map *map)
 	mObject->st.timer ++;
 }
 
+void identify_mObject_sprite_location(struct mObject *mObject)
+{
+	switch(mObject->st.type)
+	{
+		case ST_MAGUS_IDLE:
+			mObject->anim.limit = 12;
+			mObject->sprite.x = 0;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_MAGUS_AWARE:
+			mObject->sprite.y = 0;
+			mObject->anim.limit = 6;
+			mObject->sprite.x = 0;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_MAGUS_DASH:
+			mObject->sprite.y = 0;
+			mObject->anim.limit = 4;
+			mObject->sprite.x = 64;
+			mObject->anim.start_frame = 64;
+			break;
+		case ST_MAGUS_READY:
+			mObject->anim.limit = 16;
+			mObject->sprite.y = 24;
+			mObject->sprite.x = 0;
+			mObject->anim.start_frame = 0;
+			break;
+		case st_enemyknockback:
+			mObject->sprite.y = 0;
+			mObject->sprite.x = 128;
+			mObject->anim.limit = mObject->st.limit + 16;
+			mObject->anim.start_frame = 128;
+			break;
+		case st_deathrattle:
+			printf("got here\n");
+			mObject->sprite.y = 0;
+			mObject->sprite.x = 192;
+			mObject->anim.limit = mObject->st.limit / 4 + 4;
+			mObject->anim.start_frame = 192;
+			break;
+	}
+}
+
 void set_mObject_state(struct mObject *mObject, mObject_state type,
 												void (*acp)(struct mObject*, 
 															struct player*, 
@@ -38,10 +81,10 @@ void set_mObject_state(struct mObject *mObject, mObject_state type,
 	mObject->st.acp = acp;
 	mObject->st.timer = timer;
 	mObject->st.limit = limit;
+	identify_mObject_sprite_location(mObject);
 }
 
-
-void identify_sprite_location(struct pObject *pObject)
+void identify_pObject_sprite_location(struct pObject *pObject)
 {
 	switch(pObject->st.type)
 	{
@@ -72,7 +115,7 @@ void set_pObject_state(struct pObject *pObject, pObject_global_state type,
 	pObject->st.timer = timer;
 	pObject->st.limit = limit;
 
-	identify_sprite_location(pObject);
+	identify_pObject_sprite_location(pObject);
 }
 
 void state_crawler_idle(struct mObject *mObj, struct player *player, struct map *map)
@@ -115,9 +158,9 @@ void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(mObj->st.timer > mObj->st.limit || mObj->speed <= 0)
 	{
-		set_mObject_state(mObj, st_m1, mObj->st.kcp, 0, 40);
+		set_mObject_state(mObj, mObj->type_reg, mObj->st.kcp, 0, 40);
 		mObj->speed = 0;
-		mObj->theta = atan2(dy, dx);
+		//mObj->theta = atan2(dy, dx);
 	}
 	mObject_move(mObj, player, map);
 	mObj->speed -= 0.01 * (mObj->mass / 40);
@@ -337,7 +380,7 @@ void state_magus_ready(struct mObject *mObj, struct player *player, struct map* 
 	{
 		spawn_pObject(map->pObject_list, player->x, player->y + 6, PO_MAGIC_BOLT, NORTH, 20.0, -PI/2, player);
 		spawn_pObject(map->pObject_list, player->x, player->y - 6, PO_MAGIC_BOLT, SOUTH, 20.0, PI/2, player);
-		set_mObject_state(mObj, 0, state_magus_aware, 0, 96);
+		set_mObject_state(mObj, ST_MAGUS_AWARE, state_magus_aware, 0, 96);
 		return;
 	}
 	mObj->st.timer ++;
@@ -348,7 +391,7 @@ void state_magus_chase(struct mObject *mObj, struct player *player, struct map* 
 	mObject_move(mObj, player, map);
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_magus_aware, 0, 96);
+		set_mObject_state(mObj, ST_MAGUS_AWARE, state_magus_aware, 0, 96);
 		return;
 	}
 	mObj->st.timer ++;
@@ -359,13 +402,13 @@ void state_magus_aware(struct mObject *mObj, struct player *player, struct map* 
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < MAGUS_CAST_RANGE && mObj->st.timer > MAGUS_CAST_COOLDOWN)
 	{
-		set_mObject_state(mObj, 0, state_magus_ready, 0, 64);
+		set_mObject_state(mObj, ST_MAGUS_READY, state_magus_ready, 0, 64);
 	}
 	if(mObj->st.timer > mObj->st.limit)
 	{
 		mObj->speed = mObj->base_speed / 8;
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, 0, state_magus_chase, 0, 16);
+		set_mObject_state(mObj, ST_MAGUS_DASH, state_magus_chase, 0, 16);
 	}
 	mObj->st.timer ++;
 }
@@ -375,7 +418,7 @@ void state_magus_idle(struct mObject *mObj, struct player *player, struct map* m
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < HOSTILE_MOBJ_WAKEUP_DIST)
 	{
-		set_mObject_state(mObj, 0, state_magus_aware, 0, 100);
+		set_mObject_state(mObj, ST_MAGUS_AWARE, state_magus_aware, 0, 100);
 		return;
 	}
 	mObj->st.timer ++;
@@ -739,9 +782,12 @@ void state_blood_tax(struct pObject *pObject, struct player *player, struct map 
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{   
 		struct mObject* target = ((struct mObject*)dynList_get(map->mObject_list, i));
+		//fixed?
+		if(!target->hittable)
+			continue;
 		dx = pObject->x - target->x;
 		dy = pObject->y - target->y;
-		if(dx * dx + dy * dy < 1 && !target->hit)
+		if(!target->hit && AABB(target, (struct mObject*)pObject))
 		{   
 			dy = pObject->y - player->y;
 			dx = pObject->x - player->x;

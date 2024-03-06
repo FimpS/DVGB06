@@ -12,7 +12,7 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 	textures[MAP_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = IMG_Load("assets/pObject_spritesheet.png");
 	textures[POBJECT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
-	surface = IMG_Load("assets/map_spritesheet.png");
+	surface = IMG_Load("assets/mObject_spritesheet.png");
 	textures[MOBJECT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = IMG_Load("assets/map_spritesheet.png");
 	textures[PLAYER_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
@@ -21,6 +21,26 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Rect R, SDL_Rect r)
 {
 	SDL_RenderCopy(renderer, tex, &R, &r);
+}
+
+void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
+{
+	const double conv = 57.29577;
+	bool flip = false;
+	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
+	{
+		flip = true;
+	}
+	SDL_RenderCopyEx(renderer, tex, &mObject->sprite, &dR, 0, NULL, flip);
+	if(mObject->anim.timer > mObject->anim.limit)
+	{
+		mObject->anim.timer = 0;
+		mObject->sprite.x += mObject->anim.tile_length;
+		mObject->sprite.x %= mObject->anim.frames * mObject->anim.tile_length;
+		mObject->sprite.x += mObject->anim.start_frame;
+		return;
+	}
+	mObject->anim.timer ++;
 }
 
 void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SDL_Renderer *renderer)
