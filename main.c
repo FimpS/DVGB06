@@ -13,9 +13,14 @@
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
 
-int main() {
+int main(int argc, int **argv) {
 
 	srand(time(NULL));
+	int mode = SDL_WINDOW_BORDERLESS;
+	if(argc == 2)
+	{
+		mode = SDL_WINDOW_FULLSCREEN;
+	}
 
 	struct map map = map_init();
 	struct cam cam = cam_init();
@@ -35,7 +40,7 @@ int main() {
 		return 1;
 	}
 
-	SDL_Window *window = SDL_CreateWindow("main", 500, 120, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_BORDERLESS);
+	SDL_Window *window = SDL_CreateWindow("main", 500, 120, SCREEN_WIDTH, SCREEN_HEIGHT, mode);
 	if(window == NULL)
 	{
 		printf("Error: %s", SDL_GetError());
@@ -98,7 +103,7 @@ int main() {
 		update_all_mObjects(map.mObject_list, &player, &map, &cam, map.event_list);
 		
 		if(cdr[SDL_SCANCODE_V])
-			return 1;
+			goto out;
 		//update
 
 
@@ -128,7 +133,7 @@ int main() {
 #endif
 
 	}
-
+out:
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 

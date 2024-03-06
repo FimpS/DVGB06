@@ -16,14 +16,17 @@ TODO:
 		IN PROGRESS:
 
 
+
+
 Notes:
 	- max: 64x64, min: 16x16
 
 	- nextknockback function for st.
 	- enemy idea first balista then becomes angry and becomes runner
 	- rot complete = you deal 2x dmg to enemies with rot
-	- frost complete = frozen enemies get stunned if you hit 3+ times?
+	- frost complete = frozen enemies get stunned if you hit 3+ times
 	drawbacks for every runes????
+	- particles are just pObjects with one only move in acp and no collision checks
 
 #	/*
 	   switch(mObject->type)

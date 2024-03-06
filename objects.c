@@ -69,7 +69,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->thrust_decel = -4;
 	player->anim1counter = 0;
-	player->sword_damage = 50;
+	player->sword_damage = 10;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
@@ -331,6 +331,34 @@ struct render_info init_render_info(int s, int ti, int f, int t, int l)
 	return new;
 }
 
+SDL_Rect identify_rune_sprite(struct rune_info ri)
+{
+	SDL_Rect new = {0};
+	switch(ri.rune_type)
+	{
+		case unholy:
+			new = init_sprite(0, 320, 32, 32);
+			break;
+		case holy:
+			new = init_sprite(0, 352, 32, 32);
+			break;
+		case rot:
+			new = init_sprite(0, 384, 32, 32);
+			break;
+		case blood:
+			new = init_sprite(0, 416, 32, 32);
+			break;
+		case gravity:
+			new = init_sprite(0, 448, 32, 32);
+			break;
+		case frost:
+			new = init_sprite(0, 480, 32, 32);
+			break;
+	}
+
+	return new;
+}
+
 void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 {
 	mObject->x = x;
@@ -339,6 +367,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 	mObject->vel_y = 0;
 	mObject->inv_frames = 0;
 	mObject->base_speed = 1;
+	mObject->theta = PI;
 	mObject->type_reg = ST_MAGUS_IDLE;
 	mObject->status_effect = init_status_effect();
 	switch(mObject->type)
@@ -470,6 +499,9 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->anim = init_render_info(0, 16, 4, 0, 16);
+			mObject->sprite = init_sprite(0, 48, 16, 24);
+			mObject->type_reg = ST_SUMMONER_IDLE;
 			mObject->st = init_mObject_state(state_summoner_idle, 0, 40, state_summoner_idle);
 			break;
 		case interactable:
@@ -487,6 +519,9 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->killable = false;
 			mObject->st.type = st_placeholder;
 			mObject->r_info = get_rand_rune_info(map);
+			mObject->anim = init_render_info(0, 32, 4, 0, 12);
+			mObject->st = init_mObject_state(rune_player_interaction, 0, 0, NULL);
+			mObject->sprite = identify_rune_sprite(mObject->r_info);
 			mObject->st.acp = rune_player_interaction;
 			break;
 	}
@@ -1120,7 +1155,7 @@ void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, 
 {
 	SDL_Rect s = {32, 0, 16, 16};
 	SDL_Rect s1 = {80, 80, 32, 32};
-	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH, player->height, player->width};
+	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - TILE_LENGTH * 0.6, player->width, player->height * 1.5}; //20
 	SDL_RenderCopy(renderer, tex, &s, &R);
 	SDL_RenderCopy(renderer, tex, &s1, &R);
 	//SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
@@ -1131,15 +1166,24 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 {
 	SDL_Rect r = {(pObject->x - cam->offset_x) * TILE_LENGTH, (pObject->y - cam->offset_y) * TILE_LENGTH, pObject->width, pObject->height};
 
+
 	render_animation(pObject, tex, r, renderer);
 }
 
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)
 {
-	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - mObject->width/2 * 0, (mObject->y - cam->offset_y) * TILE_LENGTH - mObject->height/2 * 0, mObject->width, mObject->height * 1.5};
-
-	if(mObject->id != '6')
+	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - mObject->width/2 * 0, (mObject->y - cam->offset_y) * TILE_LENGTH - mObject->sprite.h * 0, mObject->width, mObject->height /*2.5*mObject->sprite.h*/};
+	//0.8 , 2.5*mObject->sprite.h
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R')
 		return;
+
+	if(mObject->id == 'R' && 0) 
+	{
+
+		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
+		SDL_RenderFillRect(renderer, &r);
+		return;
+	}
 #if 1
 	render_mObject_animation(mObject, r, renderer, tex);
 #endif 
