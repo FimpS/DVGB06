@@ -476,7 +476,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 75;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
 			mObject->mass = 25;
 			mObject->wall_collide = false;
@@ -492,7 +492,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
 			mObject->mass = 100;
 			mObject->wall_collide = false;
@@ -965,16 +965,18 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	new_y = mObject->y + mObject->vel_y;
 
 
-	double wunderkind = ((int)mObject->width < TILE_LENGTH) ? mObject->width/TILE_LENGTH : 0;
+	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : -1 * (1 - mObject->width/TILE_LENGTH);
+	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : -1 * (1 - mObject->height/TILE_LENGTH);
+
 	double f = 0.1;
 	bool hit_wall = false;
 
 	//TODO 
-	int offw = mObject->width/TILE_LENGTH;
-	int offh = mObject->height/TILE_LENGTH;
+	double offw = mObject->width/TILE_LENGTH;
+	double offh = mObject->height/TILE_LENGTH;
 	if(mObject->vel_x <= 0.0)
 	{
-		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offw - f))))
+		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
 		{
 			new_x = (int)new_x + 1;
 			mObject->vel_x = 0;
@@ -983,9 +985,9 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	}
 	else
 	{
-		if(map_get_solid(map, (int)(new_x + 1), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + (offh - f))))
+		if(map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + (offh - f))))
 		{
-			new_x = (int)(new_x);
+			new_x = (int)(new_x) + wunderkindw;
 			mObject->vel_x = 0;
 			hit_wall = true;
 		}
@@ -1001,13 +1003,15 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	}
 	else
 	{
-		if(map_get_solid(map, (int)(new_x), (int)(new_y + 1)) || map_get_solid(map, (int)(new_x + (offw-f)), (int)(new_y + offh)))
+		if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw-f)), (int)(new_y + offh)))
 		{
-			new_y = (int)(new_y);
+			new_y = (int)(new_y) + wunderkindh;
 			mObject->vel_y = 0;
 			hit_wall = true;
 		}
 	}
+
+
 	if(mObject->st.type == st_enemyknockback && hit_wall == true)
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
@@ -1153,11 +1157,11 @@ void update_pObject(struct pObject *pObject, struct player *player, struct map *
 
 void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, SDL_Texture *tex)
 {
-	SDL_Rect s = {32, 0, 16, 16};
-	SDL_Rect s1 = {80, 80, 32, 32};
-	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - TILE_LENGTH * 0.6, player->width, player->height * 1.5}; //20
+	SDL_Rect s = {32, 0, player->sprite.w, player->sprite.h};
+	//SDL_Rect s1 = {80, 80, 32, 32};
+	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH, player->width, player->height}; //20
 	SDL_RenderCopy(renderer, tex, &s, &R);
-	SDL_RenderCopy(renderer, tex, &s1, &R);
+	//SDL_RenderCopy(renderer, tex, &s1, &R);
 	//SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
 	//SDL_RenderFillRect(renderer, &R);
 }
@@ -1172,12 +1176,12 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)
 {
-	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - mObject->width/2 * 0, (mObject->y - cam->offset_y) * TILE_LENGTH - mObject->sprite.h * 0, mObject->width, mObject->height /*2.5*mObject->sprite.h*/};
+	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
 	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R')
 		return;
 
-	if(mObject->id == 'R' && 0) 
+	if(mObject->id == '7' && 0) 
 	{
 
 		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
