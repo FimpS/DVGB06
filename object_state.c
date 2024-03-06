@@ -29,6 +29,7 @@ void clueless(struct mObject *mObject, struct player *player, struct map *map)
 
 void identify_mObject_sprite_location(struct mObject *mObject)
 {
+	mObject->anim.timer = 0;
 	switch(mObject->st.type)
 	{
 		case ST_MAGUS_IDLE:
@@ -43,39 +44,85 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.start_frame = 0;
 			break;
 		case ST_MAGUS_DASH:
-			mObject->sprite.y = 0;
-			mObject->anim.limit = 4;
 			mObject->sprite.x = 64;
+			mObject->sprite.y = 0;
+			mObject->anim.limit = 48;
 			mObject->anim.start_frame = 64;
 			break;
 		case ST_MAGUS_READY:
-			mObject->anim.limit = 16;
-			mObject->sprite.y = 24;
 			mObject->sprite.x = 0;
+			mObject->sprite.y = 24;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SUMMONER_IDLE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 48;
+			mObject->anim.limit = 12;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SUMMONER_DASH:
+			mObject->sprite.x = 64;
+			mObject->sprite.y = 48;
+			mObject->anim.limit = 6;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SUMMONER_SUMMON:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 72;
+			mObject->anim.limit = 32;
 			mObject->anim.start_frame = 0;
 			break;
 		case st_enemyknockback:
-			mObject->sprite.y = 0;
-			mObject->sprite.x = 128;
-			mObject->anim.limit = mObject->st.limit + 16;
-			mObject->anim.start_frame = 128;
+			switch(mObject->id)
+			{
+				case '6':
+					mObject->sprite.y = 0;
+					mObject->sprite.x = 128;
+					mObject->anim.limit = mObject->st.limit + 8;
+					mObject->anim.start_frame = 128;
+					break;
+				case '7':
+					mObject->sprite.y = 48;
+					mObject->sprite.x = 128;
+					mObject->anim.limit = mObject->st.limit + 8;
+					mObject->anim.start_frame = 128;
+					break;
+				
+			}
 			break;
 		case st_deathrattle:
-			printf("got here\n");
-			mObject->sprite.y = 0;
-			mObject->sprite.x = 192;
-			mObject->anim.limit = mObject->st.limit / 4 + 4;
-			mObject->anim.start_frame = 192;
+			switch(mObject->id)
+			{
+				case '6':	
+					mObject->sprite.y = 0;
+					mObject->sprite.x = 192;
+					mObject->anim.limit = mObject->st.limit / 4 + 0;
+					mObject->anim.start_frame = 192;
+					break;
+				case '7':
+					mObject->sprite.y = 48;
+					mObject->sprite.x = 192;
+					mObject->anim.limit = mObject->st.limit / 4 + 0;
+					mObject->anim.start_frame = 192;
+					break;
+				case 'R':
+					mObject->anim.start_frame = 128;
+					mObject->sprite.x = 128;
+					mObject->anim.limit = mObject->st.limit / 4 - 0;
+					break;
+			}
 			break;
+
 	}
 }
 
 void set_mObject_state(struct mObject *mObject, mObject_state type,
-												void (*acp)(struct mObject*, 
-															struct player*, 
-															struct map *),
-												int timer,
-												int limit)
+		void (*acp)(struct mObject*, 
+			struct player*, 
+			struct map *),
+		int timer,
+		int limit)
 {
 	mObject->st.type = type;
 	mObject->st.acp = acp;
@@ -104,11 +151,11 @@ void identify_pObject_sprite_location(struct pObject *pObject)
 }
 
 void set_pObject_state(struct pObject *pObject, pObject_global_state type,
-												void (*acp)(struct pObject*,
-															struct player*,
-															struct map*),
-												int timer,
-												int limit)
+		void (*acp)(struct pObject*,
+			struct player*,
+			struct map*),
+		int timer,
+		int limit)
 {
 	pObject->st.type = type;
 	pObject->st.acp = acp;
@@ -179,8 +226,8 @@ void state_rusher_idle(struct mObject *mObj, struct player *player, struct map *
 	}
 	if(( (mObj->y < player->y + player->height/TILE_LENGTH && 
 					mObj->y + mObj->height/TILE_LENGTH > player->y) || 
-		(mObj->x < player->x + player->width/TILE_LENGTH &&
-		 mObj->x + mObj->width/TILE_LENGTH > player->x)) && dx * dx + dy * dy < 100)
+				(mObj->x < player->x + player->width/TILE_LENGTH &&
+				 mObj->x + mObj->width/TILE_LENGTH > player->x)) && dx * dx + dy * dy < 100)
 	{
 		set_mObject_state(mObj, st_m1, state_rusher_rush, 0, 80);
 		mObj->theta = atan2(dy, dx);
@@ -428,37 +475,42 @@ void state_magus_idle(struct mObject *mObj, struct player *player, struct map* m
 void state_summoner_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	if(mObj->st.timer > mObj->st.limit)
+	if(sum_square(dy, dx) < SUMMONER_RANGE)
 	{
-		mObj->theta = get_frand(TAU, 0.0);
-		set_mObject_state(mObj, st_summoner_idle, state_summoner_idlewalk, 0, 60);
-	}
-	if(dx * dx + dy * dy < 25)
-	{
-		set_mObject_state(mObj, st_summoner_summon, state_summoner_found, 0, 180);	
+		mObj->speed = mObj->base_speed / 25;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_SUMMONER_DASH, state_summoner_dash, 0, 64);	
 	}
 	mObj->st.timer ++;
 }
 
-void state_summoner_idlewalk(struct mObject *mObj, struct player *player, struct map *map)
+void state_summoner_dash(struct mObject *mObj, struct player* player, struct map* map)
 {
-	mObj->speed = mObj->base_speed/20;
+	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	//mObj->theta = atan2(dy, dx);
 	mObject_move(mObj, player, map);
-	if(mObj->st.timer > mObj->st.limit)
+	if(sum_square(dy, dx) > SUMMONER_RANGE + 4 && mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, st_summoner_idle, state_summoner_idle, 0, 120);
+		mObj->speed = 0;
+		set_mObject_state(mObj, ST_SUMMONER_IDLE, state_summoner_idle, 0, 0);
+	}
+	if(mObj->st.timer > mObj->st.limit && sum_square(dy, dx) < SUMMONER_RANGE - 9)
+	{
+		mObj->speed = 0;
+		set_mObject_state(mObj, ST_SUMMONER_SUMMON, state_summoner_found, 0, 128);
 	}
 	mObj->st.timer ++;
 }
 
 void state_summoner_found(struct mObject *mObj, struct player *player, struct map *map)
 {
-	mObj->speed = mObj->base_speed/20;
-	mObj->theta = get_frand(TAU, 0.0);
+	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	int count = 0;
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, st_summoner_idle, state_summoner_idlewalk, 0, 120);
+		mObj->speed = mObj->base_speed / 25;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_SUMMONER_DASH, state_summoner_dash, 0, 64);
 		for(int i = 0; i < map->mObject_list->size; i++)
 			if(((struct mObject*)dynList_get(map->mObject_list, i))->id == 'z')
 				count++;
@@ -468,6 +520,12 @@ void state_summoner_found(struct mObject *mObj, struct player *player, struct ma
 			{
 				spawn_mObject(map, mObj->x + i, mObj->y - 1, crawler, 'z');
 			}
+		else
+		{
+			mObj->speed = mObj->base_speed / 16;
+			mObj->theta = atan2(-dy, -dx);
+			set_mObject_state(mObj, ST_SUMMONER_DASH, state_summoner_dash, 0, 196);
+		}
 	}
 	mObj->st.timer ++;
 }

@@ -14,6 +14,7 @@
 #define DEATHRATTLE_LIMIT 16
 #define MAGUS_CAST_RANGE 16
 #define MAGUS_CAST_COOLDOWN 32
+#define SUMMONER_RANGE 49
 
 void set_mObject_state();
 void set_pObject_state();
@@ -56,7 +57,7 @@ void state_magus_chase();
 void state_magus_ready();
 //summoner
 void state_summoner_idle();
-void state_summoner_idlewalk();
+void state_summoner_dash();
 void state_summoner_found();
 //for all enemies
 void state_crawler_knockbacked();

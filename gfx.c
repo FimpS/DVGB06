@@ -14,8 +14,8 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 	textures[POBJECT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = IMG_Load("assets/mObject_spritesheet.png");
 	textures[MOBJECT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
-	surface = IMG_Load("assets/map_spritesheet.png");
-	textures[PLAYER_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
+	surface = IMG_Load("assets/runes_spritesheet.png");
+	textures[RUNES_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 }
 
 void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Rect R, SDL_Rect r)
