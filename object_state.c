@@ -293,18 +293,7 @@ void state_crawler_dash(struct mObject* mObj, struct player *player, struct map 
 	}
 	mObj->st.timer ++;
 }
-/*
-   void state_crawler_stay(struct mObject* mObj, struct player *player, struct map *map)
-   {
-   mObject_player_hitbox(mObj, player);
-   mObj->speed = mObj->base_speed/6.67;
-   if(mObj->st.timer > mObj->st.limit)
-   {
-   set_mObject_state(mObj, st_crawler_m2, state_crawler_move, 0, mObj->st.limit);
-   }
-   mObj->st.timer ++;
-   }
-   */
+
 void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
