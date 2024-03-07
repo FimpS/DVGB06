@@ -23,7 +23,7 @@ bool AABB(struct mObject *s, struct mObject *t)
 	return s->x < t->x + t->width/TILE_LENGTH &&
 		   s->x + s->width/TILE_LENGTH > t->x &&
 		   s->y < t->y + t->height/TILE_LENGTH &&
-		   s->y + s->width/TILE_LENGTH > t->y;
+		   s->y + s->height/TILE_LENGTH > t->y;
 }
 
 
@@ -69,7 +69,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->thrust_decel = -4;
 	player->anim1counter = 0;
-	player->sword_damage = 10;
+	player->sword_damage = 25;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
@@ -407,8 +407,10 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->contact_damage = 22;
-			mObject->anim = init_render_info(32, TILE_LENGTH, 16, 0, 4);
-			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, state_crawler_stay);
+			mObject->sprite = init_sprite(0, 96, 16, 16);
+			mObject->anim = init_render_info(0, 16, 4, 0, 8);
+			mObject->type_reg = ST_CRAWLER_IDLE;
+			mObject->st = init_mObject_state(state_crawler_idle, 0, 64, state_crawler_idle);
 			break;
 		case rusher:
 			mObject->health = 100;
@@ -826,7 +828,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
 
-	if(currentKeyStates[SDL_SCANCODE_9])
+	if(currentKeyStates[SDL_SCANCODE_9] || 1)
 		player->health = player->maxhealth;
 	if(player->health == 0)
 		return;
@@ -1178,7 +1180,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z')
 		return;
 
 	if(mObject->id == '7' && 0) 
