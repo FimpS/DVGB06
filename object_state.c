@@ -4,6 +4,11 @@
 #include "dynList.h"
 #include "map.h"
 
+double sum_square(double x, double y)
+{
+	return x * x + y * y;
+}
+
 void find_higheset(double *dxs, double *dys, int size, double *res)
 {
 	double highest = *dxs * *dxs + *dys * *dys;
@@ -32,6 +37,16 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 	mObject->anim.timer = 0;
 	switch(mObject->st.type)
 	{
+		case ST_CRAWLER_IDLE:
+			mObject->sprite.x = 0;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_CRAWLER_DASH:
+			mObject->sprite.x = 64;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 64;
+			break;
 		case ST_MAGUS_IDLE:
 			mObject->anim.limit = 12;
 			mObject->sprite.x = 0;
@@ -88,6 +103,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.limit = mObject->st.limit + 8;
 					mObject->anim.start_frame = 128;
 					break;
+			
 				
 			}
 			break;
@@ -110,6 +126,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 128;
 					mObject->sprite.x = 128;
 					mObject->anim.limit = mObject->st.limit / 4 - 0;
+					break;
+				case 'z':
+				case '2':
+					mObject->sprite.x = 192;
+					mObject->anim.start_frame = 192;
+					mObject->anim.limit = mObject->st.limit / 4;
 					break;
 			}
 			break;
@@ -168,27 +190,29 @@ void set_pObject_state(struct pObject *pObject, pObject_global_state type,
 void state_crawler_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	if(dx * dx + dy * dy < 100)
+	if(sum_square(dy, dx) < CRAWLER_RANGE && mObj->st.timer > mObj->st.limit)
 	{
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, st_crawler_m2, state_crawler_move, mObj->st.timer, mObj->st.limit);
+		mObj->speed = mObj->base_speed / 6;
+		set_mObject_state(mObj, ST_CRAWLER_DASH, state_crawler_dash, 0, 48);
 
 	}
+	mObj->st.timer ++;
 }
 
-void state_crawler_move(struct mObject* mObj, struct player *player, struct map *map)
+void state_crawler_dash(struct mObject* mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	mObject_move(mObj, player, map);
 	mObject_player_hitbox(mObj, player);
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, st_crawler_m3, state_crawler_stay, 0, rand() % 40 + 20);
+		set_mObject_state(mObj, ST_CRAWLER_IDLE, state_crawler_idle, 0, rand() % 40 + 20);
 		mObj->theta = atan2(dy, dx);
 	}
 	mObj->st.timer ++;
 }
-
+/*
 void state_crawler_stay(struct mObject* mObj, struct player *player, struct map *map)
 {
 	mObject_player_hitbox(mObj, player);
@@ -199,7 +223,7 @@ void state_crawler_stay(struct mObject* mObj, struct player *player, struct map 
 	}
 	mObj->st.timer ++;
 }
-
+*/
 void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
@@ -293,11 +317,6 @@ void state_balista_found(struct mObject *mObj, struct player *player, struct map
 	}
 	mObj->st.timer ++;
 
-}
-
-double sum_square(double x, double y)
-{
-	return x * x + y * y;
 }
 
 void state_archer_draw(struct mObject *mObj, struct player *player, struct map* map)
@@ -1115,6 +1134,8 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 	check_sword_dir(pObject, player);
 	double dx, dy;
 	//scary O(p*m) stuff
+	//check_pObject_mObject_hit(pObject, player, map);
+
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
 		struct mObject* target = ((struct mObject*)dynList_get(map->mObject_list, i));
@@ -1131,6 +1152,7 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 			target->hit = true;
 		}
 	}
+	
 	pObject->st.timer ++; 
 }
 

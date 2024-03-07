@@ -110,6 +110,8 @@ typedef enum
 {
 	st_spawn,
 	st_m1,
+	ST_CRAWLER_DASH,
+	ST_CRAWLER_IDLE,
 	ST_MAGUS_DASH,
 	ST_MAGUS_AWARE,
 	ST_MAGUS_IDLE,

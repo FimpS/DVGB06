@@ -15,6 +15,8 @@
 #define MAGUS_CAST_RANGE 16
 #define MAGUS_CAST_COOLDOWN 32
 #define SUMMONER_RANGE 49
+#define CRAWLER_RANGE 144
+#define CRAWLER_CHARGE_COOLDOWN 32
 
 void set_mObject_state();
 void set_pObject_state();
@@ -31,8 +33,7 @@ void state_enemy_knockbacked();
 void state_deathrattle();
 //crawler
 void state_crawler_idle();
-void state_crawler_move();
-void state_crawler_stay();
+void state_crawler_dash();
 //rusher
 void state_rusher_idle();
 void state_rusher_idlewalk();
