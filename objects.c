@@ -123,7 +123,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 0, 16, 16);
 			break;
 		case balista_bolt:
-			pObject->width = TILE_LENGTH/2;
+			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH/2;
 			pObject->speed = 0.3;
 			pObject->damage = dmg;
@@ -246,15 +246,17 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->st = init_pObject_state(state_brimstone_beam, 0, 48);
 			break;
 		case PO_SWORDSMAN_SWORD:
-			pObject->width = TILE_LENGTH;
+			pObject->width = TILE_LENGTH * 2;
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 144, 16, 16);
-			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 24);
+			pObject->sprite = init_sprite(0, 192, 32, 16);
+			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 8);
+			pObject->anim_tile_length = 32;
+			pObject->anim_frames = 1;
 			break;
 		case PO_MAGIC_BOLT:
 			pObject->width = TILE_LENGTH;
@@ -401,7 +403,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->speed = mObject->base_speed / 6.67;
-			mObject->mass = 50;
+			mObject->mass = 30;
 			mObject->wall_collide = false;
 			mObject->hit = false;
 			mObject->hittable = true;
@@ -452,26 +454,32 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 150;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
 			mObject->mass = 50;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->sprite = init_sprite(0, 160, 16, 24);
+			mObject->anim = init_render_info(0, 16, 4, 0, 16);
+			mObject->type_reg = ST_ARCHER_AWARE;
 			mObject->st = init_mObject_state(state_archer_idle, 0, 40, state_archer_aware);
 			break;
 		case MO_SWORDSMAN:
 			mObject->speed = mObject->base_speed;
 			mObject->health = 250;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
-			mObject->mass = 50;
+			mObject->mass = 40;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->sprite = init_sprite(0, 112, 16, 24);
+			mObject->anim = init_render_info(0, 16, 4, 0, 32);
+			mObject->type_reg = ST_SWORDSMAN_AWARE;
 			mObject->st = init_mObject_state(state_swordsman_idle, 0, 40, state_swordsman_aware);
 			break;		
 		case MO_MAGUS:
@@ -496,7 +504,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
-			mObject->mass = 100;
+			mObject->mass = 30;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
@@ -612,7 +620,6 @@ void identify_status_effect(struct mObject *mObject, struct player* player)
 	switch(mObject->status_effect.type)
 	{
 		case status_frostbite:
-			printf("source effect %d\n", 1);
 			frozen_status_effect(mObject, player);
 			break;
 		case status_rot:
@@ -882,7 +889,8 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	double offw = pObject->width/TILE_LENGTH;
 	double offh = pObject->height/TILE_LENGTH;
 
-	double wunderkind = ((int)pObject->width <= TILE_LENGTH) ? 1 - pObject->width/TILE_LENGTH : 0;
+	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : -1 * (1 - offw);
+	double wunderkindh = ((int)pObject->width <= TILE_LENGTH) ? 1 - offh : -1 * (1 - offh);
 #if 1
 	if(pObject->transp || pObject->pen_wall == true)
 	{
@@ -899,7 +907,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 		{
 			if(map_get_solid(map, (int)(new_x + offw), (int)pObject->y) || map_get_solid(map, (int)(new_x + offw), (int)(pObject->y + (offh - f))))
 			{
-				new_x = (int)new_x + wunderkind;
+				new_x = (int)new_x + wunderkindw;
 				pObject->vel_x = 0;
 				hit_wall = true;
 			}
@@ -917,7 +925,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 		{
 			if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw - f)), (int)(new_y + offh)))
 			{
-				new_y = (int)new_y + wunderkind;
+				new_y = (int)new_y + wunderkindh;
 				pObject->vel_y = 0;
 				hit_wall = true;
 			}
@@ -1180,7 +1188,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4')
 		return;
 
 	if(mObject->id == '7' && 0) 
