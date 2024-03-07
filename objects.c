@@ -123,7 +123,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 0, 16, 16);
 			break;
 		case balista_bolt:
-			pObject->width = TILE_LENGTH/2;
+			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH/2;
 			pObject->speed = 0.3;
 			pObject->damage = dmg;
@@ -454,13 +454,16 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 150;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
 			mObject->mass = 50;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->sprite = init_sprite(0, 160, 16, 24);
+			mObject->anim = init_render_info(0, 16, 4, 0, 16);
+			mObject->type_reg = ST_ARCHER_AWARE;
 			mObject->st = init_mObject_state(state_archer_idle, 0, 40, state_archer_aware);
 			break;
 		case MO_SWORDSMAN:
@@ -832,7 +835,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
 
-	if(currentKeyStates[SDL_SCANCODE_9] || 0)
+	if(currentKeyStates[SDL_SCANCODE_9] || 1)
 		player->health = player->maxhealth;
 	if(player->health == 0)
 		return;
@@ -886,7 +889,8 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	double offw = pObject->width/TILE_LENGTH;
 	double offh = pObject->height/TILE_LENGTH;
 
-	double wunderkind = ((int)pObject->width <= TILE_LENGTH) ? 1 - pObject->width/TILE_LENGTH : 0;
+	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : -1 * (1 - offw);
+	double wunderkindh = ((int)pObject->width <= TILE_LENGTH) ? 1 - offh : -1 * (1 - offh);
 #if 1
 	if(pObject->transp || pObject->pen_wall == true)
 	{
@@ -903,7 +907,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 		{
 			if(map_get_solid(map, (int)(new_x + offw), (int)pObject->y) || map_get_solid(map, (int)(new_x + offw), (int)(pObject->y + (offh - f))))
 			{
-				new_x = (int)new_x + wunderkind;
+				new_x = (int)new_x + wunderkindw;
 				pObject->vel_x = 0;
 				hit_wall = true;
 			}
@@ -921,7 +925,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 		{
 			if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw - f)), (int)(new_y + offh)))
 			{
-				new_y = (int)new_y + wunderkind;
+				new_y = (int)new_y + wunderkindh;
 				pObject->vel_y = 0;
 				hit_wall = true;
 			}
@@ -1184,7 +1188,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4')
 		return;
 
 	if(mObject->id == '7' && 0) 

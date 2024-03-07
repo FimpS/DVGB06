@@ -47,6 +47,30 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 4;
 			mObject->anim.start_frame = 64;
 			break;
+		case ST_ARCHER_IDLE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 160;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_ARCHER_AWARE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 160;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_ARCHER_DASH:
+			mObject->sprite.x = 64;
+			mObject->sprite.y = 160;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 64;
+			break;
+		case ST_ARCHER_DRAW:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 184;
+			mObject->anim.limit = mObject->st.limit / 4 + 2;
+			mObject->anim.start_frame = 0;
+			break;
 		case ST_SWORDSMAN_IDLE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 112;
@@ -138,9 +162,15 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.limit = mObject->st.limit + 124;
 					mObject->anim.limit = mObject->st.limit;
 					break;
+				case '4':
+					mObject->sprite.x = 128;
+					mObject->sprite.y = 160;
+					mObject->anim.start_frame = 128;
+					mObject->anim.limit = mObject->st.limit + 124;
+					break;
 				case '5':
 					mObject->sprite.x = 128;
-			mObject->sprite.y = 112;
+					mObject->sprite.y = 112;
 					mObject->anim.start_frame = 128;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
@@ -149,6 +179,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 		case st_deathrattle:
 			switch(mObject->id)
 			{
+				case '4':
+					mObject->sprite.y = 160;
+					mObject->sprite.x = 192;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 192;
+					break;
 				case '5':
 					mObject->sprite.y = 112;
 					mObject->sprite.x = 192;
@@ -368,10 +404,11 @@ void state_balista_found(struct mObject *mObj, struct player *player, struct map
 void state_archer_draw(struct mObject *mObj, struct player *player, struct map* map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	mObj->theta = atan2(dy, dx);
 	if(mObj->st.timer > mObj->st.limit)
 	{
 		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, balista_bolt, EAST, 40.0, atan2(dy, dx), player);
-		set_mObject_state(mObj, 0, state_archer_aware, 0, 120);
+		set_mObject_state(mObj, ST_ARCHER_AWARE, state_archer_aware, 0, 120);
 		return;
 	}
 	mObj->st.timer ++;
@@ -382,7 +419,7 @@ void state_archer_idle(struct mObject *mObj, struct player *player, struct map* 
 	double dx = mObj->x - player->x, dy = mObj->y - player->y;
 	if(sum_square(dx, dy) < HOSTILE_MOBJ_WAKEUP_DIST)
 	{
-		set_mObject_state(mObj, 0, state_archer_aware, 0, 100);
+		set_mObject_state(mObj, ST_ARCHER_AWARE, state_archer_aware, 0, 100);
 		return;
 	}
 	mObj->st.timer ++;
@@ -393,7 +430,7 @@ void state_archer_dash(struct mObject *mObj, struct player *player, struct map* 
 	mObject_move(mObj, player, map);
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_archer_aware, 0, 120);
+		set_mObject_state(mObj, ST_ARCHER_AWARE, state_archer_aware, 0, 120);
 		return;
 	}
 	mObj->st.timer ++;
@@ -404,14 +441,14 @@ void state_archer_aware(struct mObject *mObj, struct player *player, struct map*
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < ARCHER_INRANGE)
 	{
-		set_mObject_state(mObj, 0, state_archer_draw, 0, 48);
+		set_mObject_state(mObj, ST_ARCHER_DRAW, state_archer_draw, 0, 48);
 		return;
 	}
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		mObj->speed = mObj->base_speed / 3;
+		mObj->speed = mObj->base_speed / 12;
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, 0, state_archer_dash, 0, 8);
+		set_mObject_state(mObj, ST_ARCHER_DASH, state_archer_dash, 0, 48);
 		return;
 	}
 	mObj->st.timer ++;
