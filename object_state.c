@@ -47,6 +47,34 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 4;
 			mObject->anim.start_frame = 64;
 			break;
+		case ST_SWORDSMAN_IDLE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 112;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SWORDSMAN_AWARE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 112;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SWORDSMAN_READY:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 136;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_SWORDSMAN_SLASH:
+
+			mObject->sprite.y = 112;
+			break;
+		case ST_SWORDSMAN_DASH:
+			mObject->sprite.x = 64;
+			mObject->sprite.y = 112;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 64;
+			break;
 		case ST_MAGUS_IDLE:
 			mObject->anim.limit = 12;
 			mObject->sprite.x = 0;
@@ -94,22 +122,39 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 				case '6':
 					mObject->sprite.y = 0;
 					mObject->sprite.x = 128;
-					mObject->anim.limit = mObject->st.limit + 8;
+					mObject->anim.limit = mObject->st.limit + 124;
 					mObject->anim.start_frame = 128;
 					break;
 				case '7':
 					mObject->sprite.y = 48;
 					mObject->sprite.x = 128;
-					mObject->anim.limit = mObject->st.limit + 8;
+					mObject->anim.limit = mObject->st.limit + 124;
 					mObject->anim.start_frame = 128;
 					break;
-			
-				
+				case 'z':
+				case '2':
+					mObject->sprite.x = 128;
+					mObject->anim.start_frame = 128;
+					mObject->anim.limit = mObject->st.limit + 124;
+					mObject->anim.limit = mObject->st.limit;
+					break;
+				case '5':
+					mObject->sprite.x = 128;
+			mObject->sprite.y = 112;
+					mObject->anim.start_frame = 128;
+					mObject->anim.limit = mObject->st.limit + 124;
+					break;
 			}
 			break;
 		case st_deathrattle:
 			switch(mObject->id)
 			{
+				case '5':
+					mObject->sprite.y = 112;
+					mObject->sprite.x = 192;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 192;
+					break;
 				case '6':	
 					mObject->sprite.y = 0;
 					mObject->sprite.x = 192;
@@ -213,23 +258,24 @@ void state_crawler_dash(struct mObject* mObj, struct player *player, struct map 
 	mObj->st.timer ++;
 }
 /*
-void state_crawler_stay(struct mObject* mObj, struct player *player, struct map *map)
-{
-	mObject_player_hitbox(mObj, player);
-	mObj->speed = mObj->base_speed/6.67;
-	if(mObj->st.timer > mObj->st.limit)
-	{
-		set_mObject_state(mObj, st_crawler_m2, state_crawler_move, 0, mObj->st.limit);
-	}
-	mObj->st.timer ++;
-}
-*/
+   void state_crawler_stay(struct mObject* mObj, struct player *player, struct map *map)
+   {
+   mObject_player_hitbox(mObj, player);
+   mObj->speed = mObj->base_speed/6.67;
+   if(mObj->st.timer > mObj->st.limit)
+   {
+   set_mObject_state(mObj, st_crawler_m2, state_crawler_move, 0, mObj->st.limit);
+   }
+   mObj->st.timer ++;
+   }
+   */
 void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(mObj->st.timer > mObj->st.limit || mObj->speed <= 0)
 	{
 		set_mObject_state(mObj, mObj->type_reg, mObj->st.kcp, 0, 40);
+		mObj->theta = atan2(dy, dx);
 		mObj->speed = 0;
 		//mObj->theta = atan2(dy, dx);
 	}
@@ -377,7 +423,7 @@ void state_swordsman_slash(struct mObject *mObj, struct player *player, struct m
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_swordsman_aware, 0, 96);
+		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 96);
 		return;
 	}
 	mObj->st.timer ++;
@@ -389,8 +435,9 @@ void state_swordsman_ready(struct mObject *mObj, struct player *player, struct m
 	{
 		double dx = player->x - mObj->x, dy = player->y - mObj->y;
 		double theta = atan2(dy, dx);
-		spawn_pObject(map->pObject_list, mObj->x + 1*cos(theta), mObj->y + 1*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, 0.0, player);
-		set_mObject_state(mObj, 0, state_swordsman_slash, 0, 48);
+		mObj->theta = theta;
+		spawn_pObject(map->pObject_list,mObj->x + 0.2*cos(theta) - 0.2, 0.5 + mObj->y + 0.2*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, atan2(dy ,dx), player);
+		set_mObject_state(mObj, ST_SWORDSMAN_SLASH, state_swordsman_slash, 0, 48);
 		return;
 	}
 	mObj->st.timer ++;
@@ -401,7 +448,7 @@ void state_swordsman_dash(struct mObject *mObj, struct player *player, struct ma
 	mObject_move(mObj, player, map);
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_swordsman_aware, 0, 96);
+		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 96);
 		return;
 	}
 	mObj->st.timer ++;
@@ -413,14 +460,14 @@ void state_swordsman_aware(struct mObject *mObj, struct player *player, struct m
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < SWORDSMAN_INRANGE)
 	{
-		set_mObject_state(mObj, 0, state_swordsman_ready, 0, 48);
+		set_mObject_state(mObj, ST_SWORDSMAN_READY, state_swordsman_ready, 0, 32);
 		return;
 	}
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		mObj->speed = mObj->base_speed / 3;
+		mObj->speed = mObj->base_speed / 6;
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, 0, state_swordsman_dash, 0, 8);
+		set_mObject_state(mObj, ST_SWORDSMAN_DASH, state_swordsman_dash, 0, 16);
 		return;
 	}
 	mObj->st.timer ++;
@@ -433,7 +480,7 @@ void state_swordsman_idle(struct mObject *mObj, struct player *player, struct ma
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < HOSTILE_MOBJ_WAKEUP_DIST)
 	{
-		set_mObject_state(mObj, 0, state_swordsman_aware, 0, 100);
+		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 100);
 		return;
 	}
 	mObj->st.timer ++;
@@ -588,9 +635,12 @@ void state_pObject_deathrattle(struct pObject *pObject, struct player* player, s
 
 void state_swordsman_sword_swing(struct pObject* pObject, struct player* player, struct map* map)
 {
+	double dx = player->x - pObject->x, dy = player->y - pObject->y;
+	pObject->speed = 0.1;
+	pObject_move(pObject, player, map);
 	if(pObject->st.timer > pObject->st.limit)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 16);
 		return;
 	}
 	if(!player->invuln && AABBpp(pObject, player))
@@ -1152,7 +1202,7 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 			target->hit = true;
 		}
 	}
-	
+
 	pObject->st.timer ++; 
 }
 
@@ -1201,7 +1251,7 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 	{
 		if(mObject->killable)
 			map->aggresive_mObj_count --;
-		set_mObject_state(mObject, st_deathrattle, state_deathrattle, 0, 60);
+		set_mObject_state(mObject, st_deathrattle, state_deathrattle, 0, 64);
 		return;
 	}
 	if(mObject->inv_frames > 10)
