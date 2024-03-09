@@ -152,6 +152,30 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 32;
 			mObject->anim.start_frame = 0;
 			break;
+		case ST_CHIEFTAIN_AWARE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 224;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_CHIEFTAIN_DASH:
+			mObject->sprite.x = 64;
+			mObject->sprite.y = 224;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 64;
+			break;
+		case ST_CHIEFTAIN_SUMMON:
+			mObject->sprite.x = 64;
+			mObject->sprite.y = 248;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 64;
+			break;
+		case ST_CHIEFTAIN_READY:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 248;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
 		case st_enemyknockback:
 			switch(mObject->id)
 			{
@@ -186,7 +210,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 128;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
-			}
+				}
 			break;
 		case st_deathrattle:
 			switch(mObject->id)
@@ -229,6 +253,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 				case 'z':
 				case '2':
 					mObject->sprite.x = 192;
+					mObject->anim.start_frame = 192;
+					mObject->anim.limit = mObject->st.limit / 4;
+					break;
+				case 'c':
+					mObject->sprite.x = 192;
+					mObject->sprite.y = 224;
 					mObject->anim.start_frame = 192;
 					mObject->anim.limit = mObject->st.limit / 4;
 					break;
@@ -649,6 +679,89 @@ void state_summoner_found(struct mObject *mObj, struct player *player, struct ma
 	mObj->st.timer ++;
 }
 
+//GOLEM /BOSS\
+
+void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)
+{
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		set_mObject_state(mObj, 0, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
+#if 0
+		for(int i = 0; i < 4; i++)
+			spawn_pObject(map->pObject_list, x + rand() % 9, y + rand() % 9, PO_GOLEM_ROCKS, EAST, 20.0, down, player);
+#endif
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_golem_hit(struct mObject *mObj, struct player *player, struct map* map)
+{
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		set_mObject_state(mObj, 0, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_golem_ready(struct mObject *mObj, struct player *player, struct map* map)
+{
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		set_mObject_state(mObj, 0, state_golem_hit, 0, 64);
+		//spawn_pObject(map->pObject_list, x, y, GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_golem_dash(struct mObject *mObj, struct player *player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		set_mObject_state(mObj, 0, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_golem_aware(struct mObject *mObj, struct player *player, struct map* map)
+{
+	const double offx = mObj->width/TILE_LENGTH, offy = mObj->height/TILE_LENGTH;
+	const double offx2 = player->width/TILE_LENGTH, offy2 = player->height/TILE_LENGTH;
+	const double dx = player->x + offx/2 - (mObj->x + offx/2), dy = player->y + offy/2 - (mObj->y + offy/2);
+
+#if 1
+	mObj->st.timer ++;
+	if(mObj->st.timer < mObj->st.limit)
+	{
+		return;
+	}
+
+
+	if(sum_square(dy, dx) > GOLEM_STOMP_RANGE && 1)
+	{
+		set_mObject_state(mObj, 0, state_golem_stomp, 0, 64);
+	}
+	else if(sum_square(dy, dx) < GOLEM_ATTACK_RANGE && 1)
+	{
+		set_mObject_state(mObj, 0, state_golem_ready, 0, 64);
+	}
+	else
+	{
+		mObj->speed = mObj->base_speed / 16;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, 0, state_golem_dash, 0, 64);
+	}
+#endif 
+
+
+
+
+}
+
 //CHIEFTAIN /BOSS\
 
 void state_chieftain_summon(struct mObject *mObj, struct player * player, struct map* map)
@@ -659,17 +772,17 @@ void state_chieftain_summon(struct mObject *mObj, struct player * player, struct
 	{
 		mObj->speed = mObj->base_speed / 25;
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, 0, state_chieftain_aware, 0, 24);
+		set_mObject_state(mObj, ST_CHIEFTAIN_AWARE, state_chieftain_aware, 0, 24);
 		for(int i = 0; i < map->mObject_list->size; i++)
 			if(((struct mObject*)dynList_get(map->mObject_list, i))->id == 'z')
 				count++;
 		printf("count: %d\n", count);
 		if(count < 2)
 		{
-				spawn_mObject(map, mObj->x + 1, mObj->y - 1, crawler, 'z');
-				spawn_mObject(map, mObj->x - 1, mObj->y + 1, crawler, 'z');
-				spawn_mObject(map, mObj->x + 1, mObj->y + 1, crawler, 'z');
-				spawn_mObject(map, mObj->x - 1, mObj->y - 1, crawler, 'z');
+			spawn_mObject(map, mObj->x + 1, mObj->y - 1, crawler, 'z');
+			spawn_mObject(map, mObj->x - 1, mObj->y + 1, crawler, 'z');
+			spawn_mObject(map, mObj->x + 1, mObj->y + 1, crawler, 'z');
+			spawn_mObject(map, mObj->x - 1, mObj->y - 1, crawler, 'z');
 		}
 	}
 	mObj->st.timer ++;
@@ -687,9 +800,9 @@ void state_chieftain_ready(struct mObject *mObj, struct player *player, struct m
 		spawn_pObject(map->pObject_list, player->x - 6, player->y, PO_MAGIC_BOLT, SOUTH, 20.0, 0.0, player);
 
 		if(spam_chance)
-			set_mObject_state(mObj, 0, state_chieftain_ready, 0, 32);
+			set_mObject_state(mObj, ST_CHIEFTAIN_READY, state_chieftain_ready, 0, 32);
 		else
-			set_mObject_state(mObj, 0, state_chieftain_aware, 0, 24);
+			set_mObject_state(mObj, ST_CHIEFTAIN_AWARE, state_chieftain_aware, 0, 24);
 		return;
 	}
 	mObj->st.timer ++;
@@ -704,7 +817,7 @@ void state_chieftain_dash(struct mObject *mObj, struct player *player, struct ma
 	mObject_move(mObj, player, map);
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_chieftain_aware, 0, 32);
+		set_mObject_state(mObj, ST_CHIEFTAIN_AWARE, state_chieftain_aware, 0, 32);
 	}
 	mObj->st.timer ++;
 }
@@ -722,22 +835,22 @@ void state_chieftain_aware(struct mObject *mObj, struct player *player, struct m
 
 	//int spell = rand() % 5;
 
-		//printf("got here\n");
+	//printf("got here\n");
 	bool flip = mObj->atts.cheiftain_ticker ++ % 2;
-	printf("flip: %d\n", flip);
+	//printf("flip: %d\n", flip);
 	if(flip)
 		if(sum_square(dy, dx) > 9)
 		{
 			mObj->speed = mObj->base_speed / 4;
 			mObj->theta = atan2(dy, dx);
-			set_mObject_state(mObj, 0, state_chieftain_dash, 0, 16);
+			set_mObject_state(mObj, ST_CHIEFTAIN_DASH, state_chieftain_dash, 0, 16);
 			return;
 		}
 		else
 		{
 			mObj->speed = mObj->base_speed / 4;
 			mObj->theta = atan2(-dy, -dx);
-			set_mObject_state(mObj, 0, state_chieftain_dash, 0, 16);
+			set_mObject_state(mObj, ST_CHIEFTAIN_DASH, state_chieftain_dash, 0, 16);
 			return;
 		}
 
@@ -749,11 +862,11 @@ void state_chieftain_aware(struct mObject *mObj, struct player *player, struct m
 				count++;
 		if(count > 2)
 		{
-			set_mObject_state(mObj, 0, state_chieftain_ready, 0, 32);
+			set_mObject_state(mObj, ST_CHIEFTAIN_READY, state_chieftain_ready, 0, 32);
 			return;
 		}
 
-		set_mObject_state(mObj, 0, state_chieftain_summon, 0, 80);
+		set_mObject_state(mObj, ST_CHIEFTAIN_SUMMON, state_chieftain_summon, 0, 80);
 		return;
 	}
 
