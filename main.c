@@ -47,7 +47,7 @@ int main(int argc, int **argv) {
 		return 1;
 	}
 
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC*/);
 
 	if(renderer == NULL)
 	{
@@ -63,7 +63,8 @@ int main(int argc, int **argv) {
 	initPlayer(&player, 20, 20);
 	reduce = player.health / player.maxhealth * 8 * TILE_LENGTH;
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	map_load_scene(&map, map.s_map.content[map.s_map.index], map.mObject_list, &player);
+	const char* tmp = "res/ch1_maps/ch1_3.txt";
+	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];
 	gfx_init(tex, renderer);
@@ -114,7 +115,7 @@ int main(int argc, int **argv) {
 		map_draw(&map, &cam, renderer, *tex);
 		draw_all_mObjects(renderer, map.mObject_list, &cam, tex[MOBJECT_SPRITESHEET]);
 		draw_pObjects(renderer, map.pObject_list, &cam, tex[POBJECT_SPRITESHEET]);
-		drawPlayer(renderer, &player, &cam, *tex);
+		drawPlayer(renderer, &player, &cam, tex[PLAYER_SPRITESHEET]);
 
 		render_hpbar(renderer, &player, &cam, &reduce);
 		//draw

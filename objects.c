@@ -44,6 +44,37 @@ bool AABBpm(struct pObject *pObject, struct mObject *target)
 
 }
 
+struct mObj_state init_mObject_state(void (*acp)(struct mObject*,
+			struct player*,
+			struct map*),
+		int timer,
+		int limit,
+		void (*kcp)(struct mObject*,
+			struct player*,
+			struct map*)
+		)
+{
+	struct mObj_state new = {0};
+	new.type = st_spawn;
+	new.acp = acp;
+	new.timer = timer;
+	new.limit = limit;
+	new.kcp = kcp;
+
+	return new;
+}
+
+struct render_info init_render_info(int s, int ti, int f, int t, int l)
+{
+	struct render_info new = {0};
+	new.start_frame = s;
+	new.tile_length= ti;
+	new.frames = f;
+	new.timer = t;
+	new.limit = l;
+	return new;
+}
+
 void initPlayer(struct player *player, int width, int height)
 { 
 	player->x = 2;
@@ -51,7 +82,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_x = 0;
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 1;
+	player->height = TILE_LENGTH * 2/2;
 	player->base_speed = 1;
 	player->speed = player->base_speed / 10;
 	player->theta = 0;
@@ -69,11 +100,12 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->thrust_decel = -4;
 	player->anim1counter = 0;
-	player->sword_damage = 25;
+	player->sword_damage = 50;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
-	player->sprite = init_sprite(16, 0, 16, 16);
+	player->anim = init_render_info(0, 16, 4, 0, 16);
+	player->sprite = init_sprite(0, 0, 16, 24);
 	player->sword_effect_type = status_none;
 }
 
@@ -254,7 +286,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 192, 32, 16);
-			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 8);
+			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 16);
 			pObject->anim_tile_length = 32;
 			pObject->anim_frames = 1;
 			break;
@@ -286,26 +318,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	}
 }
 
-struct mObj_state init_mObject_state(void (*acp)(struct mObject*,
-			struct player*,
-			struct map*),
-		int timer,
-		int limit,
-		void (*kcp)(struct mObject*,
-			struct player*,
-			struct map*)
-		)
-{
-	struct mObj_state new = {0};
-	new.type = st_spawn;
-	new.acp = acp;
-	new.timer = timer;
-	new.limit = limit;
-	new.kcp = kcp;
-
-	return new;
-}
-
 struct status_effect init_status_effect()
 {
 	struct status_effect new = {0};
@@ -320,17 +332,6 @@ void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_st
 	mObject->status_effect.timer = timer;
 	mObject->status_effect.limit = limit;
 	mObject->status_effect.type = type;
-}
-
-struct render_info init_render_info(int s, int ti, int f, int t, int l)
-{
-	struct render_info new = {0};
-	new.start_frame = s;
-	new.tile_length= ti;
-	new.frames = f;
-	new.timer = t;
-	new.limit = l;
-	return new;
 }
 
 SDL_Rect identify_rune_sprite(struct rune_info ri)
@@ -372,6 +373,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 	mObject->theta = PI;
 	mObject->type_reg = ST_MAGUS_IDLE;
 	mObject->status_effect = init_status_effect();
+	mObject->anim.rotatable = false;
+	mObject->hyperarmor = false;
 	switch(mObject->type)
 	{
 		case runner:
@@ -442,13 +445,18 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->health = 500;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
+			mObject->theta = PI/2;
 			mObject->hit = false;
 			mObject->mass = 999;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
+			mObject->sprite = init_sprite(0, 208, 16, 16);
+			mObject->anim = init_render_info(0, 16, 1, 0, 1600);
+			mObject->type_reg = ST_BALISTA_IDLE;
 			mObject->st = init_mObject_state(state_balista_idle, 0, 40, state_balista_idle);
+			mObject->anim.rotatable = true;
 			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
@@ -513,6 +521,24 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = init_sprite(0, 48, 16, 24);
 			mObject->type_reg = ST_SUMMONER_IDLE;
 			mObject->st = init_mObject_state(state_summoner_idle, 0, 40, state_summoner_idle);
+			break;
+		case MO_CULTIST_CHIEFTAIN:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
+			mObject->hit = false;
+			mObject->mass = 999;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->atts.cheiftain_ticker = 0;
+			mObject->anim = init_render_info(0, 16, 1, 0, 128);
+			mObject->sprite = init_sprite(0, 224, 16, 24);
+			mObject->type_reg = 0;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_chieftain_aware, 0, 48, NULL);
 			break;
 		case interactable:
 			mObject->width = TILE_LENGTH;
@@ -762,7 +788,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	new_x = player->x + player->vel_x;
 	new_y = player->y + player->vel_y;
 
-	double wunderkind = ((int)player->width <= TILE_LENGTH) ? 1 - player->width/TILE_LENGTH : 0;
 	//struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
 	/*	
 		if(rune == NULL)
@@ -774,7 +799,11 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		flight = true;
 		}
 		*/
-
+	double offw = player->width/TILE_LENGTH;
+	double offh = player->height/TILE_LENGTH;
+	
+	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : -1 * (1 - offw);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : -1 * (1 - offh);
 
 	if(1)
 	{
@@ -790,7 +819,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		{
 			if(map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH), (int)player->y) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH), (int)(player->y + player->height/TILE_LENGTH - 0.1)))
 			{
-				new_x = (int)new_x + wunderkind;
+				new_x = (int)new_x + wunderkindw;
 				player->vel_x = 0;
 			}
 		}
@@ -798,7 +827,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		{
 			if(map_get_solid(map, (int)new_x, (int)(new_y)) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH - 0.1), (int)(new_y)))
 			{
-				new_y = (int)new_y + player->height/TILE_LENGTH * TILE_LENGTH/player->height;
+				new_y = (int)new_y + 1;
 				player->vel_y = 0;
 			}
 		}
@@ -806,7 +835,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		{
 			if(map_get_solid(map, (int)(new_x), (int)(new_y + player->height/TILE_LENGTH - 0.1)) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH - 0.1), (int)(new_y + player->height/TILE_LENGTH - 0.1)))
 			{
-				new_y = (int)new_y + wunderkind;
+				new_y = (int)new_y + wunderkindh;
 				player->vel_y = 0;
 			}
 		}
@@ -835,7 +864,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
 
-	if(currentKeyStates[SDL_SCANCODE_9] || 1)
+	if(currentKeyStates[SDL_SCANCODE_9] || 0)
 		player->health = player->maxhealth;
 	if(player->health == 0)
 		return;
@@ -1077,7 +1106,7 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	//this segfaulted for no reason before be careful
 	set_status_effect(target, 0, 360, source->status_effect);
 	printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
-	if(!source->knockbacker)
+	if(!source->knockbacker || target->hyperarmor)
 		return;
 	target->speed = 0.2 * source->knockkoef - target->mass / 1024;
 	target->speed = target->speed <= 0 ? 0 : target->speed;
@@ -1146,7 +1175,6 @@ void update_mObject(struct mObject *mObject, struct player *player, struct map *
 	}
 	if(mObject->st.acp == NULL)
 		return;		
-
 	state_enemy_default(mObject, player, map);
 	mObject->st.acp(mObject, player, map);
 }
@@ -1167,10 +1195,14 @@ void update_pObject(struct pObject *pObject, struct player *player, struct map *
 
 void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, SDL_Texture *tex)
 {
-	SDL_Rect s = {32, 0, player->sprite.w, player->sprite.h};
+	SDL_Rect s = {0, 0, 16, 24};
 	//SDL_Rect s1 = {80, 80, 32, 32};
-	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH, player->width, player->height}; //20
-	SDL_RenderCopy(renderer, tex, &s, &R);
+	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - 20, player->width, player->height + 20}; //20
+
+
+	render_player_animation(player, R, renderer, tex);
+
+	//SDL_RenderCopy(renderer, tex, &s, &R);
 	//SDL_RenderCopy(renderer, tex, &s1, &R);
 	//SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
 	//SDL_RenderFillRect(renderer, &R);
@@ -1188,7 +1220,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c')
 		return;
 
 	if(mObject->id == '7' && 0) 

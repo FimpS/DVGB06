@@ -15,7 +15,7 @@ TODO:
 
 		IN PROGRESS:
 
-
+	fix archer bolts not dissapearing chagne deathrattle to dead
 
 
 Notes:

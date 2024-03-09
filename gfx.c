@@ -16,6 +16,8 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 	textures[MOBJECT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = IMG_Load("assets/runes_spritesheet.png");
 	textures[RUNES_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
+	surface = IMG_Load("assets/player_spritesheet.png");
+	textures[PLAYER_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 }
 
 void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Rect R, SDL_Rect r)
@@ -23,16 +25,38 @@ void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Re
 	SDL_RenderCopy(renderer, tex, &R, &r);
 }
 
+void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
+{
+	const double conv = 57.29577;
+	bool flip = false;
+	if(player->theta < PI/2 && player->theta > -1 * PI/2)
+	{
+		flip = true;
+	}
+	SDL_RenderCopyEx(renderer, tex, &player->sprite, &dR, 0, NULL, flip);
+	if(player->anim.timer >= player->anim.limit)
+	{
+		player->anim.timer = 0;
+		player->sprite.x += player->anim.tile_length;
+		player->sprite.x %= player->anim.frames * player->anim.tile_length;
+		player->sprite.x += player->anim.start_frame;
+		return;
+	}
+	player->anim.timer ++;
+
+}
+
 void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
 {
 	const double conv = 57.29577;
 	bool flip = false;
+	double theta = mObject->anim.rotatable ? mObject->theta : 0;
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{
-		flip = true;
+		flip = theta == 0 ? true : false;
 	}
-	SDL_RenderCopyEx(renderer, tex, &mObject->sprite, &dR, 0, NULL, flip);
-	if(mObject->anim.timer > mObject->anim.limit)
+	SDL_RenderCopyEx(renderer, tex, &mObject->sprite, &dR, theta * conv, NULL, flip);
+	if(mObject->anim.timer >= mObject->anim.limit)
 	{
 		mObject->anim.timer = 0;
 		mObject->sprite.x += mObject->anim.tile_length;
