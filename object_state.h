@@ -9,6 +9,7 @@
 #define PLAYER_DASH_LIMIT 4
 #define PLAYER_DASH_INVULN_LIMIT 16
 #define HOSTILE_MOBJ_WAKEUP_DIST 64
+#define BALISTA_RANGE 49
 #define ARCHER_INRANGE 49
 #define SWORDSMAN_INRANGE 4
 #define DEATHRATTLE_LIMIT 16
@@ -17,6 +18,9 @@
 #define SUMMONER_RANGE 49
 #define CRAWLER_RANGE 144
 #define CRAWLER_CHARGE_COOLDOWN 32
+//bosses
+#define CULTIST_RANGE_SUMMON 144
+#define CULTIST_RANGE_CROSS 64
 
 void set_mObject_state();
 void set_pObject_state();
@@ -40,7 +44,7 @@ void state_rusher_idlewalk();
 void state_rusher_rush();
 //balita
 void state_balista_idle();
-void state_balista_found();
+void state_balista_aware();
 void state_balista_shot();
 //archer
 void state_archer_idle();
@@ -60,6 +64,11 @@ void state_magus_ready();
 void state_summoner_idle();
 void state_summoner_dash();
 void state_summoner_found();
+//bossas
+
+//cheiftain
+void state_chieftain_aware();
+void state_chieftain_ready();
 //for all enemies
 void state_crawler_knockbacked();
 void state_enemy_default();

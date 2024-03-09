@@ -39,6 +39,15 @@ struct mObj_state
 	int limit;
 };
 
+struct render_info
+{
+	int start_frame;
+	int tile_length;
+	int frames;
+	int limit;
+	int timer;
+	bool rotatable;
+};
 
 struct player
 {
@@ -74,6 +83,7 @@ struct player
 	int kills;
 
 	SDL_Rect sprite;
+	struct render_info anim;
 };
 
 struct pObject
@@ -108,15 +118,6 @@ struct pObject
 	SDL_Rect sprite;
 };
 
-struct render_info
-{
-	int start_frame;
-	int tile_length;
-	int frames;
-	int limit;
-	int timer;
-};
-
 struct mObject
 {
 	double x;
@@ -137,7 +138,7 @@ struct mObject
 	double mass;
 	bool wall_collide;
 	bool killable;
-	bool knockbackable;
+	bool hyperarmor;
 
 	double health;
 
@@ -146,6 +147,12 @@ struct mObject
 	struct status_effect status_effect;
 
 	mObject_type type;
+
+	union 
+	{
+		int cheiftain_ticker;
+		double lol;
+	} atts;
 
 	mObject_global_state type_reg;
 	struct render_info anim;

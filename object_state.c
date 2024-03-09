@@ -47,6 +47,18 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 4;
 			mObject->anim.start_frame = 64;
 			break;
+		case ST_BALISTA_IDLE:
+			mObject->sprite.x = 0;
+			mObject->anim.limit = 16;
+			mObject->anim.frames = 1;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_BALISTA_AWARE:
+			mObject->sprite.x = 0;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.frames = 4;
+			mObject->anim.start_frame = 0;
+			break;
 		case ST_ARCHER_IDLE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 160;
@@ -68,7 +80,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 		case ST_ARCHER_DRAW:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 184;
-			mObject->anim.limit = mObject->st.limit / 4 + 2;
+			mObject->anim.limit = mObject->st.limit / 4 ;
 			mObject->anim.start_frame = 0;
 			break;
 		case ST_SWORDSMAN_IDLE:
@@ -179,6 +191,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 		case st_deathrattle:
 			switch(mObject->id)
 			{
+				case 'B':
+					mObject->sprite.x = 192;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.frames = 4;
+					mObject->anim.start_frame = 192;
+					break;
 				case '4':
 					mObject->sprite.y = 160;
 					mObject->sprite.x = 192;
@@ -371,20 +389,28 @@ void state_rusher_idlewalk(struct mObject *mObj, struct player *player, struct m
 void state_balista_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	if(dx * dx + dy * dy < 64)
+	//mObj->theta = PI/2;
+	if(sum_square(dy , dx) < 64 && mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, st_m1, state_balista_found, 0, 40);
+		mObj->theta = atan2(dy ,dx);
+		set_mObject_state(mObj, ST_BALISTA_AWARE, state_balista_aware, 0, 64);
 	}
+	mObj->st.timer ++;
 }
 
-void state_balista_found(struct mObject *mObj, struct player *player, struct map *map)
+void state_balista_aware(struct mObject *mObj, struct player *player, struct map *map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	if(getTick() % 24 == 0)
+	{
+		mObj->theta = atan2(dy ,dx);
+	}
+
 	if(mObj->st.timer > mObj->st.limit)
 	{
 		double t = atan2(dy, dx);
-		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, balista_bolt, NORTH, 20.0, t, player);
-		set_mObject_state(mObj, st_m1, state_balista_found, 0, 120);
+		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, balista_bolt, NORTH, 20.0, mObj->theta, player);
+		set_mObject_state(mObj, ST_BALISTA_IDLE, state_balista_idle, 0, 64);
 	}
 	mObj->st.timer ++;
 
@@ -430,7 +456,7 @@ void state_archer_aware(struct mObject *mObj, struct player *player, struct map*
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < ARCHER_INRANGE)
 	{
-		set_mObject_state(mObj, ST_ARCHER_DRAW, state_archer_draw, 0, 48);
+		set_mObject_state(mObj, ST_ARCHER_DRAW, state_archer_draw, 0, 64);
 		return;
 	}
 	if(mObj->st.timer > mObj->st.limit)
@@ -462,7 +488,7 @@ void state_swordsman_ready(struct mObject *mObj, struct player *player, struct m
 		double dx = player->x - mObj->x, dy = player->y - mObj->y;
 		double theta = atan2(dy, dx);
 		mObj->theta = theta;
-		spawn_pObject(map->pObject_list,mObj->x + 0.2*cos(theta) - 0.2, 0.5 + mObj->y + 0.2*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, atan2(dy ,dx), player);
+		spawn_pObject(map->pObject_list,mObj->x + 0.2*cos(theta) - 0.2, 0.3 + mObj->y + 0.2*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, atan2(dy ,dx), player);
 		set_mObject_state(mObj, ST_SWORDSMAN_SLASH, state_swordsman_slash, 0, 48);
 		return;
 	}
@@ -596,6 +622,7 @@ void state_summoner_dash(struct mObject *mObj, struct player* player, struct map
 
 void state_summoner_found(struct mObject *mObj, struct player *player, struct map *map)
 {
+
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	int count = 0;
 	if(mObj->st.timer > mObj->st.limit)
@@ -620,6 +647,116 @@ void state_summoner_found(struct mObject *mObj, struct player *player, struct ma
 		}
 	}
 	mObj->st.timer ++;
+}
+
+//CHIEFTAIN /BOSS\
+
+void state_chieftain_summon(struct mObject *mObj, struct player * player, struct map* map)
+{
+	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	int count = 0;
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		mObj->speed = mObj->base_speed / 25;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, 0, state_chieftain_aware, 0, 24);
+		for(int i = 0; i < map->mObject_list->size; i++)
+			if(((struct mObject*)dynList_get(map->mObject_list, i))->id == 'z')
+				count++;
+		printf("count: %d\n", count);
+		if(count < 2)
+		{
+				spawn_mObject(map, mObj->x + 1, mObj->y - 1, crawler, 'z');
+				spawn_mObject(map, mObj->x - 1, mObj->y + 1, crawler, 'z');
+				spawn_mObject(map, mObj->x + 1, mObj->y + 1, crawler, 'z');
+				spawn_mObject(map, mObj->x - 1, mObj->y - 1, crawler, 'z');
+		}
+	}
+	mObj->st.timer ++;
+
+}
+
+void state_chieftain_ready(struct mObject *mObj, struct player *player, struct map *map)
+{
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		int spam_chance = rand() % 2;
+		spawn_pObject(map->pObject_list, player->x, player->y + 6, PO_MAGIC_BOLT, NORTH, 20.0, -PI/2, player);
+		spawn_pObject(map->pObject_list, player->x, player->y - 6, PO_MAGIC_BOLT, SOUTH, 20.0, PI/2, player);
+		spawn_pObject(map->pObject_list, player->x + 6, player->y, PO_MAGIC_BOLT, EAST, 20.0, PI, player);
+		spawn_pObject(map->pObject_list, player->x - 6, player->y, PO_MAGIC_BOLT, SOUTH, 20.0, 0.0, player);
+
+		if(spam_chance)
+			set_mObject_state(mObj, 0, state_chieftain_ready, 0, 32);
+		else
+			set_mObject_state(mObj, 0, state_chieftain_aware, 0, 24);
+		return;
+	}
+	mObj->st.timer ++;
+
+}
+
+
+//void state_chieftain_tired ?? maybe good ??
+
+void state_chieftain_dash(struct mObject *mObj, struct player *player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer > mObj->st.limit)
+	{
+		set_mObject_state(mObj, 0, state_chieftain_aware, 0, 32);
+	}
+	mObj->st.timer ++;
+}
+
+void state_chieftain_aware(struct mObject *mObj, struct player *player, struct map *map)
+{
+	//cooldown/resttime
+	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	mObj->st.timer ++;
+	if(mObj->st.timer < mObj->st.limit)
+	{
+		return;
+	}
+	//skills
+
+	//int spell = rand() % 5;
+
+		//printf("got here\n");
+	bool flip = mObj->atts.cheiftain_ticker ++ % 2;
+	printf("flip: %d\n", flip);
+	if(flip)
+		if(sum_square(dy, dx) > 9)
+		{
+			mObj->speed = mObj->base_speed / 4;
+			mObj->theta = atan2(dy, dx);
+			set_mObject_state(mObj, 0, state_chieftain_dash, 0, 16);
+			return;
+		}
+		else
+		{
+			mObj->speed = mObj->base_speed / 4;
+			mObj->theta = atan2(-dy, -dx);
+			set_mObject_state(mObj, 0, state_chieftain_dash, 0, 16);
+			return;
+		}
+
+	if(sum_square(dy, dx) < CULTIST_RANGE_SUMMON)
+	{
+		int count = 0;
+		for(int i = 0; i < map->mObject_list->size; i++)
+			if(((struct mObject*)dynList_get(map->mObject_list, i))->id == 'z')
+				count++;
+		if(count > 2)
+		{
+			set_mObject_state(mObj, 0, state_chieftain_ready, 0, 32);
+			return;
+		}
+
+		set_mObject_state(mObj, 0, state_chieftain_summon, 0, 80);
+		return;
+	}
+
 }
 
 void check_sword_dir(struct pObject *pObject, struct player *player)
@@ -662,7 +799,7 @@ void state_pObject_deathrattle(struct pObject *pObject, struct player* player, s
 void state_swordsman_sword_swing(struct pObject* pObject, struct player* player, struct map* map)
 {
 	double dx = player->x - pObject->x, dy = player->y - pObject->y;
-	pObject->speed = 0.1;
+	pObject->speed = 0.05;
 	pObject_move(pObject, player, map);
 	if(pObject->st.timer > pObject->st.limit)
 	{
@@ -847,11 +984,13 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	{
 		player->vel_x = player->speed;
 		player->dir = EAST;
+		player->theta = 0;
 	}
 	if(currentKeyStates[SDL_SCANCODE_A])
 	{
 		player->vel_x = -player->speed;
 		player->dir = WEST;
+		player->theta = PI;
 	}
 	if(currentKeyStates[SDL_SCANCODE_W])
 	{
@@ -866,18 +1005,22 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	if(player->vel_x > 0 && player->vel_y > 0)
 	{
 		player->dir = SOUTHEAST;
+		player->theta = 0;
 	} 
 	else if(player->vel_x > 0 && player->vel_y < 0)
 	{
 		player->dir = NORTHEAST;
+		player->theta = 0;
 	}
 	else if(player->vel_x < 0 && player->vel_y > 0)
 	{
 		player->dir = SOUTHWEST;
+		player->theta = PI;
 	}
 	else if(player->vel_x < 0 && player->vel_y < 0)
 	{
 		player->dir = NORTHWEST;
+		player->theta = PI;
 	}
 	if(player->vel_x == 0 && player->vel_y == 0)
 	{
