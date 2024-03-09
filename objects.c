@@ -522,6 +522,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_SUMMONER_IDLE;
 			mObject->st = init_mObject_state(state_summoner_idle, 0, 40, state_summoner_idle);
 			break;
+		case MO_GOLEM:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 4/2;
+			mObject->hit = false;
+			mObject->mass = 999;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(0, 16, 1, 0, 11299);
+			mObject->sprite = init_sprite(0, 512, 32, 32);
+			mObject->type_reg = 0;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_golem_aware, 0, 48, NULL);
+			break;
 		case MO_CULTIST_CHIEFTAIN:
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
@@ -534,7 +551,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->atts.cheiftain_ticker = 0;
-			mObject->anim = init_render_info(0, 16, 1, 0, 128);
+			mObject->anim = init_render_info(0, 16, 4, 0, 8);
 			mObject->sprite = init_sprite(0, 224, 16, 24);
 			mObject->type_reg = 0;
 			mObject->hyperarmor = true;
@@ -863,7 +880,6 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
-
 	if(currentKeyStates[SDL_SCANCODE_9] || 0)
 		player->health = player->maxhealth;
 	if(player->health == 0)
@@ -1195,17 +1211,18 @@ void update_pObject(struct pObject *pObject, struct player *player, struct map *
 
 void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, SDL_Texture *tex)
 {
+	int lul = 0;
 	SDL_Rect s = {0, 0, 16, 24};
 	//SDL_Rect s1 = {80, 80, 32, 32};
-	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - 20, player->width, player->height + 20}; //20
+	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - lul, player->width, player->height + lul}; //20
 
 
-	render_player_animation(player, R, renderer, tex);
+	//render_player_animation(player, R, renderer, tex);
 
 	//SDL_RenderCopy(renderer, tex, &s, &R);
 	//SDL_RenderCopy(renderer, tex, &s1, &R);
-	//SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
-	//SDL_RenderFillRect(renderer, &R);
+	SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
+	SDL_RenderFillRect(renderer, &R);
 }
 
 void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *cam, SDL_Texture* tex)
@@ -1220,8 +1237,9 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o')
 		return;
+	
 
 	if(mObject->id == '7' && 0) 
 	{

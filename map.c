@@ -227,6 +227,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_CULTIST_CHIEFTAIN, 'c');
 					m->content[x+y * m->width] = '.';
 					break;
+				case 'o':
+					spawn_mObject(m, x, y, MO_GOLEM, 'o');
+					m->content[x+y * m->width] = '.';
+					break;
 				case 'R':
 					spawn_mObject(m, x, y, rune_shard, 'R'); //disable when real
 					m->content[x+y * m->width] = '.';

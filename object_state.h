@@ -19,8 +19,12 @@
 #define CRAWLER_RANGE 144
 #define CRAWLER_CHARGE_COOLDOWN 32
 //bosses
+#define GOLEM_STOMP_RANGE 81
+#define GOLEM_ATTACK_RANGE 16
+#define GOLEM_ABILITY_COOLDOWN 48
 #define CULTIST_RANGE_SUMMON 144
 #define CULTIST_RANGE_CROSS 64
+
 
 void set_mObject_state();
 void set_pObject_state();
@@ -65,7 +69,12 @@ void state_summoner_idle();
 void state_summoner_dash();
 void state_summoner_found();
 //bossas
-
+//Golem
+void state_golem_aware();
+void state_golem_stomp();
+void state_golem_dash();
+void state_golem_ready();
+void state_golem_hit();
 //cheiftain
 void state_chieftain_aware();
 void state_chieftain_ready();
