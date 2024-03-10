@@ -87,6 +87,8 @@ void state_pObject_deathrattle();
 //pObject
 void state_magic_bolt_travel();
 void state_swordsman_sword_swing();
+void state_golem_rock_travel();
+void state_golem_weapon_swing();
 void state_brimstone_beam();
 void state_gravity_well_travel();
 void state_gravity_bolt_travel();

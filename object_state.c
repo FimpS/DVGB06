@@ -685,11 +685,10 @@ void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* 
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, 0, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
-#if 0
-		for(int i = 0; i < 4; i++)
-			spawn_pObject(map->pObject_list, x + rand() % 9, y + rand() % 9, PO_GOLEM_ROCKS, EAST, 20.0, down, player);
-#endif
+		int stones = 4 + rand() % 4;
+		set_mObject_state(mObj, 0, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN*2.5);
+		for(int i = 0; i < stones; i++)
+			spawn_pObject(map->pObject_list, mObj->x - 6 + rand() % 12, mObj->y - 1 - rand() % 8, PO_GOLEM_ROCK, SOUTH, 20.0, PI/2, player);
 		return;
 	}
 	mObj->st.timer ++;
@@ -709,8 +708,12 @@ void state_golem_ready(struct mObject *mObj, struct player *player, struct map* 
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
+		const double offx = mObj->width/TILE_LENGTH, offy = mObj->height/TILE_LENGTH;
+		const double offx2 = player->width/TILE_LENGTH, offy2 = player->height/TILE_LENGTH;
+		const double dx = player->x + offx/2 - (mObj->x + offx/2), dy = player->y + offy/2 - (mObj->y + offy/2);
+		const double theta = atan2(dy, dx);
 		set_mObject_state(mObj, 0, state_golem_hit, 0, 64);
-		//spawn_pObject(map->pObject_list, x, y, GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
+		spawn_pObject(map->pObject_list, mObj->x + 0.5 + cos(theta), mObj->y + 0.5 + sin(theta), PO_GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
 		return;
 	}
 	mObj->st.timer ++;
@@ -741,11 +744,11 @@ void state_golem_aware(struct mObject *mObj, struct player *player, struct map* 
 	}
 
 
-	if(sum_square(dy, dx) > GOLEM_STOMP_RANGE && 1)
+	if(sum_square(dy, dx) > GOLEM_STOMP_RANGE && 0)
 	{
 		set_mObject_state(mObj, 0, state_golem_stomp, 0, 64);
 	}
-	else if(sum_square(dy, dx) < GOLEM_ATTACK_RANGE && 1)
+	else if(sum_square(dy, dx) < GOLEM_ATTACK_RANGE || 1)
 	{
 		set_mObject_state(mObj, 0, state_golem_ready, 0, 64);
 	}
@@ -939,6 +942,25 @@ void state_magic_bolt_travel(struct pObject* pObject, struct player* player, str
 	{
 		player_hit(player, pObject->damage, pObject->theta);
 	}
+}
+void state_golem_weapon_swing(struct pObject *pObject, struct player *player,struct map *map)
+{
+	return;
+}
+void state_golem_rock_travel(struct pObject *pObject, struct player *player, struct map *map)
+{
+	if(pObject->st.timer > pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
+	}
+	pObject_move(pObject, player, map);
+	if(!player->invuln && AABBpp(pObject, player))
+	{
+		player_hit(player, pObject->damage, pObject->theta);
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, DEATHRATTLE_LIMIT);
+	}
+	pObject->st.timer ++;
 }
 
 void state_balista_shot(struct pObject *pObject, struct player *player, struct map *map)
