@@ -88,34 +88,34 @@ struct player
 
 struct pObject
 {
-	double x;
-	double y;
-	double vel_x;
-	double vel_y;
-	double width;
-	double height;
-	double knockkoef;
-	double speed;
-	double damage;
-	double theta;
-	double thetaacc;
-	bool transp;
-	bool pen_wall;
-	bool knockbacker;
-	int penetration_index;
-	mObject_status_effect status_effect;
-	card_dir dir;
-	pObject_type type;
+	double x; //const
+	double y; //const
+	double vel_x; //const
+	double vel_y; //const
+	double width; //var
+	double height; //var
+	double knockkoef; //var
+	double speed; //var?
+	double damage; //var
+	double theta; //const
+	double thetaacc; //var
+	bool transp; //var
+	bool pen_wall; //var
+	bool knockbacker; //var
+	int penetration_index; //var
+	mObject_status_effect status_effect; //const
+	card_dir dir; //const
+	pObject_type type; //const
 
-	struct mObject *seeking_target;
-	struct pObj_state st;
+	struct mObject *seeking_target; //var
+	struct pObj_state st; //var
 
-	int anim_start_frame;
-	int anim_tile_length;
-	int anim_frames;
-	int anim_limit;
-	int anim_timer;
-	SDL_Rect sprite;
+	int anim_start_frame; //var
+	int anim_tile_length; //var
+	int anim_frames; //var
+	int anim_limit; //var
+	int anim_timer; //var
+	SDL_Rect sprite; //var
 };
 
 struct mObject

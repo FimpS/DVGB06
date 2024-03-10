@@ -8,15 +8,6 @@
 
 static int tick = 0;
 
-enum keyPressSurf
-{
-	KEY_PRESS_SURFACE_DEFAULT,
-	KEY_PRESS_SURFACE_UP,
-	KEY_PRESS_SURFACE_DOWN,
-	KEY_PRESS_SURFACE_LEFT,
-	KEY_PRESS_SURFACE_RIGHT,
-	KEY_PRESS_SURFACE_TOTAL
-}; 
 //this only works if all elements are in the same memory field (C is the language of gods)
 bool AABB(struct mObject *s, struct mObject *t)
 {
@@ -305,18 +296,18 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->anim_frames = 4;
 			break;
 		case PO_GOLEM_MELEE_WEAPON:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0;
+			pObject->width = TILE_LENGTH * 5/2;
+			pObject->height = TILE_LENGTH * 5/2;
+			pObject->speed = 0.15;
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 208, 16, 16);
-			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 16);
-			printf("lyl\n");
+			pObject->sprite = init_sprite(0, 224, 16, 16);
+			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 64);
 			pObject->anim_tile_length = 16;
-			pObject->anim_frames = 1;
+			pObject->anim_frames = 4;
+			pObject->anim_limit = 8;
 			break;
 		case PO_MAGIC_BOLT:
 			pObject->width = TILE_LENGTH;
@@ -552,17 +543,17 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_GOLEM:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
-			mObject->width = TILE_LENGTH * 3;
-			mObject->height = TILE_LENGTH * 6/2;
+			mObject->health = 2000;
+			mObject->width = TILE_LENGTH * 4;
+			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
 			mObject->mass = 999;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
-			mObject->anim = init_render_info(0, 16, 1, 0, 11299);
-			mObject->sprite = init_sprite(0, 512, 32, 32);
+			mObject->anim = init_render_info(0, 32, 4, 0, 16);
+			mObject->sprite = init_sprite(0, 512, 32, 27);
 			mObject->type_reg = 0;
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_golem_aware, 0, 48, NULL);
@@ -1225,13 +1216,6 @@ void update_mObject(struct mObject *mObject, struct player *player, struct map *
 
 void update_pObject(struct pObject *pObject, struct player *player, struct map *map)
 {
-#if 0
-	if(pObject->st.type == ST_PO_DEATHRATTLE)
-	{
-		state_pObject_deathrattle(pObject, player, map);
-		return;
-	}
-#endif
 	if(pObject->st.acp == NULL)
 		return;
 	pObject->st.acp(pObject, player, map);
@@ -1276,114 +1260,8 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 		SDL_RenderFillRect(renderer, &r);
 		return;
 	}
-#if 1
 	render_mObject_animation(mObject, r, renderer, tex);
-#endif 
-#if 0
-	SDL_Rect it = {48, 0, 16, 16};
-	SDL_Rect it2 = {64, 0, 16, 16};
-	SDL_Rect it3 = {80, 0, 16, 16};
-	SDL_Rect it4 = {96, 0, 16, 16};
-	SDL_Rect it5 = {112, 0, 16, 16};
 
-	SDL_Rect it6 = {16, 48, 32, 32};
-	switch(mObject->type)
-	{
-		case rune_shard:
-		case interactable:
-			switch(mObject->id)
-			{
-				case 'D':
-					SDL_RenderCopy(renderer, tex, &it3, &r);
-					//SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
-					//SDL_RenderFillRect(renderer, &r);
-					break;
-				case 'T':
-					SDL_RenderCopy(renderer, tex, &it3, &r);
-					//SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
-					//SDL_RenderFillRect(renderer, &r);
-					break;
-				case 'E':
-					SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-					SDL_RenderFillRect(renderer, &r);
-					break;
-				case 'R':
-					switch(mObject->r_info.rune_type)
-					{
-						case blood:
-							it6.x += 32;
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-						case holy:
-							it6.y += 32;
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-						case unholy:
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-						case gravity:
-							it6.x += 64;
-							it6.y += 32;
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-						case frost:
-							it6.x += 64;
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-						case rot:
-							it6.y += 32;
-							it6.x += 32;
-							SDL_RenderCopy(renderer, tex, &it6, &r);
-							break;
-					}
-					break;
-			}
-			break;
-
-		case runner:
-			SDL_RenderCopy(renderer, tex, &it2, &r);
-			//SDL_SetRenderDrawColor(renderer, 0xEE, 0x13, 0x14, 0xFF);
-			//SDL_RenderFillRect(renderer, &r);
-			break;
-		case crawler:
-			SDL_RenderCopy(renderer, tex, &it, &r);
-			//SDL_SetRenderDrawColor(renderer, 0x10, 0x5A, 0xd4, 0xFF);
-			break;
-		case rusher:
-			SDL_SetRenderDrawColor(renderer, 0xDE, 0x40, 0xFF, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case balista:
-			SDL_SetRenderDrawColor(renderer, 0xAA, 0x44, 0x44, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case MO_ARCHER:
-			SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case MO_SWORDSMAN:
-			SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case MO_MAGUS:
-			SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
-			SDL_RenderFillRect(renderer, &r);
-			break;
-		case summoner:
-			switch(mObject->st.type)
-			{
-				case st_summoner_summon:
-					SDL_RenderCopy(renderer, tex, &it5, &r);
-					break;
-				default:
-					SDL_RenderCopy(renderer, tex, &it4, &r);
-					break;
-			}
-			break;
-
-	}
-	//SDL_RenderFillRect(renderer, &r);
-#endif
 }
 #if 0
 mobj_t*

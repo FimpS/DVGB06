@@ -17,6 +17,8 @@ TODO:
 
 	fix archer bolts not dissapearing chagne deathrattle to dead
 
+	golem throw axe
+
 
 Notes:
 	- max: 64x64, min: 16x16
