@@ -73,7 +73,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_x = 0;
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 2/2;
+	player->height = TILE_LENGTH * 1;
 	player->base_speed = 1;
 	player->speed = player->base_speed / 10;
 	player->theta = 0;
@@ -838,8 +838,8 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
 	
-	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : -1 * (1 - offw);
-	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : -1 * (1 - offh);
+	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : 0.0;
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : 0.0;
 
 	if(1)
 	{
@@ -953,8 +953,8 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	double offw = pObject->width/TILE_LENGTH;
 	double offh = pObject->height/TILE_LENGTH;
 
-	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : -1 * (1 - offw);
-	double wunderkindh = ((int)pObject->width <= TILE_LENGTH) ? 1 - offh : -1 * (1 - offh);
+	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : 0.0;
+	double wunderkindh = ((int)pObject->width <= TILE_LENGTH) ? 1 - offh : 0.0;
 #if 1
 	if(pObject->transp || pObject->pen_wall == true)
 	{
@@ -1039,8 +1039,8 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	new_y = mObject->y + mObject->vel_y;
 
 
-	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : -1 * (1 - mObject->width/TILE_LENGTH);
-	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : -1 * (1 - mObject->height/TILE_LENGTH);
+	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : 0.0;
+	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : 0.0;
 
 	double f = 0.1;
 	bool hit_wall = false;

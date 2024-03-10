@@ -743,7 +743,7 @@ void state_golem_ready(struct mObject *mObj, struct player *player, struct map* 
 		const double dx = player->x + offx/2 - (mObj->x + offx/2), dy = player->y + offy/2 - (mObj->y + offy/2);
 		const double theta = atan2(dy, dx);
 		mObj->theta = atan2(dy, dx);
-		set_mObject_state(mObj, ST_GOLEM_HIT, state_golem_hit, 0, 64);
+		set_mObject_state(mObj, ST_GOLEM_AWARE, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
 		spawn_pObject(map->pObject_list, mObj->x + 2*cos(theta), mObj->y + 2*sin(theta), PO_GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
 		return;
 	}
@@ -775,11 +775,11 @@ void state_golem_aware(struct mObject *mObj, struct player *player, struct map* 
 	}
 
 
-	if(sum_square(dy, dx) > GOLEM_STOMP_RANGE)
+	if(sum_square(dy, dx) < GOLEM_STOMP_RANGE || rand() % 6 == 0)
 	{
 		set_mObject_state(mObj, ST_GOLEM_STOMP, state_golem_stomp, 0, 128);
 	}
-	else if(sum_square(dy, dx) < GOLEM_ATTACK_RANGE)
+	else if(sum_square(dy, dx) < GOLEM_ATTACK_RANGE && rand() % 6 != 0)
 	{
 		set_mObject_state(mObj, ST_GOLEM_READY, state_golem_ready, 0, 32);
 	}
