@@ -73,6 +73,8 @@ typedef enum
 	brimstone,
 	PO_SWORDSMAN_SWORD,
 	PO_MAGIC_BOLT,
+	PO_GOLEM_ROCK,
+	PO_GOLEM_MELEE_WEAPON,
 	gravity_well,
 	gravity_bolt,
 	frost_storm,

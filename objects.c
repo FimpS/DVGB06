@@ -290,6 +290,34 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->anim_tile_length = 32;
 			pObject->anim_frames = 1;
 			break;
+		case PO_GOLEM_ROCK:
+			pObject->speed = get_frand(0.1, 0.05);
+			int fuck_you = rand() % 20;
+			pObject->width = TILE_LENGTH + fuck_you;
+			pObject->height = TILE_LENGTH + fuck_you;
+			pObject->damage = dmg;
+			pObject->transp = false;
+			pObject->pen_wall = false;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 208, 16, 16);
+			pObject->st = init_pObject_state(state_golem_rock_travel, 0, 128);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
+		case PO_GOLEM_MELEE_WEAPON:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->pen_wall = false;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 208, 16, 16);
+			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 16);
+			printf("lyl\n");
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 1;
+			break;
 		case PO_MAGIC_BOLT:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
@@ -525,8 +553,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 		case MO_GOLEM:
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
-			mObject->width = TILE_LENGTH * 2;
-			mObject->height = TILE_LENGTH * 4/2;
+			mObject->width = TILE_LENGTH * 3;
+			mObject->height = TILE_LENGTH * 6/2;
 			mObject->hit = false;
 			mObject->mass = 999;
 			mObject->wall_collide = false;
