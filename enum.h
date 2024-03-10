@@ -20,6 +20,12 @@ typedef enum
 
 typedef enum
 {
+	PA_ROCK_DEBRIS,
+	PA_MAGIC_DEBRIS,
+} particle_type;
+
+typedef enum
+{
 	runner,
 	crawler,
 	rusher,
