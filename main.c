@@ -23,7 +23,6 @@ int main(int argc, int **argv) {
 	}
 
 	struct map map = map_init();
-	struct cam cam = cam_init();
 	double reduce;
 
 	//char maps[1024][32];
@@ -98,10 +97,10 @@ int main(int argc, int **argv) {
 		//spawnEnemy(mObject_list);
 		delete_mObject(map.mObject_list);
 		map_update(&map, &player, map.event_list);
-		updatePlayer(&player, &map, &cam, map.mObject_list, map.event_list, map.pObject_list);
+		updatePlayer(&player, &map, &map.cam, map.mObject_list, map.event_list, map.pObject_list);
 		update_pObjects(map.pObject_list, &player, &map);
-		cam_update(&cam, &map, &player);
-		update_all_mObjects(map.mObject_list, &player, &map, &cam, map.event_list);
+		cam_update(&map.cam, &map, &player);
+		update_all_mObjects(map.mObject_list, &player, &map, &map.cam, map.event_list);
 		
 		if(cdr[SDL_SCANCODE_V])
 			goto out;
@@ -112,12 +111,12 @@ int main(int argc, int **argv) {
 
 
 		//draw
-		map_draw(&map, &cam, renderer, *tex);
-		draw_all_mObjects(renderer, map.mObject_list, &cam, tex[MOBJECT_SPRITESHEET]);
-		draw_pObjects(renderer, map.pObject_list, &cam, tex[POBJECT_SPRITESHEET]);
-		drawPlayer(renderer, &player, &cam, tex[PLAYER_SPRITESHEET]);
+		map_draw(&map, &map.cam, renderer, *tex);
+		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET]);
+		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
+		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
 
-		render_hpbar(renderer, &player, &cam, &reduce);
+		render_hpbar(renderer, &player, &map.cam, &reduce);
 		//draw
 		update_tick();
 		SDL_RenderPresent(renderer);

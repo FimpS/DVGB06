@@ -19,6 +19,28 @@ struct seed_map
 	int index;
 };
 
+
+struct cam
+{
+	double x;
+	double y;
+	int vis_tile_x;
+	int vis_tile_y;
+
+	double shake_x;
+	double shake_y;
+	int shake_timer;
+	int shake_limit;
+	double shake_koef;
+
+	int zoom;
+
+	double offset_x;
+	double offset_y;
+	double tile_offset_x;
+	double tile_offset_y;
+};
+
 struct map
 {
 	int width;
@@ -28,27 +50,17 @@ struct map
 	char content[CONTENT_SIZE];
 	bool solid_content[CONTENT_SIZE];
 	struct seed_map s_map;
+	struct cam cam;
 	dynList *mObject_list;
 	dynList *pObject_list;
 	dynList *event_list;
 	map_state state;
 };
 
-struct cam
-{
-	double x;
-	double y;
-	int vis_tile_x;
-	int vis_tile_y;
-	double offset_x;
-	double offset_y;
-	double tile_offset_x;
-	double tile_offset_y;
-};
-
-
 struct cam cam_init();
+void set_screen_shake();
 void cam_update();
+void screen_shake();
 
 void map_get_coord(struct map* m, char key, int* dest);
 
