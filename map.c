@@ -125,6 +125,7 @@ struct map map_init()
 	m.s_map.index = 0;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
+	m.cam = cam_init();
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
@@ -153,6 +154,14 @@ struct cam cam_init()
 	new_cam.y = 0;
 	new_cam.vis_tile_x = SCREEN_WIDTH / TILE_LENGTH;
 	new_cam.vis_tile_y = SCREEN_HEIGHT / TILE_LENGTH;
+
+	new_cam.shake_x = 0;
+	new_cam.shake_y = 0;
+	new_cam.shake_timer = 0;
+	new_cam.shake_limit = 0;
+	new_cam.shake_koef = 0.0;
+
+	new_cam.zoom = 0;
 
 	new_cam.offset_x = 0;
 	new_cam.offset_y = 0;
@@ -383,17 +392,49 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
 	reset_player(player);
-	printf("%d\n", m->aggresive_mObj_count);
-	printf("%d\n", m->mObject_list->size);
+	//printf("%d\n", m->aggresive_mObj_count);
+	//printf("%d\n", m->mObject_list->size);
 	fclose(f);
 
 }
 
+void default_screen_shake(struct map *m)
+{
+	m->cam.shake_x = 0;
+	m->cam.shake_y = 0;
+	m->cam.shake_limit = 0;
+	m->cam.shake_koef = 0;
+}
+
+void set_screen_shake(struct map *m, const double shake_koef, const int limit)
+{
+	m->cam.shake_timer = 0;
+	m->cam.shake_limit = limit;
+	m->cam.shake_koef = shake_koef;
+}
+
+void screen_shake(struct map *m)
+{
+	//tmp sol should implement a cam_state
+	if(m->cam.shake_timer >= m->cam.shake_limit)
+	{
+		m->cam.shake_timer = 0;
+		default_screen_shake(m);	
+		return;
+	}
+	m->cam.shake_timer ++;
+	m->cam.shake_x = get_frand(m->cam.shake_koef, -0.5 * m->cam.shake_koef);
+	m->cam.shake_y = get_frand(m->cam.shake_koef, -0.5 * m->cam.shake_koef);
+}
 
 void cam_update(struct cam *cam, struct map *map, struct player *player)
 {
-	cam->x = player->x;
-	cam->y = player->y;
+	screen_shake(map);
+
+	cam->zoom = 5;
+
+	cam->x = player->x + cam->shake_x;
+	cam->y = player->y + cam->shake_y; //LRU
 
 	cam->vis_tile_x = SCREEN_WIDTH / (TILE_LENGTH);
 	cam->vis_tile_y = SCREEN_HEIGHT / (TILE_LENGTH);
@@ -401,13 +442,13 @@ void cam_update(struct cam *cam, struct map *map, struct player *player)
 	cam->offset_x = cam->x - (double)cam->vis_tile_x / 2.0;
 	cam->offset_y = cam->y - (double)cam->vis_tile_y / 2.0;
 
-	if(cam->offset_x < 0) cam->offset_x = 0;
-	if(cam->offset_y < 0) cam->offset_y = 0;
-	if(cam->offset_x - 0 > map->width - cam->vis_tile_x) cam->offset_x = map->width - cam->vis_tile_x + 0;
-	if(cam->offset_y - 0> map->height - cam->vis_tile_y) cam->offset_y = map->height - cam->vis_tile_y + 0;
+	if(cam->offset_x < cam->shake_x) cam->offset_x = cam->shake_x;
+	if(cam->offset_y < cam->shake_y) cam->offset_y = cam->shake_y;
+	if(cam->offset_x - cam->shake_x > map->width - cam->vis_tile_x) cam->offset_x = map->width - cam->vis_tile_x + cam->shake_x;
+	if(cam->offset_y - cam->shake_y > map->height - cam->vis_tile_y) cam->offset_y = map->height - cam->vis_tile_y + cam->shake_y;
 
-	cam->tile_offset_x = (cam->offset_x - (int)cam->offset_x) * TILE_LENGTH;
-	cam->tile_offset_y = (cam->offset_y - (int)cam->offset_y) * TILE_LENGTH;
+	cam->tile_offset_x = (cam->offset_x - (int)(cam->offset_x)) * TILE_LENGTH;
+	cam->tile_offset_y = (cam->offset_y - (int)(cam->offset_y)) * TILE_LENGTH;
 }
 
 static int tmptimer = 0;
@@ -470,7 +511,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 					//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
 					break;
 				case ' ':
-					SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+					SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 					SDL_RenderFillRect(renderer, &r_tile);
 					break;
 

@@ -148,7 +148,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case balista_bolt:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH/2;
-			pObject->speed = 0.3;
+			pObject->speed = 0.1;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
@@ -156,7 +156,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->status_effect = status_none;
 			pObject->anim_frames = 1;
 			pObject->sprite = init_sprite(0, 16, 16, 16);
-			pObject->st = init_pObject_state(state_balista_shot, 0, 120);
+			pObject->st = init_pObject_state(state_balista_shot, 0, 1200);
 			break;
 		case wraith_big:
 		case wraith:
@@ -300,14 +300,14 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH * 5/2;
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
-			pObject->transp = true;
+			pObject->transp = false;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 224, 16, 16);
-			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 64);
+			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 128);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
-			pObject->anim_limit = 8;
+			pObject->anim_limit = 4;
 			break;
 		case PO_MAGIC_BOLT:
 			pObject->width = TILE_LENGTH;
