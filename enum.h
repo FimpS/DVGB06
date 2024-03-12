@@ -90,8 +90,10 @@ typedef enum
 
 typedef enum
 {
-	st_map_default,
-	st_map_clear,
+	ST_MAP_RUN_TICK,
+	ST_MAP_CINEMATIC,
+	ST_MAP_CLEAR,
+	ST_MAP_DEFAULT,
 } map_state;
 
 typedef enum
@@ -175,6 +177,7 @@ typedef enum
 
 typedef enum
 {
+	type_event_golem,
 	type_event_teleport,
 	type_event_inmaptp,
 	type_event_lock,

@@ -783,7 +783,7 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 				struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
 				if(curr->id == 'R')
 				{
-					set_mObject_state(curr, st_deathrattle, NULL, 0, 60);
+					set_mObject_state(curr, st_deathrattle, state_deathrattle, 0, 60);
 				}
 			}
 		}
@@ -896,6 +896,14 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 	player->vel_x = 0;
 	player->vel_y = 0;
+
+	if(currentKeyStates[SDL_SCANCODE_T])
+	{
+		sleep(1);
+		add_event(ev_list, type_event_golem);
+	}
+	if(currentKeyStates[SDL_SCANCODE_Y])
+		map->state = ST_MAP_RUN_TICK;
 
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
@@ -1198,19 +1206,9 @@ void mObject_idle_moving(struct mObject *mObject, struct player *player, struct 
 
 void update_mObject(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
-	if(mObject->st.type == st_deathrattle)
-	{
-		if(mObject->st.timer > mObject->st.limit)
-		{
-			mObject->st.type = st_clear;
-			return;
-		}
-		mObject->st.timer++;
-		return;
-	}
+	state_enemy_default(mObject, player, map);
 	if(mObject->st.acp == NULL)
 		return;		
-	state_enemy_default(mObject, player, map);
 	mObject->st.acp(mObject, player, map);
 }
 

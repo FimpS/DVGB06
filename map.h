@@ -33,7 +33,12 @@ struct cam
 	int shake_limit;
 	double shake_koef;
 
+	bool move;
+
 	int zoom;
+
+	double step_x;
+	double step_y;
 
 	double offset_x;
 	double offset_y;
@@ -60,6 +65,9 @@ struct map
 struct cam cam_init();
 void set_screen_shake();
 void cam_update();
+void set_cam(struct cam *cam, bool t);
+void control_cam_update();
+void cam_move_to();
 void screen_shake();
 
 void map_get_coord(struct map* m, char key, int* dest);
