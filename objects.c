@@ -804,14 +804,14 @@ void tp_player_interaction(struct mObject *mObject, struct player* player, struc
 		if(AABB((struct mObject*)player, mObject) && mObject->id == 'E')
 		{
 			if(map->aggresive_mObj_count <= 0)
-				add_event(ev_list, type_event_teleport);
+				add_event(ev_list, type_event_teleport, player, map, 0);
 			else
 				printf("Enemies left: %d!\n", map->aggresive_mObj_count);
 			//add_event(ev_list, type_event_lock);
 		}
 		if(AABB((struct mObject*)player, mObject) && mObject->id == 'T')
 		{
-			add_event(ev_list, type_event_inmaptp);
+			add_event(ev_list, type_event_inmaptp, player, map, 0);
 			//add_event(ev_list, type_event_lock);
 		}
 	}
@@ -900,7 +900,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	if(currentKeyStates[SDL_SCANCODE_T])
 	{
 		sleep(1);
-		add_event(ev_list, type_event_golem);
+		add_event(ev_list, type_event_golem, player, map, 128);
 	}
 	if(currentKeyStates[SDL_SCANCODE_Y])
 		map->state = ST_MAP_RUN_TICK;

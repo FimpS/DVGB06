@@ -354,14 +354,37 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 	}
 }
 
-void map_load_scene(struct map *m, char *filename, dynList* eList, struct player *player)
+int hash_map_name(const char *map_name)
+{
+	int fuck_you = 0;
+	while(*map_name != '\0')
+	{
+		fuck_you +=  101 * *map_name++ + 40;
+		//*map_name ++;
+	}
+	return fuck_you;
+}
+
+void map_start_events(struct map *m, struct player *player)
+{
+	//tmp solutions maybe an & check for this
+		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index], hash_map_name(m->s_map.content[m->s_map.index]));
+
+	switch(hash_map_name(m->s_map.content[m->s_map.index]))
+	{
+		case 247480:
+			add_event(m->event_list, type_event_golem, player, m, 128);
+			break;
+		default:
+			return;
+		break;
+	}
+}
+
+void load_map_file(struct map *m, char* filename)
 {
 	FILE *f;
 	char file[64];
-	dynList_clear(m->mObject_list);
-	dynList_clear(m->pObject_list);
-	m->aggresive_mObj_count = 0;
-	get_rand_mapID(file, "ch1");
 	printf("file: %s\n", filename);
 	f = fopen(filename, "r");
 	if(!f)
@@ -391,14 +414,23 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 			m->solid_content[i] = false;
 		}
 	}
+	fclose(f);
+}
+
+void map_load_scene(struct map *m, char *filename, dynList* eList, struct player *player)
+{
+	dynList_clear(m->mObject_list);
+	dynList_clear(m->pObject_list);
+	m->aggresive_mObj_count = 0;
+	load_map_file(m, filename);
 	struct rune_info map_runes[3];
 	m->state = ST_MAP_RUN_TICK;
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
 	reset_player(player);
 	//printf("%d\n", m->aggresive_mObj_count);
-	//printf("%d\n", m->mObject_list->size);
-	fclose(f);
+	//printf("%d\n", m->mObject_list->si
+	map_start_events(m, player);
 
 }
 

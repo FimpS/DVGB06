@@ -5,21 +5,7 @@
 #include "global.h"
 //go change arraylist to free the array
 
-void init_event(struct event* new, event_type e_type, int burst)
-{
-	//add acp to skip gigaswitch
-	new->e_type = e_type;
-	new->complete = false;
-	new->burst_time = burst;
-	new->clock = 0;
-}
 
-void add_event(dynList* ev_list, event_type type)
-{
-	struct event* new_event = (struct event*)malloc(sizeof(struct event));
-	init_event(new_event, type, 120);
-	dynList_add(ev_list, (void*)new_event);
-}
 
 void teleport_event(struct player *player, struct event* event, struct map* map)
 {	
@@ -68,30 +54,58 @@ void lock(struct player *player, struct event* event, struct map* map)
 	event->complete = true;;
 }
 
-void identify_and_run(struct event* event, struct player *player, struct map *map)
+
+void identify_start_tick(struct event* event)
 {
 	switch(event->e_type)
 	{
 		case type_event_golem:
-			golem_cutscene(player, event, map);
-			
+			event->start_event = NULL;
+			event->event_tick = golem_cutscene;
 			break;
 		case type_event_teleport:
-			teleport_event(player, event, map);
+			event->start_event = NULL;
+			event->event_tick = teleport_event;
 			break;
 		case type_event_lock:
-			lock(player, event, map);
+			event->start_event = NULL;
+			event->event_tick = lock;
 			break;
 		case type_event_inmaptp:
-			inmap_teleport_event(player, event, map);
+			event->start_event = NULL;
+			event->event_tick = inmap_teleport_event;
 			break;
 		case type_event_rune_acquired:
+			event->start_event = NULL;
+			event->event_tick = NULL;
 			break;
 		case type_event_placeholder:
 			return;
 			break;
 	}
 }
+
+void init_event(struct event* new, event_type e_type, int burst)
+{
+	//add acp to skip gigaswitch
+	new->e_type = e_type;
+	new->complete = false;
+	new->burst_time = burst;
+	new->clock = 0;
+	identify_start_tick(new);
+}
+
+void add_event(dynList* ev_list, event_type type, struct player *player, struct map* map, int burst)
+{
+	struct event* new_event = (struct event*)malloc(sizeof(struct event));
+	init_event(new_event, type, 120);
+	dynList_add(ev_list, (void*)new_event);
+	if(new_event->start_event == NULL)
+		return;
+	new_event->start_event(player, new_event, map);
+}
+
+
 
 void run_event(dynList *ev_list, struct map* map, struct player *player)
 {
@@ -105,7 +119,7 @@ void run_event(dynList *ev_list, struct map* map, struct player *player)
 	struct event* curr_event = ((struct event*)dynList_get(ev_list, i));
 		if(!curr_event->complete)
 		{
-			identify_and_run(curr_event, player, map);
+			curr_event->event_tick(player, curr_event, map);
 		}
 		else
 		{
