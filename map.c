@@ -129,7 +129,7 @@ struct map map_init()
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
-	m.state = st_map_default;
+	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 
 	return m;
@@ -162,6 +162,10 @@ struct cam cam_init()
 	new_cam.shake_koef = 0.0;
 
 	new_cam.zoom = 0;
+	new_cam.step_x = 0;
+	new_cam.step_y = 0;
+
+	new_cam.move = false;
 
 	new_cam.offset_x = 0;
 	new_cam.offset_y = 0;
@@ -350,14 +354,37 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 	}
 }
 
-void map_load_scene(struct map *m, char *filename, dynList* eList, struct player *player)
+int hash_map_name(const char *map_name)
+{
+	int fuck_you = 0;
+	while(*map_name != '\0')
+	{
+		fuck_you +=  101 * *map_name++ + 40;
+		//*map_name ++;
+	}
+	return fuck_you;
+}
+
+void map_start_events(struct map *m, struct player *player)
+{
+	//tmp solutions maybe an & check for this
+		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index], hash_map_name(m->s_map.content[m->s_map.index]));
+
+	switch(hash_map_name(m->s_map.content[m->s_map.index]))
+	{
+		case 247480:
+			add_event(m->event_list, type_event_golem, player, m, 128);
+			break;
+		default:
+			return;
+		break;
+	}
+}
+
+void load_map_file(struct map *m, char* filename)
 {
 	FILE *f;
 	char file[64];
-	dynList_clear(m->mObject_list);
-	dynList_clear(m->pObject_list);
-	m->aggresive_mObj_count = 0;
-	get_rand_mapID(file, "ch1");
 	printf("file: %s\n", filename);
 	f = fopen(filename, "r");
 	if(!f)
@@ -387,14 +414,23 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 			m->solid_content[i] = false;
 		}
 	}
+	fclose(f);
+}
+
+void map_load_scene(struct map *m, char *filename, dynList* eList, struct player *player)
+{
+	dynList_clear(m->mObject_list);
+	dynList_clear(m->pObject_list);
+	m->aggresive_mObj_count = 0;
+	load_map_file(m, filename);
 	struct rune_info map_runes[3];
-	m->state = st_map_default;
+	m->state = ST_MAP_RUN_TICK;
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
 	reset_player(player);
 	//printf("%d\n", m->aggresive_mObj_count);
-	//printf("%d\n", m->mObject_list->size);
-	fclose(f);
+	//printf("%d\n", m->mObject_list->si
+	map_start_events(m, player);
 
 }
 
@@ -415,8 +451,13 @@ void set_screen_shake(struct map *m, const double shake_koef, const int limit)
 
 void screen_shake(struct map *m)
 {
+#if 1
+	if(getTick() % 4 != 0)
+		return;
+	//cool effect
+#endif 
 	//tmp sol should implement a cam_state
-	if(m->cam.shake_timer >= m->cam.shake_limit)
+	if(m->cam.shake_timer >= m->cam.shake_limit / 4)
 	{
 		m->cam.shake_timer = 0;
 		default_screen_shake(m);	
@@ -427,9 +468,47 @@ void screen_shake(struct map *m)
 	m->cam.shake_y = get_frand(m->cam.shake_koef, -0.5 * m->cam.shake_koef);
 }
 
+void set_cam(struct cam *cam, bool t)
+{
+	cam->move = t;
+}
+
+void cam_move_to(struct cam *cam, double dsttheta)
+{
+	if(!cam->move)
+		return;
+	cam->shake_x += 0.05;
+	//cam->shake_y += 0.05;
+}
+
+void control_cam_update(struct cam* cam, struct map *map, struct player *player)
+{
+	cam->zoom = 5;
+
+	cam->x += cam->step_x;
+	cam->y += cam->step_y; //LRU
+
+	cam->vis_tile_x = SCREEN_WIDTH / (TILE_LENGTH);
+	cam->vis_tile_y = SCREEN_HEIGHT / (TILE_LENGTH);
+
+	cam->offset_x = cam->x - (double)cam->vis_tile_x / 2.0;
+	cam->offset_y = cam->y - (double)cam->vis_tile_y / 2.0;
+
+	if(cam->offset_x < cam->shake_x) cam->offset_x = cam->shake_x;
+	if(cam->offset_y < cam->shake_y) cam->offset_y = cam->shake_y;
+	if(cam->offset_x - cam->shake_x > map->width - cam->vis_tile_x) cam->offset_x = map->width - cam->vis_tile_x + cam->shake_x;
+	if(cam->offset_y - cam->shake_y > map->height - cam->vis_tile_y) cam->offset_y = map->height - cam->vis_tile_y + cam->shake_y;
+
+	cam->tile_offset_x = (cam->offset_x - (int)(cam->offset_x)) * TILE_LENGTH;
+	cam->tile_offset_y = (cam->offset_y - (int)(cam->offset_y)) * TILE_LENGTH;
+
+}
+
 void cam_update(struct cam *cam, struct map *map, struct player *player)
 {
+
 	screen_shake(map);
+	cam_move_to(cam, 0.4);
 
 	cam->zoom = 5;
 

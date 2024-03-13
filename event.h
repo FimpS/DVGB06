@@ -9,10 +9,14 @@
 struct event
 {
 	event_type e_type;
+	void (*event_tick)(struct player *player, struct event *event, struct map* map);
+	void (*start_event)(struct player *player, struct event *event, struct map* map);
 	int burst_time;
 	int clock;
 	bool complete;
 };
+
+
 
 void add_event();
 void run_event();

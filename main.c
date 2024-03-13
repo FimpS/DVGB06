@@ -85,30 +85,9 @@ int main(int argc, int **argv) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 		
-		
-
-		//update
-		//
-		//	map_update(map);
-		//  Actual visualization
-		//		
-		run_event(map.event_list, &map, &player);
-		logic_manager(&map, map.mObject_list);
-		//spawnEnemy(mObject_list);
-		delete_mObject(map.mObject_list);
-		map_update(&map, &player, map.event_list);
-		updatePlayer(&player, &map, &map.cam, map.mObject_list, map.event_list, map.pObject_list);
-		update_pObjects(map.pObject_list, &player, &map);
-		cam_update(&map.cam, &map, &player);
-		update_all_mObjects(map.mObject_list, &player, &map, &map.cam, map.event_list);
-		
+		run_tick(&map, &player);
 		if(cdr[SDL_SCANCODE_V])
 			goto out;
-		//update
-
-
-
-
 
 		//draw
 		map_draw(&map, &map.cam, renderer, *tex);

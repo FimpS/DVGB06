@@ -1632,18 +1632,18 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 
 void state_enemy_default(struct mObject *mObject, struct player* player, struct map *map)
 {
-	/*
-	   if(mObject->st.type == st_deathrattle)
-	   {
-	   if(mObject->st.timer > mObject->st.limit)
-	   {
-	   mObject->st.type = st_clear;
-	   return;
-	   }
-	   mObject->st.timer++;
-	   return;
-	   }
-	   */
+
+	if(mObject->st.type == st_deathrattle)
+	{
+		if(mObject->st.timer > mObject->st.limit)
+		{
+			mObject->st.type = st_clear;
+			return;
+		}
+		//mObject->st.timer++;
+		return;
+	}
+
 	if(!mObject->hittable || mObject->st.type == st_deathrattle)
 		return;
 	identify_status_effect(mObject, player);
