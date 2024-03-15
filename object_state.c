@@ -35,6 +35,7 @@ void clueless(struct mObject *mObject, struct player *player, struct map *map)
 void identify_mObject_sprite_location(struct mObject *mObject)
 {
 	mObject->anim.timer = 0;
+	mObject->anim.frames = 4;
 	switch(mObject->st.type)
 	{
 		case ST_CRAWLER_IDLE:
@@ -181,6 +182,14 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->sprite.y = 512;
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 0;
+			break;
+		case ST_GOLEM_BUILD:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 566;
+			//why does this happen???
+			mObject->anim.limit = mObject->st.limit / 8 + 4;
+			mObject->anim.start_frame = 0;
+			mObject->anim.frames = 8;
 			break;
 		case ST_CHIEFTAIN_AWARE:
 			mObject->sprite.x = 0;

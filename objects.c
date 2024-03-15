@@ -35,6 +35,18 @@ bool AABBpm(struct pObject *pObject, struct mObject *target)
 
 }
 
+struct mObject* id_get_mObj(struct map* map, char id)
+{
+	struct mObject* res;
+	for(int i = 0; i < map->mObject_list->size; i++)
+	{
+		res = (struct mObject*)dynList_get(map->mObject_list, i);
+		if(res->id == id)
+			return res;
+	}
+	return NULL;
+}
+
 struct mObj_state init_mObject_state(void (*acp)(struct mObject*,
 			struct player*,
 			struct map*),
@@ -552,8 +564,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
-			mObject->anim = init_render_info(0, 32, 4, 0, 16);
-			mObject->sprite = init_sprite(0, 512, 32, 27);
+			mObject->anim = init_render_info(0, 32, 1, 0, 128);
+			mObject->sprite = init_sprite(0, 566, 32, 27);
 			mObject->type_reg = 0;
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_golem_aware, 0, 48, NULL);

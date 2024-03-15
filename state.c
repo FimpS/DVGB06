@@ -29,18 +29,16 @@ void run_tick(struct map *map, struct player *player)
 	switch(map->state)
 	{
 		case ST_MAP_RUN_TICK:
-			run_event(map->event_list, map, player);
 			map_update(map, player, map->event_list);
 			cam_update(&map->cam, map, player);
 			updatePlayer(player, map, &map->cam, map->mObject_list, map->event_list, map->pObject_list);
 			update_pObjects(map->pObject_list, player, map);
 			update_all_mObjects(map->mObject_list, player, map, &map->cam, map->event_list);
+			run_event(map->event_list, map, player);
 			break;
 		case ST_MAP_CINEMATIC:
 			run_event(map->event_list, map, player);
 			control_cam_update(&map->cam, map, player);
-			//cam_update(&map->cam, map, player);
-			//updatePlayer(player, map, &map->cam, map->mObject_list, map->event_list, map->pObject_list);
 		case ST_MAP_DEFAULT:
 			
 			break;

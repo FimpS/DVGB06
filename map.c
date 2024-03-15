@@ -121,7 +121,7 @@ struct map map_init()
 	memset(m.solid_content, 0, CONTENT_SIZE);
 	gen_seed_map(&m);
 	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT; i++)
-		;//printf("%s\n", m.s_map.content[i]);
+		printf("%s\n", m.s_map.content[i]);
 	m.s_map.index = 0;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
@@ -373,7 +373,7 @@ void map_start_events(struct map *m, struct player *player)
 	switch(hash_map_name(m->s_map.content[m->s_map.index]))
 	{
 		case 247480:
-			add_event(m->event_list, type_event_golem, player, m, 128);
+			add_event(m->event_list, type_event_golem, player, m, 64 * 8);
 			break;
 		default:
 			return;
@@ -417,6 +417,24 @@ void load_map_file(struct map *m, char* filename)
 	fclose(f);
 }
 
+void replace_boss(struct map* m)
+{
+	for(int i = 0; i < m->mObject_list->size; i++)
+	{
+		struct mObject* boss = dynList_get(m->mObject_list, i);
+		switch(boss->id)
+		{
+			case 'o':
+				spawn_mObject(m, boss->x, boss->y, MO_GOLEM, boss->id);
+				dynList_del_index(m->mObject_list, i);
+				break;
+			default:
+				;
+			break;
+		}
+	}
+}
+
 void map_load_scene(struct map *m, char *filename, dynList* eList, struct player *player)
 {
 	dynList_clear(m->mObject_list);
@@ -427,9 +445,11 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	m->state = ST_MAP_RUN_TICK;
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
+	replace_boss(m);
 	reset_player(player);
 	//printf("%d\n", m->aggresive_mObj_count);
 	//printf("%d\n", m->mObject_list->si
+	cam_update(&m->cam, m, player);
 	map_start_events(m, player);
 
 }
@@ -483,11 +503,6 @@ void cam_move_to(struct cam *cam, double dsttheta)
 
 void control_cam_update(struct cam* cam, struct map *map, struct player *player)
 {
-	cam->zoom = 5;
-
-	cam->x += cam->step_x;
-	cam->y += cam->step_y; //LRU
-
 	cam->vis_tile_x = SCREEN_WIDTH / (TILE_LENGTH);
 	cam->vis_tile_y = SCREEN_HEIGHT / (TILE_LENGTH);
 
@@ -508,9 +523,6 @@ void cam_update(struct cam *cam, struct map *map, struct player *player)
 {
 
 	screen_shake(map);
-	cam_move_to(cam, 0.4);
-
-	cam->zoom = 5;
 
 	cam->x = player->x + cam->shake_x;
 	cam->y = player->y + cam->shake_y; //LRU

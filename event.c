@@ -3,9 +3,8 @@
 #include "dynList.h"
 #include "map.h"
 #include "global.h"
+#include "objects.h"
 //go change arraylist to free the array
-
-
 
 void teleport_event(struct player *player, struct event* event, struct map* map)
 {	
@@ -21,22 +20,71 @@ void inmap_teleport_event(struct player* player, struct event* event, struct map
 	player->y = coords[1];
 	event->complete = true;
 }
-
 void golem_start(struct player* player, struct event* event, struct map* map)
 {
+	map->state = ST_MAP_CINEMATIC;
+#if 1
+	size_t index = 0;
+	
+	struct mObject *golem = id_get_mObj(map, 'o');
+	for(int i = 0; i < map->mObject_list->size; i++)
+	{
+		struct mObject *magus = (struct mObject*)dynList_get(map->mObject_list, i);
+		if(magus->id == '6')
+		{
+			map->cam.cin_info.s_coord.x = -map->cam.x + golem->x + golem->width/TILE_LENGTH/2,
+			map->cam.cin_info.s_coord.y = -map->cam.y + golem->y+ golem->height/TILE_LENGTH/2;
+			double dx = magus->x - golem->x, dy = magus->y - golem->y;
+			magus->theta = atan2(-dy, -dx);
+		}
+	}
+	//map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
+	//map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
+	printf("in golem_start %c\n", golem->id);
+#endif
+}
 
+void golem_cutscene2(struct player* player, struct event* event, struct map* map)
+{
+	struct mObject* golem = id_get_mObj(map, 'o');
+	if(event->clock >= event->burst_time)
+	{
+		map->state = ST_MAP_RUN_TICK;
+		set_mObject_state(golem, ST_GOLEM_AWARE, state_golem_aware, 0, 60);
+		event->complete = true;
+		return;
+	}
+	event->clock ++;
 }
 
 void golem_cutscene(struct player* player, struct event* event, struct map* map)
 {
-	map->state = ST_MAP_CINEMATIC;
-	map->cam.x += 0.1;
-
-	if(event->clock > event->burst_time)
+	struct mObject *golem = id_get_mObj(map, 'o');
+	int time = 64;
+	if(event->clock >= time)
 	{
-		map->state = ST_MAP_RUN_TICK;
-		event->complete = true;
+		for(int i = 0; i < map->mObject_list->size; i++)
+		{
+			struct mObject *magus = (struct mObject*)dynList_get(map->mObject_list, i);
+			if(magus->id == '6')
+			{
+				double dx = magus->x - golem->x, dy = magus->y - golem->y;
+				magus->theta = atan2(-dy, -dx);
+				magus->st.type = ST_MAGUS_READY;
+				identify_mObject_sprite_location(magus);
+			}
+		}
+
+
+		map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
+		map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
+		set_mObject_state(golem, ST_GOLEM_BUILD, NULL, 0, 60*8 - time);
+		event->event_tick = golem_cutscene2;
+		return;
 	}
+
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
 	event->clock ++;
 }
 
@@ -60,7 +108,7 @@ void identify_start_tick(struct event* event)
 	switch(event->e_type)
 	{
 		case type_event_golem:
-			event->start_event = NULL;
+			event->start_event = golem_start;
 			event->event_tick = golem_cutscene;
 			break;
 		case type_event_teleport:
@@ -98,7 +146,7 @@ void init_event(struct event* new, event_type e_type, int burst)
 void add_event(dynList* ev_list, event_type type, struct player *player, struct map* map, int burst)
 {
 	struct event* new_event = (struct event*)malloc(sizeof(struct event));
-	init_event(new_event, type, 120);
+	init_event(new_event, type, burst);
 	dynList_add(ev_list, (void*)new_event);
 	if(new_event->start_event == NULL)
 		return;
@@ -116,7 +164,7 @@ void run_event(dynList *ev_list, struct map* map, struct player *player)
 	//this will segfault soon
 	for(int i = 0; i < map->event_list->size; i++)
 	{
-	struct event* curr_event = ((struct event*)dynList_get(ev_list, i));
+		struct event* curr_event = ((struct event*)dynList_get(ev_list, i));
 		if(!curr_event->complete)
 		{
 			curr_event->event_tick(player, curr_event, map);

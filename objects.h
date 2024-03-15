@@ -175,6 +175,7 @@ void destroyShot();
 bool AABB();
 bool AABBpp();
 bool AABBpm();
+struct mObject* id_get_mObj(struct map* map, char id);
 void set_status_effect();
 void identify_status_effect();
 //e

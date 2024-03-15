@@ -25,6 +25,7 @@
 #define CULTIST_RANGE_SUMMON 144
 #define CULTIST_RANGE_CROSS 64
 
+void identify_mObject_sprite_location();
 
 void set_mObject_state();
 void set_pObject_state();
