@@ -19,6 +19,11 @@ struct seed_map
 	int index;
 };
 
+struct vec2d
+{
+	double x;
+	double y;	
+};
 
 struct cam
 {
@@ -44,6 +49,11 @@ struct cam
 	double offset_y;
 	double tile_offset_x;
 	double tile_offset_y;
+
+	union
+	{
+		struct vec2d s_coord;
+	} cin_info;
 };
 
 struct map
