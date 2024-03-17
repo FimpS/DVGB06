@@ -752,9 +752,7 @@ void state_golem_ready(struct mObject *mObj, struct player *player, struct map* 
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		const double offx = mObj->width/TILE_LENGTH, offy = mObj->height/TILE_LENGTH;
-		const double offx2 = player->width/TILE_LENGTH, offy2 = player->height/TILE_LENGTH;
-		const double dx = player->x + offx/2 - (mObj->x + offx/2), dy = player->y + offy/2 - (mObj->y + offy/2);
+		const double dx = OBJDIFF(player, mObj, 'X'), dy = OBJDIFF(player, mObj, 'Y');
 		const double theta = atan2(dy, dx);
 		mObj->theta = atan2(dy, dx);
 		set_mObject_state(mObj, ST_GOLEM_AWARE, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
@@ -777,7 +775,8 @@ void state_golem_dash(struct mObject *mObj, struct player *player, struct map* m
 
 void state_golem_aware(struct mObject *mObj, struct player *player, struct map* map)
 {
-	const double dx = player->x + player->width/TILE_LENGTH/2 - (mObj->x + mObj->width/TILE_LENGTH/2), dy = player->y + player->height/TILE_LENGTH/2 - (mObj->y + mObj->height/TILE_LENGTH/2);
+	//const double dx = player->x + player->width/TILE_LENGTH/2 - (mObj->x + mObj->width/TILE_LENGTH/2), dy = player->y + player->height/TILE_LENGTH/2 - (mObj->y + mObj->height/TILE_LENGTH/2);
+	const double dx = OBJDIFF(player, mObj, 'X'), dy = OBJDIFF(player, mObj, 'Y');
 
 #if 1
 	mObj->st.timer ++;
@@ -1325,11 +1324,7 @@ void state_blood_tax(struct pObject *pObject, struct player *player, struct map 
 		dy = pObject->y - target->y;
 		if(!target->hit && AABB(target, (struct mObject*)pObject))
 		{   
-			dy = pObject->y - player->y;
-			dx = pObject->x - player->x;
-			target->theta = atan2(dy, dx);
 			pObject->penetration_index --;
-			target->inv_frames = 0;
 			mObject_damage(target, pObject, player);
 			target->hit = true;
 		}
@@ -1353,7 +1348,6 @@ void check_pObject_mObject_hit(struct pObject *pObject, struct player* player, s
 			dx = pObject->x - target->x;
 			dy = pObject->y - target->y;
 			//target->theta = atan2(dy, dx);
-			target->inv_frames = 0;
 			mObject_damage(target, pObject, player);
 			target->hit = true;
 
@@ -1410,11 +1404,7 @@ void state_spell_fire(struct pObject *pObject, struct player *player, struct map
 		dy = pObject->y - target->y;
 		if(dx * dx + dy * dy < 1 && !target->hit)
 		{   
-			dy = pObject->y - player->y;
-			dx = pObject->x - player->x;
-			target->theta = atan2(dy, dx);
 			pObject->penetration_index --;
-			target->inv_frames = 0;
 			mObject_damage(target, pObject, player);
 			target->hit = true;
 		}
@@ -1604,8 +1594,7 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 		{
 			dy = pObject->y - player->y;
 			dx = pObject->x - player->x;
-			target->theta = atan2(dy, dx);
-			target->inv_frames = 0;
+			//target->theta = atan2(dy, dx);
 			pObject->penetration_index --;
 			mObject_damage(target, pObject, player);
 			target->hit = true;
