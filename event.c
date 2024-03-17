@@ -23,7 +23,6 @@ void inmap_teleport_event(struct player* player, struct event* event, struct map
 void golem_start(struct player* player, struct event* event, struct map* map)
 {
 	map->state = ST_MAP_CINEMATIC;
-#if 1
 	size_t index = 0;
 	
 	struct mObject *golem = id_get_mObj(map, 'o');
@@ -41,7 +40,6 @@ void golem_start(struct player* player, struct event* event, struct map* map)
 	//map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
 	//map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
 	printf("in golem_start %c\n", golem->id);
-#endif
 }
 
 void golem_cutscene2(struct player* player, struct event* event, struct map* map)
@@ -77,12 +75,49 @@ void golem_cutscene(struct player* player, struct event* event, struct map* map)
 
 
 		map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
-		map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
+		map->cam.y = golem->y + golem->height/TILE_LENGTH/2;
 		set_mObject_state(golem, ST_GOLEM_BUILD, NULL, 0, 60*8 - time);
 		event->event_tick = golem_cutscene2;
 		return;
 	}
 
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
+	event->clock ++;
+}
+
+void chieftain_start(struct player* player, struct event* event, struct map* map)
+{
+	map->state = ST_MAP_CINEMATIC;
+	struct mObject *golem = id_get_mObj(map, 'c');
+	map->cam.cin_info.s_coord.x = -map->cam.x + golem->x + golem->width/TILE_LENGTH/2;
+	map->cam.cin_info.s_coord.y = -map->cam.y + golem->y+ golem->height/TILE_LENGTH/2;
+	printf("in witch start %c\n", golem->id);
+}
+
+void chieftain_cutscene2(struct player* player, struct event* event, struct map* map)
+{
+	if(event->clock >= event->burst_time)
+	{
+		struct mObject* chieftain = id_get_mObj(map, 'c');
+		map->state = ST_MAP_RUN_TICK;
+		set_mObject_state(chieftain, ST_CHIEFTAIN_SUMMON, state_chieftain_summon, 0, 80);
+		event->complete = true;
+		return;
+	}
+	event->clock ++;
+}
+
+void chieftain_cutscene(struct player* player, struct event* event, struct map* map)
+{
+	int time = 168;
+	if(event->clock >= time)
+	{
+		struct mObject* chieftain = id_get_mObj(map, 'c');
+		event->event_tick = chieftain_cutscene2;
+		SET_CAM_MID_CORDS(map->cam, chieftain);
+		return;
+	}
 	map->cam.x += map->cam.cin_info.s_coord.x/time;
 	map->cam.y += map->cam.cin_info.s_coord.y/time;
 	event->clock ++;
@@ -107,9 +142,13 @@ void identify_start_tick(struct event* event)
 {
 	switch(event->e_type)
 	{
-		case type_event_golem:
+		case TYPE_EVENT_GOLEM:
 			event->start_event = golem_start;
 			event->event_tick = golem_cutscene;
+			break;
+		case TYPE_EVENT_CHIEFTAIN:
+			event->start_event = chieftain_start;
+			event->event_tick = chieftain_cutscene;
 			break;
 		case type_event_teleport:
 			event->start_event = NULL;

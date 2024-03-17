@@ -25,6 +25,14 @@ struct vec2d
 	double y;	
 };
 
+
+struct m_anim_info
+{
+	int timer;
+	int limit;
+	int frame;
+};
+
 struct cam
 {
 	double x;
@@ -64,6 +72,7 @@ struct map
 	int current_chapter;
 	char content[CONTENT_SIZE];
 	bool solid_content[CONTENT_SIZE];
+	struct m_anim_info anim;
 	struct seed_map s_map;
 	struct cam cam;
 	dynList *mObject_list;

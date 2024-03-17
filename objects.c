@@ -85,7 +85,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_x = 0;
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 1;
+	player->height = TILE_LENGTH * 4/4;
 	player->base_speed = 1;
 	player->speed = player->base_speed / 10;
 	player->theta = 0;
@@ -509,7 +509,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 250;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 3/2;
+			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
 			mObject->mass = 40;
 			mObject->wall_collide = false;
@@ -525,7 +525,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 75;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 3/2;
+			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
 			mObject->mass = 25;
 			mObject->wall_collide = false;
@@ -541,7 +541,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 3/2;
+			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
 			mObject->mass = 30;
 			mObject->wall_collide = false;
@@ -574,7 +574,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 3/2;
+			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
 			mObject->mass = 999;
 			mObject->wall_collide = false;
@@ -789,13 +789,13 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 		if(AABB((struct mObject*)player, mObject))
 		{
 			add_rune(player, mObject->r_info, map);
-			set_mObject_state(mObject, st_deathrattle, NULL, 0, 60);
+			set_mObject_state(mObject, st_deathrattle, NULL, 0, 32);
 			for(int i = 0; i < map->mObject_list->size; i++)
 			{
 				struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
 				if(curr->id == 'R')
 				{
-					set_mObject_state(curr, st_deathrattle, state_deathrattle, 0, 60);
+					set_mObject_state(curr, st_deathrattle, state_deathrattle, 0, 32);
 				}
 			}
 		}
@@ -849,10 +849,11 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		*/
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
-	
-	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : 0.0;
-	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : 0.0;
-
+	int fuckx = (int)(player->width/TILE_LENGTH);
+	int fuck = (int)(player->height/TILE_LENGTH);
+// 3/2 -> (1-offw) 5/2 ->
+	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
 	if(1)
 	{
 		if(player->vel_x <= 0)
@@ -892,6 +893,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	player->y = new_y;
 
 	//extra clamp check
+#if 0
 	if(player->x >= (double)map->width-2)
 		player->x = (double)map->width-2;
 	if(player->y >= (double)map->height-2)
@@ -900,6 +902,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		player->x = 1;
 	if(player->y < 1)
 		player->y = 1;
+#endif
 }
 
 
@@ -908,14 +911,6 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 	player->vel_x = 0;
 	player->vel_y = 0;
-
-	if(currentKeyStates[SDL_SCANCODE_T])
-	{
-		sleep(1);
-		add_event(ev_list, type_event_golem, player, map, 128);
-	}
-	if(currentKeyStates[SDL_SCANCODE_Y])
-		map->state = ST_MAP_RUN_TICK;
 
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
@@ -974,7 +969,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	double offh = pObject->height/TILE_LENGTH;
 
 	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : 0.0;
-	double wunderkindh = ((int)pObject->width <= TILE_LENGTH) ? 1 - offh : 0.0;
+	double wunderkindh = ((int)pObject->height <= TILE_LENGTH) ? 1 - offh : 0.0;
 #if 1
 	if(pObject->transp || pObject->pen_wall == true)
 	{
@@ -1060,7 +1055,8 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 
 
 	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : 0.0;
-	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : 0.0;
+	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : -1 * (1 - mObject->height / TILE_LENGTH);
+	printf("wunder %f\n", wunderkindh);
 
 	double f = 0.1;
 	bool hit_wall = false;
@@ -1157,12 +1153,15 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 {
 	int healthbefore = target->health;
 	target->health -= source->damage;
+	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
 	//this segfaulted for no reason before be careful
 	set_status_effect(target, 0, 360, source->status_effect);
 	printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker || target->hyperarmor)
 		return;
+	const double dx = OBJDIFF(target, source, 'X'), dy = OBJDIFF(target, source, 'Y');
+	target->theta = atan2(dy, dx);
 	target->speed = 0.2 * source->knockkoef - target->mass / 1024;
 	target->speed = target->speed <= 0 ? 0 : target->speed;
 	set_mObject_state(target, st_enemyknockback, state_enemy_knockbacked, 0, 20);

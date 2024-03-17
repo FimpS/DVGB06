@@ -21,6 +21,7 @@ TODO:
 
 
 Notes:
+	#macro for player->x - player->y / player->Zwidth + blablabal
 	- max: 64x64, min: 16x16
 
 	- nextknockback function for st.

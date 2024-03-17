@@ -77,6 +77,7 @@ void state_golem_dash();
 void state_golem_ready();
 void state_golem_hit();
 //cheiftain
+void state_chieftain_summon();
 void state_chieftain_aware();
 void state_chieftain_ready();
 //for all enemies

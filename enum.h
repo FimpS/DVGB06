@@ -178,7 +178,8 @@ typedef enum
 
 typedef enum
 {
-	type_event_golem,
+	TYPE_EVENT_GOLEM,
+	TYPE_EVENT_CHIEFTAIN,
 	type_event_teleport,
 	type_event_inmaptp,
 	type_event_lock,

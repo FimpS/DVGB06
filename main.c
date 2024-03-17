@@ -17,10 +17,13 @@ int main(int argc, int **argv) {
 
 	srand(time(NULL));
 	int mode = SDL_WINDOW_BORDERLESS;
+	int nmode = 0;
 	if(argc == 2)
 	{
 		mode = SDL_WINDOW_FULLSCREEN;
 	}
+	if(argc == 3)
+		nmode = SDL_RENDERER_PRESENTVSYNC;
 
 	struct map map = map_init();
 	double reduce;
@@ -46,7 +49,7 @@ int main(int argc, int **argv) {
 		return 1;
 	}
 
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC*/);
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
 	if(renderer == NULL)
 	{
@@ -90,7 +93,7 @@ int main(int argc, int **argv) {
 			goto out;
 
 		//draw
-		map_draw(&map, &map.cam, renderer, *tex);
+		map_draw(&map, &map.cam, renderer, *tex, &player);
 		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET]);
 		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
