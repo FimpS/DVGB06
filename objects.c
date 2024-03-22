@@ -85,7 +85,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_x = 0;
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 4/4;
+	player->height = TILE_LENGTH * 6/4;
 	player->base_speed = 1;
 	player->speed = player->base_speed / 10;
 	player->theta = 0;
@@ -285,7 +285,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0;
 			pObject->damage = dmg;
-			pObject->transp = true;
+			pObject->transp = false;
 			pObject->pen_wall = false;
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 192, 32, 16);
@@ -509,7 +509,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 250;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
+			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 40;
 			mObject->wall_collide = false;
@@ -525,7 +525,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed;
 			mObject->health = 75;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
+			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 25;
 			mObject->wall_collide = false;
@@ -541,7 +541,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
+			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 30;
 			mObject->wall_collide = false;
@@ -758,14 +758,14 @@ void update_pObjects(dynList *pObject_list, struct player *player, struct map* m
 	}
 }
 
-void draw_all_mObjects(SDL_Renderer *renderer, dynList *mObject_list, struct cam *cam, SDL_Texture *tex)
+void draw_all_mObjects(SDL_Renderer *renderer, dynList *mObject_list, struct cam *cam, SDL_Texture *tex, struct player *player)
 {
 	if(dynList_is_empty(mObject_list))
 		return;
 	for(int i = 0; i < mObject_list->size; i++)
 	{
 		struct mObject* curr_mObj = (struct mObject*)dynList_get(mObject_list, i);
-		draw_mObject(renderer, curr_mObj, cam, tex);
+		draw_mObject(renderer, curr_mObj, cam, tex, player);
 	}
 }
 
@@ -1054,16 +1054,18 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	new_y = mObject->y + mObject->vel_y;
 
 
-	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : 0.0;
-	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : -1 * (1 - mObject->height / TILE_LENGTH);
-	printf("wunder %f\n", wunderkindh);
 
-	double f = 0.1;
+	const double offw = mObject->width/TILE_LENGTH;
+	const double offh = mObject->height/TILE_LENGTH;
+	int fuckx = (int)(mObject->width/TILE_LENGTH);
+	int fuck = (int)(mObject->height/TILE_LENGTH);
+	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
+
+		double f = 0.1;
 	bool hit_wall = false;
 
 	//TODO 
-	double offw = mObject->width/TILE_LENGTH;
-	double offh = mObject->height/TILE_LENGTH;
 	if(mObject->vel_x <= 0.0)
 	{
 		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
@@ -1254,13 +1256,13 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 	render_animation(pObject, tex, r, renderer);
 }
 
-void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)
+void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex, struct player* player)
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
 	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o')
 		return;
-	
+
 
 	if(mObject->id == '7' && 0) 
 	{
@@ -1269,7 +1271,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 		SDL_RenderFillRect(renderer, &r);
 		return;
 	}
-	render_mObject_animation(mObject, r, renderer, tex);
+	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }
 #if 0

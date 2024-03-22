@@ -94,7 +94,7 @@ int main(int argc, int **argv) {
 
 		//draw
 		map_draw(&map, &map.cam, renderer, *tex, &player);
-		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET]);
+		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET], &player);
 		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
 

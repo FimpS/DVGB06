@@ -51,6 +51,8 @@ struct render_info
 
 struct player
 {
+
+	//shared
 	double x;
 	double y;
 	double vel_x;
@@ -88,6 +90,7 @@ struct player
 
 struct pObject
 {
+	//shared
 	double x; //const
 	double y; //const
 	double vel_x; //const
@@ -109,7 +112,7 @@ struct pObject
 
 	struct mObject *seeking_target; //var
 	struct pObj_state st; //var
-
+//TODO change this to appropriate struct to function merge
 	int anim_start_frame; //var
 	int anim_tile_length; //var
 	int anim_frames; //var

@@ -46,11 +46,25 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 
 }
 
-void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
+void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex, struct player* player)
 {
 	const double conv = 57.29577;
 	bool flip = false;
 	double theta = mObject->anim.rotatable ? mObject->theta : 0;
+	int fill = 10;
+	SDL_SetTextureColorMod(tex, fill, fill, fill);
+
+	double dist = 0;
+	double dx = (mObject->x - player->x);
+	double dy = (mObject->y - player->y);
+	dist = dx * dx + dy * dy;
+	dist = 255 - dist*8;
+	//dist += rand() % 8;
+	dist = dist <= 100 ? 100 : dist;
+	dist = dist >= 255 ? 255 : dist;
+
+	SDL_SetTextureColorMod(tex, dist, dist, dist);
+
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{
 		flip = theta == 0 ? true : false;
@@ -85,7 +99,7 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 void process_symmetric_animation(SDL_Renderer *renderer, SDL_Texture *tex, SDL_Rect sR, SDL_Rect dR, struct pObject *pObject)
 {
 	const double conv = 57.29577;
-	
+
 	if(pObject->anim_timer < 4)
 	{
 		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
@@ -129,7 +143,7 @@ void render_hpbar(SDL_Renderer *renderer, struct player* player, struct cam *cam
 		if((*reduce > 320 * player->health / player->maxhealth))
 			(*reduce) -= 1.0;
 	}
-	
+
 
 	SDL_Rect curr_health = {(0.5) * TILE_LENGTH, (0.5) * TILE_LENGTH, *reduce, TILE_LENGTH / 2};
 	SDL_Rect full_health = {0.5 * TILE_LENGTH, 0.5 * TILE_LENGTH, 8 * TILE_LENGTH, TILE_LENGTH / 2};
