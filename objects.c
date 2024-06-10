@@ -98,12 +98,12 @@ void initPlayer(struct player *player, int width, int height)
 	player->dash_cooldown_timer = 0;
 	player->timer = 0;
 	player->invuln_limit = 0;
-	player->attack_speed = 16;
+	player->attack_speed = 32;
 	player->attack_speed_timer = 0;
 	player->change_map = false;
-	player->thrust_decel = -4;
+	player->shock_counter = 6;
 	player->anim1counter = 0;
-	player->sword_damage = 50;
+	player->sword_damage = 25;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
@@ -341,8 +341,22 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 100;
 			pObject->pen_wall = false;
 			pObject->knockkoef = player->pObject_knockkoef;
+			pObject->anim_limit = 4;
 			pObject->sprite = init_sprite(0, 160, 16, 16);
-			pObject->st = init_pObject_state(state_sword_swing, 0, 5);
+			pObject->st = init_pObject_state(state_sword_swing, 0, 16);
+			break;
+		case PO_SWORD_SHOCKWAVE:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->penetration_index = 100;
+			pObject->pen_wall = false;
+			pObject->knockkoef = player->pObject_knockkoef;
+			pObject->anim_limit = 2;
+			pObject->sprite = init_sprite(0, 160, 16, 16);
+			pObject->st = init_pObject_state(state_sword_shockwave, 0, 8);
 			break;
 		case placeholder:
 			break;
@@ -849,6 +863,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		*/
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
+#if 1
 	int fuckx = (int)(player->width/TILE_LENGTH);
 	int fuck = (int)(player->height/TILE_LENGTH);
 // 3/2 -> (1-offw) 5/2 ->
@@ -889,6 +904,11 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 			}
 		}
 	}
+#endif
+#if 0
+	if(map_get_solid(map, (int)new_x, (int) new_y))
+		return;
+#endif
 	player->x = new_x;
 	player->y = new_y;
 
@@ -905,23 +925,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 #endif
 }
 
-
-void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
-{
-	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-	player->vel_x = 0;
-	player->vel_y = 0;
-
-	if(player->maxhealth < player->health)
-		player->health = player->maxhealth;
-	if(currentKeyStates[SDL_SCANCODE_9] || 0)
-		player->health = player->maxhealth;
-	if(player->health == 0)
-		return;
-	//
-	player_dash(player, map, cam);
-	dash_control(player, currentKeyStates);
-	//
+#if 0
 	if(player->health <= 0)
 	{
 		struct rune *rune = (struct rune*)dynList_get(player->rune_list, 3);
@@ -934,15 +938,48 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		player->health = 0;
 		return;
 	}
-	rune_abilities(player, map);
+#endif
 
-	player_attack(player, map, currentKeyStates);
-	player_knockbacked(player, cam, map);
-	if(player->global_state == st_p_knockbacked)
+void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
+{
+	//always exec
+	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+	player->vel_x = 0;
+	player->vel_y = 0;
+	//tmp
+	if(player->maxhealth < player->health)
+		player->health = player->maxhealth;
+	if(currentKeyStates[SDL_SCANCODE_9] || 0)
+		player->health = player->maxhealth;
+	if(player->health == 0)
 		return;
-	player_invuln(player);
-	player_inp_move(player, currentKeyStates);
-	player_move(player, map, cam);
+	rune_abilities(player, map);
+	//always exec
+	//tmp
+	//
+	//
+	switch(player->global_state)
+	{
+		case st_p_normal:
+			player_invuln(player);
+			dash_control(player, currentKeyStates);
+			player_inp_move(player, currentKeyStates);
+			player_move(player, map, cam);
+			input_attack(player, map, currentKeyStates);
+			break;
+		case st_p_knockbacked:
+			player_knockbacked(player, cam, map);
+			break;
+		case ST_P_DASH:
+			player_dash(player, map, cam);
+			break;
+		case ST_P_ATTACKING:
+			player_attack(player, map, currentKeyStates);
+		default:
+			break;
+	}
+	if(player->global_state == st_p_knockbacked || player->global_state == ST_P_ATTACKING)
+		return;
 
 }
 
@@ -1062,7 +1099,7 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
 	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
 
-		double f = 0.1;
+	double f = 0.1;
 	bool hit_wall = false;
 
 	//TODO 

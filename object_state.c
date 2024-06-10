@@ -9,6 +9,11 @@ double sum_square(double x, double y)
 	return x * x + y * y;
 }
 
+double norm(double top, double bot)
+{
+	return top/(sqrt(sum_square(top, bot)));
+}
+
 void find_higheset(double *dxs, double *dys, int size, double *res)
 {
 	double highest = *dxs * *dxs + *dys * *dys;
@@ -544,7 +549,11 @@ void state_swordsman_slash(struct mObject *mObj, struct player *player, struct m
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 96);
+		double dx = player->x - mObj->x, dy = player->y - mObj->y;
+		double theta = atan2(dy, dx);
+		mObj->theta = theta;
+		set_mObject_state(mObj, ST_SWORDSMAN_READY, state_swordsman_ready, 0, 32);
+		spawn_pObject(map->pObject_list,mObj->x + 0.2*cos(theta) - 0.2, 0.3 + mObj->y + 0.2*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, atan2(dy ,dx), player);
 		return;
 	}
 	mObj->st.timer ++;
@@ -557,8 +566,7 @@ void state_swordsman_ready(struct mObject *mObj, struct player *player, struct m
 		double dx = player->x - mObj->x, dy = player->y - mObj->y;
 		double theta = atan2(dy, dx);
 		mObj->theta = theta;
-		spawn_pObject(map->pObject_list,mObj->x + 0.2*cos(theta) - 0.2, 0.3 + mObj->y + 0.2*sin(theta), PO_SWORDSMAN_SWORD, EAST, 35.0, atan2(dy ,dx), player);
-		set_mObject_state(mObj, ST_SWORDSMAN_SLASH, state_swordsman_slash, 0, 48);
+		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 96);
 		return;
 	}
 	mObj->st.timer ++;
@@ -581,7 +589,7 @@ void state_swordsman_aware(struct mObject *mObj, struct player *player, struct m
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	if(sum_square(dx, dy) < SWORDSMAN_INRANGE)
 	{
-		set_mObject_state(mObj, ST_SWORDSMAN_READY, state_swordsman_ready, 0, 32);
+		set_mObject_state(mObj, ST_SWORDSMAN_SLASH, state_swordsman_slash, 0, 48);
 		return;
 	}
 	if(mObj->st.timer > mObj->st.limit)
@@ -1089,8 +1097,6 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 
 void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 {
-	if(player->global_state == st_p_knockbacked)
-	{
 		player->speed -= 0.03;
 		//TODO Check this
 		player->vel_x = player->speed*cos(player->theta);
@@ -1104,14 +1110,13 @@ void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 			player->speed = player->base_speed / 10;
 			//player->invuln = false;
 		}
-	}
 }
 
 void player_invuln(struct player *player)
 {
 	if(player->invuln == true)
 	{
-		if(player->timer > player->invuln_limit)
+		if(player->timer >= player->invuln_limit)
 		{
 			player->global_state = st_p_normal;
 			player->invuln = false;
@@ -1122,6 +1127,8 @@ void player_invuln(struct player *player)
 
 }
 
+
+// 1/sqrt(t) is faster LOOOOOOOOOOOOOOOOOOOOOOOOL
 float mysqrt(float numer)
 {
 	long i;
@@ -1140,8 +1147,8 @@ float mysqrt(float numer)
 
 void set_dash_vector(struct player* player)
 {
-	double speed = 0.4;
-	double speed2 = 0.4;
+	double speed = 0.445;
+	double speed2 = 0.5;
 	switch(player->dir)
 	{
 		case EAST:
@@ -1160,7 +1167,6 @@ void set_dash_vector(struct player* player)
 			player->vel_x = speed * cos(-1 * PI/2);
 			player->vel_y = speed * sin(-1 * PI/2);
 			break;
-			//normalize these
 		case SOUTHEAST:
 			player->vel_x = speed2 * cos(PI/4);
 			player->vel_y = speed2 * sin(PI/4);
@@ -1180,30 +1186,27 @@ void set_dash_vector(struct player* player)
 		default:
 			break;
 
-			player->vel_x = (player->vel_x/sqrt(player->vel_x * player->vel_x + player->vel_y * player->vel_y));
-			player->vel_y = (player->vel_y/sqrt(player->vel_x * player->vel_x + player->vel_y * player->vel_y));
+			player->vel_x = norm(player->vel_x, player->vel_y);//(player->vel_x/sqrt(player->vel_x * player->vel_x + player->vel_y * player->vel_y));
+			player->vel_y = norm(player->vel_y, player->vel_x);//(player->vel_y/sqrt(player->vel_x * player->vel_x + player->vel_y * player->vel_y));
 	}
 }
 
 void player_dash(struct player* player, struct map* map, struct cam* cam)
 {
-	if(player->global_state == ST_P_DASH)
+	set_dash_vector(player);
+	player_move(player, map, cam);
+	if(player->dash_timer >= PLAYER_DASH_LIMIT)
 	{
-		set_dash_vector(player);
-		player_move(player, map, cam);
-		player->dash_timer ++;
-		if(player->dash_timer > PLAYER_DASH_LIMIT)
-		{
-			player->global_state = st_p_normal;
-			player->speed = player->base_speed / 10;
-			player->dash_timer = 0;
-		}
+		player->global_state = st_p_normal;
+		player->speed = player->base_speed / 10;
+		player->dash_timer = 0;
 	}
+	player->dash_timer ++;
 }
 
 void dash_control(struct player* player, const Uint8 *cks)
 {
-	if(cks[SDL_SCANCODE_SPACE] && player->dash_cooldown_timer > PLAYER_DASH_COOLDOWN_LIMIT)
+	if(cks[SDL_SCANCODE_SPACE] && player->dash_cooldown_timer >= PLAYER_DASH_COOLDOWN_LIMIT && player->global_state != st_p_knockbacked)
 	{
 		player->global_state = ST_P_DASH;
 		player->invuln = true;
@@ -1275,11 +1278,35 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	//player->vel_y = tmp != 0 || player->vel_y != 0 ? (player->base_speed / 5) * player->vel_x*0.707106 : 0;
 
 }
-
+void input_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
+{
+	if(currentKeyStates[SDL_SCANCODE_Q] && player->attack_speed_timer >= player->attack_speed)
+	{
+		player->global_state = ST_P_ATTACKING;
+		player->timer = 0;
+		return;
+	}
+	player->attack_speed_timer ++;
+}
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
-	if(player->attack_speed_timer > player->attack_speed)
+	if(player->timer >= PLAYER_ATTACK_LIMIT) 
 	{   
+		player->global_state = st_p_normal;
+		int mx1, my1;
+		SDL_GetMouseState(&mx1, &my1);
+		double mx = (double)mx1, my = (double)my1;
+		mx /= TILE_LENGTH;
+		my /= TILE_LENGTH;
+
+		const double dx = mx + (int)map->cam.offset_x - player->x;
+		const double dy = my + (int)map->cam.offset_y - player->y;
+		const double theta = atan2(dy, dx);
+
+		int type = player->hit_counter >= 2 ? PO_SWORD_SHOCKWAVE : sword;
+		spawn_pObject(map->pObject_list, player->x + 1.5*cos(theta), player->y + 1.5*sin(theta), type, EAST, player->sword_damage, theta, player);
+		player->attack_speed_timer = 0;
+#if 0
 		if(currentKeyStates[SDL_SCANCODE_RIGHT])
 		{   
 			spawn_pObject(map->pObject_list, player->x + 1, player->y, sword, EAST, player->sword_damage, 0.0, player);
@@ -1300,8 +1327,9 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 			spawn_pObject(map->pObject_list, player->x, player->y - 1, sword, NORTH, player->sword_damage, 0.0, player); 
 			player->attack_speed_timer = 0;
 		}
+#endif
 	}
-	player->attack_speed_timer++;
+	player->timer++;
 }
 
 void state_blood_tax(struct pObject *pObject, struct player *player, struct map *map)
@@ -1574,13 +1602,33 @@ void state_rot_smog_flower(struct pObject *pObject, struct player* player, struc
 	pObject->st.timer ++;
 }
 
+void state_sword_shockwave(struct pObject *pObject, struct player* player, struct map* map)
+{
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		if(player->shock_counter == 0)
+		{
+			player->shock_counter = 6;
+			player->hit_counter = 0;
+			set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+			return;
+		}
+		spawn_pObject(map->pObject_list, pObject->x + cos(pObject->theta), pObject->y + sin(pObject->theta), PO_SWORD_SHOCKWAVE, EAST, player->sword_damage, pObject->theta, player);
+		player->shock_counter --;
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
+	}
+	check_pObject_mObject_hit(pObject, player, map);
+	pObject->st.timer ++;
+}
 void state_sword_swing(struct pObject *pObject, struct player *player, struct map *map)
 {
-	if(pObject->st.timer > pObject->st.limit || pObject->penetration_index <= 0)
+	if(pObject->st.timer >= pObject->st.limit || pObject->penetration_index <= 0)
 	{   
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
 	}   
-	check_sword_dir(pObject, player);
+	//check_sword_dir(pObject, player);
 	double dx, dy;
 	//scary O(p*m) stuff
 	//check_pObject_mObject_hit(pObject, player, map);
@@ -1592,6 +1640,7 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 			continue;
 		if(!target->hit && AABB(target, (struct mObject*)pObject)) 
 		{
+			printf("%d\n", ++player->hit_counter);
 			dy = pObject->y - player->y;
 			dx = pObject->x - player->x;
 			//target->theta = atan2(dy, dx);
@@ -1606,7 +1655,7 @@ void state_sword_swing(struct pObject *pObject, struct player *player, struct ma
 
 void state_deathrattle(struct mObject *mObject, struct player *player, struct map *map)
 {
-	if(mObject->st.timer > mObject->st.limit)
+	if(mObject->st.timer >= mObject->st.limit)
 	{
 		set_mObject_state(mObject, st_clear, state_deathrattle, 0, 60);
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
@@ -1652,7 +1701,7 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 		set_mObject_state(mObject, st_deathrattle, state_deathrattle, 0, 64);
 		return;
 	}
-	if(mObject->inv_frames > 10)
+	if(mObject->inv_frames >= 24)
 	{
 		mObject->hit = false;
 	}

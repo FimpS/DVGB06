@@ -23,6 +23,10 @@
 #define PI 3.141592653689
 #define TAU 6.283185307178
 
+#define MIDPOINTX(o) (o->x + o->width/TILE_LENGTH/2)
+#define MIDPOINTY(o) (o->y + o->height/TILE_LENGTH/2)
+
+
 #define OBJDIFF(o1, o2, m) (m == 'X' ? ((o1->x + o1->width/TILE_LENGTH/2) - (o2->x + o2->width/TILE_LENGTH/2)) : ((o1->y + o1->height/TILE_LENGTH/2) - (o2->y + o2->height/TILE_LENGTH/2)))
 
 #define SET_CAM_MID_CORDS(o1, o2) (o1.x = o2->x + o2->width/TILE_LENGTH/2, o1.y = o2->y + o2->height/TILE_LENGTH/2)

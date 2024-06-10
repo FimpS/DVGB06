@@ -15,6 +15,7 @@ typedef enum
 	st_p_normal,
 	st_p_invuln,
 	ST_P_DASH,
+	ST_P_ATTACKING,
 	st_p_knockbacked,
 } player_global_state;
 
@@ -77,6 +78,7 @@ typedef enum
 	wraith_big,
 	blood_tax,
 	brimstone,
+	PO_SWORD_SHOCKWAVE,
 	PO_SWORDSMAN_SWORD,
 	PO_MAGIC_BOLT,
 	PO_GOLEM_ROCK,

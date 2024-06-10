@@ -71,11 +71,11 @@ struct player
 	int dash_timer;
 	int invuln_limit;
 	int dash_cooldown_timer;
+	int shock_counter;
+	int hit_counter;
 	double sword_damage;
 	mObject_status_effect sword_effect_type;
-	int swingT;
 	int cd;
-	double thrust_decel;
 	player_global_state global_state; 
 	bool change_map;
 	bool invuln;
@@ -109,7 +109,6 @@ struct pObject
 	mObject_status_effect status_effect; //const
 	card_dir dir; //const
 	pObject_type type; //const
-
 	struct mObject *seeking_target; //var
 	struct pObj_state st; //var
 //TODO change this to appropriate struct to function merge

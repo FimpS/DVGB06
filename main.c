@@ -91,19 +91,19 @@ int main(int argc, int **argv) {
 		run_tick(&map, &player);
 		if(cdr[SDL_SCANCODE_V])
 			goto out;
-
+		SDL_MouseMotionEvent m;
 		//draw
 		map_draw(&map, &map.cam, renderer, *tex, &player);
+		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
 		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET], &player);
 		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
-		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
 
 		render_hpbar(renderer, &player, &map.cam, &reduce);
 		//draw
 		update_tick();
 		SDL_RenderPresent(renderer);
-		SDL_Delay(1000/70);
-#if 0
+		//SDL_Delay(1000/70);
+#if 1
 		framecount++;
 		int end = SDL_GetTicks();
 		if(end - start >= 1000)

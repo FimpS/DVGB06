@@ -85,7 +85,7 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 {
 	const double conv = 57.29577;
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
-	if(pObject->anim_timer > pObject->anim_limit)
+	if(pObject->anim_timer >= pObject->anim_limit)
 	{
 		pObject->anim_timer = 0;
 		pObject->sprite.x += pObject->anim_tile_length;

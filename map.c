@@ -610,7 +610,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_Rect r_tile = {i * TILE_LENGTH - cam->tile_offset_x, j * TILE_LENGTH - cam->tile_offset_y, TILE_LENGTH, TILE_LENGTH};
 			//printf("%d %d\n", r_tile.w, r_tile.h);
 			SDL_Rect R = {0, 0, 16, 16};
-			SDL_SetTextureColorMod(tex, 100, 100, 100);
+			SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
 
 			switch(tile)
 			{
