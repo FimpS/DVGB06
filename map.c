@@ -9,6 +9,7 @@
 #include "enum.h"
 #include "event.h"
 #include "runes.h"
+#include "info.h"
 
 #define BOSS_CUTSCENE_TIME 512
 

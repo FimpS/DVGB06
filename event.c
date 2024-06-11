@@ -4,6 +4,7 @@
 #include "map.h"
 #include "global.h"
 #include "objects.h"
+#include "info.h"
 //go change arraylist to free the array
 
 void teleport_event(struct player *player, struct event* event, struct map* map)

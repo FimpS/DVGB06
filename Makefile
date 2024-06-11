@@ -1,6 +1,6 @@
 PARMS = -lSDL2 -lSDL2_image -lm
 noPARMS = -lm
-O = main.o objects.o dynList.o map.o state.o event.o object_state.o gfx.o global.o runes.o
+O = main.o objects.o dynList.o map.o state.o event.o object_state.o gfx.o global.o runes.o info.o
 
 
 game: $(O)
@@ -35,6 +35,9 @@ runes.o: runes.c runes.h
 
 gfx.o: gfx.c gfx.h
 	gcc $(PARMS) -c gfx.c
+
+info.o: info.c info.h
+	gcc $(PARMS) -c info.c
 
 clean:
 	rm *.o game 

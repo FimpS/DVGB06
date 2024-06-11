@@ -35,5 +35,7 @@
 double get_frand();
 int getTick();
 void update_tick();
+double sum_square(double, double);
+double norm(double, double);
 
 #endif

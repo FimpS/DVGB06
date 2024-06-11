@@ -9,6 +9,7 @@
 #include "map.h"
 #include "event.h"
 #include "gfx.h"
+#include "info.h"
 
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
@@ -103,7 +104,7 @@ int main(int argc, int **argv) {
 		update_tick();
 		SDL_RenderPresent(renderer);
 		//SDL_Delay(1000/70);
-#if 1
+#if 0
 		framecount++;
 		int end = SDL_GetTicks();
 		if(end - start >= 1000)
