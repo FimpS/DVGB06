@@ -6,8 +6,9 @@
 #include "map.h"
 
 #define PLAYER_DASH_COOLDOWN_LIMIT 24
-#define PLAYER_DASH_LIMIT 4
+#define PLAYER_DASH_LIMIT 5
 #define PLAYER_DASH_INVULN_LIMIT 16
+#define PLAYER_ATTACK_LIMIT 8
 #define HOSTILE_MOBJ_WAKEUP_DIST 64
 #define BALISTA_RANGE 49
 #define ARCHER_INRANGE 49
@@ -25,11 +26,10 @@
 #define CULTIST_RANGE_SUMMON 144
 #define CULTIST_RANGE_CROSS 64
 
-void identify_mObject_sprite_location();
-
 void set_mObject_state();
 void set_pObject_state();
 //for player
+void input_attack();
 void check_sword_dir();
 void player_dash();
 void dash_control();
@@ -87,6 +87,7 @@ void state_enemy_default();
 //generic for pObjects
 void state_pObject_deathrattle();
 //pObject
+void state_sword_shockwave();
 void state_magic_bolt_travel();
 void state_swordsman_sword_swing();
 void state_golem_rock_travel();

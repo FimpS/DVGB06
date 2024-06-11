@@ -5,6 +5,7 @@
 #include "object_state.h"
 #include "runes.h"
 #include "gfx.h"
+#include "info.h"
 
 static int tick = 0;
 
@@ -47,316 +48,6 @@ struct mObject* id_get_mObj(struct map* map, char id)
 	return NULL;
 }
 
-struct mObj_state init_mObject_state(void (*acp)(struct mObject*,
-			struct player*,
-			struct map*),
-		int timer,
-		int limit,
-		void (*kcp)(struct mObject*,
-			struct player*,
-			struct map*)
-		)
-{
-	struct mObj_state new = {0};
-	new.type = st_spawn;
-	new.acp = acp;
-	new.timer = timer;
-	new.limit = limit;
-	new.kcp = kcp;
-
-	return new;
-}
-
-struct render_info init_render_info(int s, int ti, int f, int t, int l)
-{
-	struct render_info new = {0};
-	new.start_frame = s;
-	new.tile_length= ti;
-	new.frames = f;
-	new.timer = t;
-	new.limit = l;
-	return new;
-}
-
-void initPlayer(struct player *player, int width, int height)
-{ 
-	player->x = 2;
-	player->y = 2;
-	player->vel_x = 0;
-	player->vel_y = 0;
-	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 4/4;
-	player->base_speed = 1;
-	player->speed = player->base_speed / 10;
-	player->theta = 0;
-	player->maxhealth = 100;
-	player->health = player->maxhealth;
-	player->global_state = st_p_normal;
-	player->invuln = false;
-	player->cd = 0;
-	player->dash_timer = 0;
-	player->dash_cooldown_timer = 0;
-	player->timer = 0;
-	player->invuln_limit = 0;
-	player->attack_speed = 16;
-	player->attack_speed_timer = 0;
-	player->change_map = false;
-	player->thrust_decel = -4;
-	player->anim1counter = 0;
-	player->sword_damage = 50;
-	player->pObject_knockkoef = 1;
-	player->kills = 0;
-	player->rune_list = dynList_create();
-	player->anim = init_render_info(0, 16, 4, 0, 16);
-	player->sprite = init_sprite(0, 0, 16, 24);
-	player->sword_effect_type = status_none;
-}
-
-struct pObj_state init_pObject_state(void (*acp)(struct pObject*,
-			struct player*,
-			struct map*),
-		int timer,
-		int limit)
-{
-	struct pObj_state new = {0};
-	new.type = ST_PO_REAL;
-	new.acp = acp;
-	new.timer = timer;
-	new.limit = limit;
-
-	return new;
-}
-
-void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, double dmg, double theta, struct player *player)
-{
-	pObject->x = x;
-	pObject->y = y;
-	pObject->vel_x = 0;
-	pObject->vel_y = 0;
-	pObject->theta = theta;
-	pObject->anim_timer = 0;
-	pObject->knockbacker = true;
-	pObject->knockkoef = 1;
-	pObject->dir = dir;
-
-	pObject->anim_tile_length = 16;
-	pObject->anim_frames = 4;
-	pObject->anim_limit = 4;
-	pObject->anim_start_frame = 0;
-
-	pObject->status_effect = player->sword_effect_type;
-	switch(pObject->type)
-	{
-		case fire:
-			pObject->width = TILE_LENGTH / 2;
-			pObject->height = TILE_LENGTH / 2;
-			pObject->speed = 0.3;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->penetration_index = 2;
-			pObject->pen_wall = true;
-			pObject->sprite = init_sprite(0, 0, 16, 16);
-			break;
-		case balista_bolt:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH/2;
-			pObject->speed = 0.1;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->penetration_index = 1;
-			pObject->pen_wall = true;
-			pObject->status_effect = status_none;
-			pObject->anim_frames = 1;
-			pObject->sprite = init_sprite(0, 16, 16, 16);
-			pObject->st = init_pObject_state(state_balista_shot, 0, 1200);
-			break;
-		case wraith_big:
-		case wraith:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-
-			pObject->speed = 0.25;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->penetration_index = 1;
-			pObject->pen_wall = false;
-			pObject->sprite = init_sprite(0, 32, 16, 16);
-			pObject->st = init_pObject_state(state_wraith_follow, 0, player->health * 2.4);
-			if(pObject->type == wraith_big)
-			{
-				pObject->st.limit = 2 << 21;
-			}
-			break;
-		case frost_storm:
-			pObject->width = TILE_LENGTH * 3;
-			pObject->height = TILE_LENGTH * 3;
-			pObject->penetration_index = 0;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->knockbacker = false;
-			pObject->status_effect = status_frostbite;
-			pObject->sprite = init_sprite(0, 48, 16, 16);
-			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
-			break;
-		case rot_smog:
-			pObject->width = TILE_LENGTH * 3;
-			pObject->height = TILE_LENGTH * 3;
-			pObject->damage = dmg;
-			pObject->penetration_index = 100;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->knockbacker = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 64, 16, 16);
-			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
-			break;
-		case gravity_well:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.05;
-			pObject->damage = 0;
-			pObject->transp = true;
-			pObject->pen_wall = true;
-			pObject->sprite = init_sprite(0, 80, 16, 16);
-			pObject->st = init_pObject_state(state_gravity_well_travel, 0, 300);
-			break;
-		case gravity_bolt:
-			pObject->width = TILE_LENGTH / 1.5;
-			pObject->height = TILE_LENGTH / 1.5;
-			pObject->speed = 0.05; //prev 0.05
-			pObject->damage = dmg;
-			pObject->transp = true;
-			pObject->pen_wall = true;
-			pObject->thetaacc = 0;
-			pObject->sprite = init_sprite(0, 96, 16, 16);
-			pObject->st = init_pObject_state(state_gravity_bolt_travel, 0, 120);
-			break;
-		case blood_tax:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.25;
-			pObject->damage = dmg;
-			pObject->transp = true;
-			pObject->penetration_index = 1;
-			pObject->pen_wall = true;
-			pObject->sprite = init_sprite(0, 0, 16, 16);
-			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
-			break;
-		case brimstone:
-			pObject->dir = dir;
-			switch(pObject->dir)
-			{
-				case EAST:
-					pObject->x = x;
-					pObject->y = y;
-					pObject->width = TILE_LENGTH * 12;
-					pObject->height = TILE_LENGTH * 2;
-					break;
-				case WEST:
-					pObject->width = TILE_LENGTH * 12;
-					pObject->height = TILE_LENGTH * 2;
-					pObject->x = x - pObject->width;
-					pObject->y = y;
-					break;
-				case SOUTH:
-					pObject->width = TILE_LENGTH * 2;
-					pObject->height = TILE_LENGTH * 12;
-					pObject->x = x;
-					pObject->y = y;
-					break;
-				case NORTH:
-					pObject->width = TILE_LENGTH * 2;
-					pObject->height = TILE_LENGTH * 12;
-					pObject->x = x;
-					pObject->y = y - pObject->height;
-					break;
-			}
-			pObject->speed = 0;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->penetration_index = 0;
-			pObject->knockbacker = false;
-			pObject->sprite = init_sprite(0, 128, 16, 16);
-			pObject->st = init_pObject_state(state_brimstone_beam, 0, 48);
-			break;
-		case PO_SWORDSMAN_SWORD:
-			pObject->width = TILE_LENGTH * 2;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0;
-			pObject->damage = dmg;
-			pObject->transp = true;
-			pObject->pen_wall = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 192, 32, 16);
-			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 16);
-			pObject->anim_tile_length = 32;
-			pObject->anim_frames = 1;
-			break;
-		case PO_GOLEM_ROCK:
-			pObject->speed = get_frand(0.1, 0.05);
-			int fuck_you = rand() % 20;
-			pObject->width = TILE_LENGTH + fuck_you;
-			pObject->height = TILE_LENGTH + fuck_you;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 208, 16, 16);
-			pObject->st = init_pObject_state(state_golem_rock_travel, 0, 128);
-			pObject->anim_tile_length = 16;
-			pObject->anim_frames = 4;
-			break;
-		case PO_GOLEM_MELEE_WEAPON:
-			pObject->width = TILE_LENGTH * 5/2;
-			pObject->height = TILE_LENGTH * 5/2;
-			pObject->speed = 0.15;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 224, 16, 16);
-			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 128);
-			pObject->anim_tile_length = 16;
-			pObject->anim_frames = 4;
-			pObject->anim_limit = 4;
-			break;
-		case PO_MAGIC_BOLT:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.2;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 176, 16, 16);
-			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
-			break;
-		case sword:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.3;
-			pObject->damage = dmg;
-			pObject->transp = true;
-			pObject->penetration_index = 100;
-			pObject->pen_wall = false;
-			pObject->knockkoef = player->pObject_knockkoef;
-			pObject->sprite = init_sprite(0, 160, 16, 16);
-			pObject->st = init_pObject_state(state_sword_swing, 0, 5);
-			break;
-		case placeholder:
-			break;
-	}
-}
-
-struct status_effect init_status_effect()
-{
-	struct status_effect new = {0};
-	new.timer = 0;
-	new.limit = 0;
-	new.type = status_none;
-	return new;
-}
 
 void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_status_effect type)
 {
@@ -365,251 +56,6 @@ void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_st
 	mObject->status_effect.type = type;
 }
 
-SDL_Rect identify_rune_sprite(struct rune_info ri)
-{
-	SDL_Rect new = {0};
-	switch(ri.rune_type)
-	{
-		case unholy:
-			new = init_sprite(0, 320, 32, 32);
-			break;
-		case holy:
-			new = init_sprite(0, 352, 32, 32);
-			break;
-		case rot:
-			new = init_sprite(0, 384, 32, 32);
-			break;
-		case blood:
-			new = init_sprite(0, 416, 32, 32);
-			break;
-		case gravity:
-			new = init_sprite(0, 448, 32, 32);
-			break;
-		case frost:
-			new = init_sprite(0, 480, 32, 32);
-			break;
-	}
-
-	return new;
-}
-
-void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
-{
-	mObject->x = x;
-	mObject->y = y;
-	mObject->vel_x = 0;
-	mObject->vel_y = 0;
-	mObject->inv_frames = 0;
-	mObject->base_speed = 1;
-	mObject->theta = PI;
-	mObject->type_reg = ST_MAGUS_IDLE;
-	mObject->status_effect = init_status_effect();
-	mObject->anim.rotatable = false;
-	mObject->hyperarmor = false;
-	switch(mObject->type)
-	{
-		case runner:
-			mObject->x = x;
-			mObject->y = y;
-			mObject->vel_x = 0;
-			mObject->vel_y = 0;
-			mObject->health = 100;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
-			mObject->speed = 0.01;
-			mObject->theta = ((double)rand()/(double)(RAND_MAX)) * 3.1415 * 2;
-			mObject->hit = false;
-			mObject->st.type = st_spawn;
-			mObject->st.timer = 0;
-			mObject->st.limit = 120;
-			mObject->inv_frames = 0;
-			mObject->mass = 80;
-			mObject->wall_collide = false;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->st.acp = NULL;
-			mObject->contact_damage = 20;
-			mObject->anim = init_render_info(0, TILE_LENGTH, 4, 0, 4);
-			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, NULL);
-			break;
-		case crawler:
-			mObject->health = 100;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
-			mObject->speed = mObject->base_speed / 6.67;
-			mObject->mass = 30;
-			mObject->wall_collide = false;
-			mObject->hit = false;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->contact_damage = 22;
-			mObject->sprite = init_sprite(0, 96, 16, 16);
-			mObject->anim = init_render_info(0, 16, 4, 0, 8);
-			mObject->type_reg = ST_CRAWLER_IDLE;
-			mObject->st = init_mObject_state(state_crawler_idle, 0, 64, state_crawler_idle);
-			break;
-		case rusher:
-			mObject->health = 100;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
-			mObject->speed = mObject->base_speed / 50;
-			mObject->hit = false;
-			mObject->mass = 30;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 20;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->anim = init_render_info(64, TILE_LENGTH, 16, 0, 4);
-			mObject->st = init_mObject_state(state_rusher_idle, 0, 40, state_rusher_idle);
-			if(mObject->id == 'g')
-			{
-				mObject->width = TILE_LENGTH * 2;
-				mObject->height = TILE_LENGTH * 2;
-				mObject->mass = 90;
-				mObject->health = 500;
-			}
-			break;
-		case balista:
-			//TODO weird stuff with balista and blood_tax maybe target_hit problem
-			//mObject->base_speed = 0;
-			mObject->speed = mObject->base_speed;
-			mObject->health = 500;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
-			mObject->theta = PI/2;
-			mObject->hit = false;
-			mObject->mass = 999;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->sprite = init_sprite(0, 208, 16, 16);
-			mObject->anim = init_render_info(0, 16, 1, 0, 1600);
-			mObject->type_reg = ST_BALISTA_IDLE;
-			mObject->st = init_mObject_state(state_balista_idle, 0, 40, state_balista_idle);
-			mObject->anim.rotatable = true;
-			break;
-		case MO_ARCHER:
-			mObject->speed = mObject->base_speed;
-			mObject->health = 150;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 3/2;
-			mObject->hit = false;
-			mObject->mass = 50;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->sprite = init_sprite(0, 160, 16, 24);
-			mObject->anim = init_render_info(0, 16, 4, 0, 16);
-			mObject->type_reg = ST_ARCHER_AWARE;
-			mObject->st = init_mObject_state(state_archer_idle, 0, 40, state_archer_aware);
-			break;
-		case MO_SWORDSMAN:
-			mObject->speed = mObject->base_speed;
-			mObject->health = 250;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
-			mObject->hit = false;
-			mObject->mass = 40;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->sprite = init_sprite(0, 112, 16, 24);
-			mObject->anim = init_render_info(0, 16, 4, 0, 32);
-			mObject->type_reg = ST_SWORDSMAN_AWARE;
-			mObject->st = init_mObject_state(state_swordsman_idle, 0, 40, state_swordsman_aware);
-			break;		
-		case MO_MAGUS:
-			mObject->speed = mObject->base_speed;
-			mObject->health = 75;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
-			mObject->hit = false;
-			mObject->mass = 25;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->sprite = init_sprite(0, 0, 16, 24);
-			mObject->anim = init_render_info(0, 16, 4, 0, 16);
-			mObject->type_reg = ST_MAGUS_AWARE;
-			mObject->st = init_mObject_state(state_magus_idle, 0, 40, state_magus_aware);
-			break;
-		case summoner:
-			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
-			mObject->hit = false;
-			mObject->mass = 30;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->anim = init_render_info(0, 16, 4, 0, 16);
-			mObject->sprite = init_sprite(0, 48, 16, 24);
-			mObject->type_reg = ST_SUMMONER_IDLE;
-			mObject->st = init_mObject_state(state_summoner_idle, 0, 40, state_summoner_idle);
-			break;
-		case MO_GOLEM:
-			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 2000;
-			mObject->width = TILE_LENGTH * 4;
-			mObject->height = TILE_LENGTH * 4;
-			mObject->hit = false;
-			mObject->mass = 999;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->anim = init_render_info(0, 32, 1, 0, 128);
-			mObject->sprite = init_sprite(0, 566, 32, 27);
-			mObject->type_reg = 0;
-			mObject->hyperarmor = true;
-			mObject->st = init_mObject_state(state_golem_aware, 0, 48, NULL);
-			break;
-		case MO_CULTIST_CHIEFTAIN:
-			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 4/2;
-			mObject->hit = false;
-			mObject->mass = 999;
-			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
-			mObject->hittable = true;
-			mObject->killable = true;
-			mObject->atts.cheiftain_ticker = 0;
-			mObject->anim = init_render_info(0, 16, 4, 0, 8);
-			mObject->sprite = init_sprite(0, 224, 16, 24);
-			mObject->type_reg = 0;
-			mObject->hyperarmor = true;
-			mObject->st = init_mObject_state(state_chieftain_aware, 0, 48, NULL);
-			break;
-		case interactable:
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
-			mObject->hittable = false;
-			mObject->st.type = st_placeholder;
-			mObject->killable = false;
-			mObject->st.acp = tp_player_interaction;
-			break;
-		case rune_shard:
-			mObject->width = TILE_LENGTH * 2;
-			mObject->height = TILE_LENGTH * 2;
-			mObject->hittable = false;
-			mObject->killable = false;
-			mObject->st.type = st_placeholder;
-			mObject->r_info = get_rand_rune_info(map);
-			mObject->anim = init_render_info(0, 32, 4, 0, 12);
-			mObject->st = init_mObject_state(rune_player_interaction, 0, 0, NULL);
-			mObject->sprite = identify_rune_sprite(mObject->r_info);
-			mObject->st.acp = rune_player_interaction;
-			break;
-	}
-}
 
 struct pObject* spawn_pObject(dynList *pObject_list, double x, double y, pObject_type type, card_dir dir, double dmg, double theta, struct player* player)
 {
@@ -758,14 +204,14 @@ void update_pObjects(dynList *pObject_list, struct player *player, struct map* m
 	}
 }
 
-void draw_all_mObjects(SDL_Renderer *renderer, dynList *mObject_list, struct cam *cam, SDL_Texture *tex)
+void draw_all_mObjects(SDL_Renderer *renderer, dynList *mObject_list, struct cam *cam, SDL_Texture *tex, struct player *player)
 {
 	if(dynList_is_empty(mObject_list))
 		return;
 	for(int i = 0; i < mObject_list->size; i++)
 	{
 		struct mObject* curr_mObj = (struct mObject*)dynList_get(mObject_list, i);
-		draw_mObject(renderer, curr_mObj, cam, tex);
+		draw_mObject(renderer, curr_mObj, cam, tex, player);
 	}
 }
 
@@ -849,6 +295,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		*/
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
+#if 1
 	int fuckx = (int)(player->width/TILE_LENGTH);
 	int fuck = (int)(player->height/TILE_LENGTH);
 // 3/2 -> (1-offw) 5/2 ->
@@ -889,6 +336,11 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 			}
 		}
 	}
+#endif
+#if 0
+	if(map_get_solid(map, (int)new_x, (int) new_y))
+		return;
+#endif
 	player->x = new_x;
 	player->y = new_y;
 
@@ -905,23 +357,7 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 #endif
 }
 
-
-void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
-{
-	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-	player->vel_x = 0;
-	player->vel_y = 0;
-
-	if(player->maxhealth < player->health)
-		player->health = player->maxhealth;
-	if(currentKeyStates[SDL_SCANCODE_9] || 0)
-		player->health = player->maxhealth;
-	if(player->health == 0)
-		return;
-	//
-	player_dash(player, map, cam);
-	dash_control(player, currentKeyStates);
-	//
+#if 0
 	if(player->health <= 0)
 	{
 		struct rune *rune = (struct rune*)dynList_get(player->rune_list, 3);
@@ -934,15 +370,48 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		player->health = 0;
 		return;
 	}
-	rune_abilities(player, map);
+#endif
 
-	player_attack(player, map, currentKeyStates);
-	player_knockbacked(player, cam, map);
-	if(player->global_state == st_p_knockbacked)
+void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
+{
+	//always exec
+	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+	player->vel_x = 0;
+	player->vel_y = 0;
+	//tmp
+	if(player->maxhealth < player->health)
+		player->health = player->maxhealth;
+	if(currentKeyStates[SDL_SCANCODE_9] || 0)
+		player->health = player->maxhealth;
+	if(player->health == 0)
 		return;
-	player_invuln(player);
-	player_inp_move(player, currentKeyStates);
-	player_move(player, map, cam);
+	rune_abilities(player, map);
+	//always exec
+	//tmp
+	//
+	//
+	switch(player->global_state)
+	{
+		case st_p_normal:
+			player_invuln(player);
+			dash_control(player, currentKeyStates);
+			player_inp_move(player, currentKeyStates);
+			player_move(player, map, cam);
+			input_attack(player, map, currentKeyStates);
+			break;
+		case st_p_knockbacked:
+			player_knockbacked(player, cam, map);
+			break;
+		case ST_P_DASH:
+			player_dash(player, map, cam);
+			break;
+		case ST_P_ATTACKING:
+			player_attack(player, map, currentKeyStates);
+		default:
+			break;
+	}
+	if(player->global_state == st_p_knockbacked || player->global_state == ST_P_ATTACKING)
+		return;
 
 }
 
@@ -1054,16 +523,18 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	new_y = mObject->y + mObject->vel_y;
 
 
-	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - mObject->width/TILE_LENGTH : 0.0;
-	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - mObject->height/TILE_LENGTH : -1 * (1 - mObject->height / TILE_LENGTH);
-	printf("wunder %f\n", wunderkindh);
+
+	const double offw = mObject->width/TILE_LENGTH;
+	const double offh = mObject->height/TILE_LENGTH;
+	int fuckx = (int)(mObject->width/TILE_LENGTH);
+	int fuck = (int)(mObject->height/TILE_LENGTH);
+	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
 
 	double f = 0.1;
 	bool hit_wall = false;
 
 	//TODO 
-	double offw = mObject->width/TILE_LENGTH;
-	double offh = mObject->height/TILE_LENGTH;
 	if(mObject->vel_x <= 0.0)
 	{
 		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
@@ -1254,13 +725,13 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 	render_animation(pObject, tex, r, renderer);
 }
 
-void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex)
+void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex, struct player* player)
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//0.8 , 2.5*mObject->sprite.h
 	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o')
 		return;
-	
+
 
 	if(mObject->id == '7' && 0) 
 	{
@@ -1269,7 +740,7 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 		SDL_RenderFillRect(renderer, &r);
 		return;
 	}
-	render_mObject_animation(mObject, r, renderer, tex);
+	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }
 #if 0

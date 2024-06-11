@@ -9,6 +9,7 @@
 #include "map.h"
 #include "event.h"
 #include "gfx.h"
+#include "info.h"
 
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
@@ -91,18 +92,18 @@ int main(int argc, int **argv) {
 		run_tick(&map, &player);
 		if(cdr[SDL_SCANCODE_V])
 			goto out;
-
+		SDL_MouseMotionEvent m;
 		//draw
 		map_draw(&map, &map.cam, renderer, *tex, &player);
-		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET]);
-		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
+		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET], &player);
+		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 
 		render_hpbar(renderer, &player, &map.cam, &reduce);
 		//draw
 		update_tick();
 		SDL_RenderPresent(renderer);
-		SDL_Delay(1000/70);
+		//SDL_Delay(1000/70);
 #if 0
 		framecount++;
 		int end = SDL_GetTicks();

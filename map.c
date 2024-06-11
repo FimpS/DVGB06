@@ -9,6 +9,7 @@
 #include "enum.h"
 #include "event.h"
 #include "runes.h"
+#include "info.h"
 
 #define BOSS_CUTSCENE_TIME 512
 
@@ -410,7 +411,7 @@ void load_map_file(struct map *m, char* filename)
 	}
 	for(int i = 0; i < content_size; i++)
 	{
-		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W')
+		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W' || m->content[i] == '!' || m->content[i] == 'P')
 		{
 			m->solid_content[i] = true;
 		}
@@ -570,6 +571,24 @@ void map_switch_frame(struct map* map, struct cam *cam)
 	map->anim.timer ++;
 }
 
+void get_lightmap(struct map* map, struct cam *cam)
+{
+
+}
+
+void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture *tex, struct player* player)
+{
+	double dist = 0;
+	double dx = ((i + (int)cam->offset_x) - player->x);
+	double dy = ((j + (int)cam->offset_y) - player->y);
+	dist = dx * dx + dy * dy;
+	dist = 255 - dist*12;
+	//dist += rand() % 8;
+	dist = dist <= 100 ? 100 : dist;
+	dist = dist >= 160 ? 160 : dist;
+	SDL_SetTextureColorMod(tex, dist, dist, dist);
+}
+
 void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Texture *tex, struct player* player)
 {
 	//SDL_Surface *sur = IMG_Load("assets/Untitled.png");
@@ -580,6 +599,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 	double dx = 0;
 	double dy = 0;
 	double dist = 0;
+#if 1
 	for(int i = -1; i < cam->vis_tile_x + 1; i++)
 	{
 		for(int j = -1; j < cam->vis_tile_y + 1; j++)
@@ -591,25 +611,15 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_Rect r_tile = {i * TILE_LENGTH - cam->tile_offset_x, j * TILE_LENGTH - cam->tile_offset_y, TILE_LENGTH, TILE_LENGTH};
 			//printf("%d %d\n", r_tile.w, r_tile.h);
 			SDL_Rect R = {0, 0, 16, 16};
-	SDL_SetTextureColorMod(tex, 100, 100, 100);
+			SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
 
 			switch(tile)
 			{
 				case '.':
-					//img_tile.x -= 16;
-					dx = (double)((i + (int)cam->offset_x) - player->x);
-					dy = (double)((j + (int)cam->offset_y) - player->y);
-					dist = dx * dx + dy * dy;
-					dist = 255 - dist*16;
-					dist += rand() % 8;
-					dist = dist <= 100 ? 100 : dist;
-					dist = dist >= 255 ? 255 : dist;
-					SDL_SetTextureColorMod(tex, dist, dist, dist);
-					R.y += 16;
-					R.x += 32;
+					player_lighting(map, i, j, cam, tex, player);
+					R.y += 32;
+					R.x += 0;
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					//SDL_SetRenderDrawColor(renderer, 0x11, 0x11, 0x11, 0xFF);
-					//SDL_RenderFillRect(renderer, &r_tile);
 					break;
 				case '#':
 					R.y += 32;
@@ -622,7 +632,30 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 					R.x = 16 * (getTick() % 16 >= 8 && getTick() % 16 < 16 ? 1 : 0);
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
 					break;
+				case 'G':
+					player_lighting(map, i, j, cam, tex, player);
+					R.y += 32;
+					R.x += 48;
+					SDL_RenderCopy(renderer, tex, &R, &r_tile);
+					break;
 				case 'W':
+					player_lighting(map, i, j, cam, tex, player);
+					R.x += 32;
+					R.y += 48;
+					SDL_RenderCopy(renderer, tex, &R, &r_tile);
+					break;
+				case 'P':
+					R.x += 32;
+					R.y += 32;
+					SDL_RenderCopy(renderer, tex, &R, &r_tile);
+				case '^':
+					R.x += 64;
+					R.y += 16;
+					SDL_RenderCopy(renderer, tex, &R, &r_tile);
+					break;
+				case 'V':
+					R.x += 64;
+					R.y += 32;
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
 					break;
 				case 'E':
@@ -635,6 +668,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 				case 'D':
 					//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
 					break;
+				case '!':
 				case ' ':
 					SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 					SDL_RenderFillRect(renderer, &r_tile);
@@ -643,4 +677,5 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			//printf("d: %f\n", dist);
 		}
 	}
+#endif
 }
