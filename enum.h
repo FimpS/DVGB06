@@ -12,9 +12,10 @@ typedef enum
 
 typedef enum
 {
-	st_p_normal,
+	ST_P_NORMAL,
 	st_p_invuln,
 	ST_P_DASH,
+	ST_P_ATTACK,
 	ST_P_ATTACKING,
 	st_p_knockbacked,
 } player_global_state;
@@ -83,6 +84,7 @@ typedef enum
 	PO_MAGIC_BOLT,
 	PO_GOLEM_ROCK,
 	PO_GOLEM_MELEE_WEAPON,
+	PO_PLAYER_SPEAR,
 	gravity_well,
 	gravity_bolt,
 	frost_storm,

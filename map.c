@@ -341,6 +341,7 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 	get_rune_coords(m, coords);
 	for(int i = 0; i < 3; i++)
 	{
+		//cant run init here so we do it manually
 		struct mObject *new = (struct mObject*)malloc(sizeof(struct mObject));
 		new->x = coords[2*i + 1];
 		new->y = coords[2*i];

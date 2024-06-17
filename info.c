@@ -278,6 +278,18 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 160, 16, 16);
 			pObject->st = init_pObject_state(state_sword_swing, 0, 16);
 			break;
+		case PO_PLAYER_SPEAR:
+			pObject->width = TILE_LENGTH * 3;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0;
+			pObject->damage = dmg;
+			pObject->transp = false;
+			pObject->pen_wall = false;
+			pObject->sprite = init_sprite(0, 48, 48, 16);
+			pObject->st = init_pObject_state(state_player_spear_action, 0, 8);
+			pObject->anim_tile_length = 32;
+			pObject->anim_frames = 1;
+			break;
 		case PO_SWORD_SHOCKWAVE:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
@@ -308,7 +320,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->theta = 0;
 	player->maxhealth = 100;
 	player->health = player->maxhealth;
-	player->global_state = st_p_normal;
+	player->global_state = ST_P_NORMAL;
 	player->invuln = false;
 	player->cd = 0;
 	player->dash_timer = 0;
@@ -328,6 +340,26 @@ void initPlayer(struct player *player, int width, int height)
 	player->sprite = init_sprite(0, 0, 16, 24);
 	player->sword_effect_type = status_none;
 }
+void identify_player_sprite_location(struct player* player)
+{
+	switch(player->global_state)
+	{
+		case ST_P_NORMAL:
+			player->sprite = init_sprite(0, 0, 16, 24);
+			player->anim = init_render_info(0, 16, 4, 0, 16);
+			break;
+
+		case ST_P_ATTACK:
+			player->sprite = init_sprite(0, 24, 16, 24);
+			player->anim = init_render_info(0, 16, 1, 0, (PLAYER_ATTACK_LIMIT + PLAYER_ATTACKING_LIMIT) / 4);
+			break;
+		case ST_P_DASH:
+			player->sprite = init_sprite(96, 0, 16, 24);
+			player->anim = init_render_info(0, 16, 1, 0, (PLAYER_ATTACK_LIMIT + PLAYER_ATTACKING_LIMIT) / 4);
+			break;
+	}
+}
+
 SDL_Rect identify_rune_sprite(struct rune_info ri)
 {
 	SDL_Rect new = {0};
@@ -810,7 +842,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 128;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
-				}
+			}
 			break;
 		case st_deathrattle:
 			switch(mObject->id)

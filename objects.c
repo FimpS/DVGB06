@@ -392,8 +392,8 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	//
 	switch(player->global_state)
 	{
-		case st_p_normal:
-			player_invuln(player);
+		case ST_P_NORMAL:
+			//player_invuln(player);
 			dash_control(player, currentKeyStates);
 			player_inp_move(player, currentKeyStates);
 			player_move(player, map, cam);
@@ -405,11 +405,16 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		case ST_P_DASH:
 			player_dash(player, map, cam);
 			break;
-		case ST_P_ATTACKING:
+		case ST_P_ATTACK:
 			player_attack(player, map, currentKeyStates);
+			break;
+		case ST_P_ATTACKING:
+			player_attacking(player, map);
+			break;
 		default:
 			break;
 	}
+	player_invuln(player);
 	if(player->global_state == st_p_knockbacked || player->global_state == ST_P_ATTACKING)
 		return;
 
@@ -637,7 +642,6 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->speed = target->speed <= 0 ? 0 : target->speed;
 	set_mObject_state(target, st_enemyknockback, state_enemy_knockbacked, 0, 20);
 }
-
 void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 {
 	double dx = player->x - mObject->x, dy = player->y - mObject->y;
@@ -647,6 +651,7 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	}
 }
 
+#if 0
 void mObject_active_chase(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam)
 {
 	double dx = player->x - mObject->x, dy = player->y - mObject->y;
@@ -685,6 +690,7 @@ void mObject_idle_moving(struct mObject *mObject, struct player *player, struct 
 	mObject_move(mObject, player, map);
 	mObject->st.timer ++;
 }
+#endif
 
 void update_mObject(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
@@ -709,12 +715,13 @@ void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, 
 	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - lul, player->width, player->height + lul}; //20
 
 
-	//render_player_animation(player, R, renderer, tex);
-
+	render_player_animation(player, R, renderer, tex);
+#if 0
 	//SDL_RenderCopy(renderer, tex, &s, &R);
 	//SDL_RenderCopy(renderer, tex, &s1, &R);
 	SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
 	SDL_RenderFillRect(renderer, &R);
+#endif 
 }
 
 void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *cam, SDL_Texture* tex)

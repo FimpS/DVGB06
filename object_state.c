@@ -782,7 +782,7 @@ void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 		if(player->timer > 16 || player->speed <= 0)
 		{   
 			//player->timer = 0; 
-			player->global_state = st_p_normal;
+			player->global_state = ST_P_NORMAL;
 			player->speed = player->base_speed / 10;
 			//player->invuln = false;
 		}
@@ -794,7 +794,8 @@ void player_invuln(struct player *player)
 	{
 		if(player->timer >= player->invuln_limit)
 		{
-			player->global_state = st_p_normal;
+			player->global_state = ST_P_NORMAL;
+			identify_player_sprite_location(player);
 			player->invuln = false;
 		}
 		player->timer++;
@@ -823,8 +824,8 @@ float mysqrt(float numer)
 
 void set_dash_vector(struct player* player)
 {
-	double speed = 0.445;
-	double speed2 = 0.5;
+	double speed = 0.45;
+	double speed2 = 0.45;
 	switch(player->dir)
 	{
 		case EAST:
@@ -873,7 +874,8 @@ void player_dash(struct player* player, struct map* map, struct cam* cam)
 	player_move(player, map, cam);
 	if(player->dash_timer >= PLAYER_DASH_LIMIT)
 	{
-		player->global_state = st_p_normal;
+		player->global_state = ST_P_NORMAL;
+		identify_player_sprite_location(player);
 		player->speed = player->base_speed / 10;
 		player->dash_timer = 0;
 	}
@@ -885,6 +887,7 @@ void dash_control(struct player* player, const Uint8 *cks)
 	if(cks[SDL_SCANCODE_SPACE] && player->dash_cooldown_timer >= PLAYER_DASH_COOLDOWN_LIMIT && player->global_state != st_p_knockbacked)
 	{
 		player->global_state = ST_P_DASH;
+		identify_player_sprite_location(player);
 		player->invuln = true;
 		player->dash_timer = 0;
 		player->timer = 0;
@@ -896,28 +899,33 @@ void dash_control(struct player* player, const Uint8 *cks)
 
 void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 {
+	bool cond = false;
 	if(player->global_state == ST_P_DASH)
 		return;
 	if(currentKeyStates[SDL_SCANCODE_D])
 	{
 		player->vel_x = player->speed;
+		cond = true;
 		player->dir = EAST;
 		player->theta = 0;
 	}
 	if(currentKeyStates[SDL_SCANCODE_A])
 	{
 		player->vel_x = -player->speed;
+		cond = true;
 		player->dir = WEST;
 		player->theta = PI;
 	}
 	if(currentKeyStates[SDL_SCANCODE_W])
 	{
 		player->vel_y = -player->speed;
+		cond = true;
 		player->dir = NORTH;
 	}
 	if(currentKeyStates[SDL_SCANCODE_S])
 	{
 		player->vel_y = player->speed;
+		cond = true;
 		player->dir = SOUTH;
 	}
 	if(player->vel_x > 0 && player->vel_y > 0)
@@ -944,6 +952,10 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	{
 		player->dir = SOUTH;
 	}
+	if(cond)
+	{
+		player->anim.limit = 6;
+	} else player->anim.limit = 16;
 	const double tmp = player->vel_x;	
 	//player->vel_x = player->vel_x != 0 || player->vel_y != 0 ? 0.075 : 0;
 	//player->vel_y = player->vel_y != 0 || player->vel_y != 0 ? 0.075 : 0;
@@ -954,21 +966,38 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	//player->vel_y = tmp != 0 || player->vel_y != 0 ? (player->base_speed / 5) * player->vel_x*0.707106 : 0;
 
 }
+
 void input_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
 	if(currentKeyStates[SDL_SCANCODE_Q] && player->attack_speed_timer >= player->attack_speed)
 	{
-		player->global_state = ST_P_ATTACKING;
+		player->global_state = ST_P_ATTACK;
+		identify_player_sprite_location(player);
 		player->timer = 0;
 		return;
 	}
 	player->attack_speed_timer ++;
 }
+
+void player_attacking(struct player* player, struct map* map, const Uint8 *currentKeyStates)
+{
+	if(player->timer >= PLAYER_ATTACKING_LIMIT)
+	{
+		player->global_state = ST_P_NORMAL;
+		identify_player_sprite_location(player);
+		player->timer = 0;
+		return;
+	}
+	player->timer ++;
+
+}
+
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
 	if(player->timer >= PLAYER_ATTACK_LIMIT) 
 	{   
-		player->global_state = st_p_normal;
+		player->global_state = ST_P_ATTACKING;
+		//identify_player_sprite_location(player);
 		int mx1, my1;
 		SDL_GetMouseState(&mx1, &my1);
 		double mx = (double)mx1, my = (double)my1;
@@ -979,31 +1008,10 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 		const double dy = my + (int)map->cam.offset_y - player->y;
 		const double theta = atan2(dy, dx);
 
-		int type = player->hit_counter >= 2 ? PO_SWORD_SHOCKWAVE : sword;
-		spawn_pObject(map->pObject_list, player->x + 1.5*cos(theta), player->y + 1.5*sin(theta), type, EAST, player->sword_damage, theta, player);
+		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.4, PO_PLAYER_SPEAR, EAST, player->sword_damage, theta, player);
 		player->attack_speed_timer = 0;
-#if 0
-		if(currentKeyStates[SDL_SCANCODE_RIGHT])
-		{   
-			spawn_pObject(map->pObject_list, player->x + 1, player->y, sword, EAST, player->sword_damage, 0.0, player);
-			player->attack_speed_timer = 0;
-		}
-		else if(currentKeyStates[SDL_SCANCODE_LEFT])
-		{   
-			spawn_pObject(map->pObject_list, player->x - 1, player->y, sword, WEST, player->sword_damage, 0.0, player);
-			player->attack_speed_timer = 0;
-		}
-		else if(currentKeyStates[SDL_SCANCODE_DOWN])
-		{   
-			spawn_pObject(map->pObject_list, player->x, player->y + 1, sword, SOUTH, player->sword_damage, 0.0, player); 
-			player->attack_speed_timer = 0;
-		}
-		else if(currentKeyStates[SDL_SCANCODE_UP])
-		{   
-			spawn_pObject(map->pObject_list, player->x, player->y - 1, sword, NORTH, player->sword_damage, 0.0, player); 
-			player->attack_speed_timer = 0;
-		}
-#endif
+		player->timer = 0;
+		return;
 	}
 	player->timer++;
 }
@@ -1274,6 +1282,19 @@ void state_rot_smog_flower(struct pObject *pObject, struct player* player, struc
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, DEATHRATTLE_LIMIT);
 		return;
 	}
+	check_pObject_mObject_hit(pObject, player, map);
+	pObject->st.timer ++;
+}
+
+void state_player_spear_action(struct pObject *pObject, struct player* player, struct map* map)
+{
+	if(pObject->st.timer > pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
+	}
+	pObject->speed = 0.10;
+	pObject_move(pObject, player, map);
 	check_pObject_mObject_hit(pObject, player, map);
 	pObject->st.timer ++;
 }
