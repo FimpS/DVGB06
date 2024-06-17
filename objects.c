@@ -379,12 +379,17 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	player->vel_x = 0;
 	player->vel_y = 0;
 	//tmp
+#if 0
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
 	if(currentKeyStates[SDL_SCANCODE_9] || 0)
 		player->health = player->maxhealth;
-	if(player->health == 0)
-		return;
+#endif
+	if(player->health <= 0 && (player->global_state != ST_P_DEAD && player->global_state != ST_P_GONE))
+	{
+		player->global_state = ST_P_DEAD;
+		identify_player_sprite_location(player);
+	}
 	rune_abilities(player, map);
 	//always exec
 	//tmp
@@ -410,6 +415,13 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 			break;
 		case ST_P_ATTACKING:
 			player_attacking(player, map);
+			break;
+		case ST_P_DEAD:
+			player_deathrattle(player, map);
+			return;
+			break;
+		case ST_P_GONE:
+			return;
 			break;
 		default:
 			break;

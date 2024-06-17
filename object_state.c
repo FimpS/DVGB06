@@ -992,6 +992,18 @@ void player_attacking(struct player* player, struct map* map, const Uint8 *curre
 
 }
 
+void player_deathrattle(struct player* player, struct map* map)
+{
+	if(player->timer >= PLAYER_DEATHRATTLE_LIMIT)
+	{
+		player->global_state = ST_P_GONE;
+		identify_player_sprite_location(player);
+		player->timer = 0;
+		return;
+	}
+	player->timer ++;
+}
+
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
 	if(player->timer >= PLAYER_ATTACK_LIMIT) 

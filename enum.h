@@ -17,6 +17,8 @@ typedef enum
 	ST_P_DASH,
 	ST_P_ATTACK,
 	ST_P_ATTACKING,
+	ST_P_DEAD,
+	ST_P_GONE,
 	st_p_knockbacked,
 } player_global_state;
 

@@ -11,6 +11,7 @@
 #define PLAYER_DASH_INVULN_LIMIT 10
 #define PLAYER_ATTACK_LIMIT 4
 #define PLAYER_ATTACKING_LIMIT 12
+#define PLAYER_DEATHRATTLE_LIMIT 64
 //mObj
 #define HOSTILE_MOBJ_WAKEUP_DIST 64
 #define BALISTA_RANGE 49
@@ -32,6 +33,7 @@
 void set_mObject_state();
 void set_pObject_state();
 //for player
+void player_deathrattle();
 void input_attack();
 void check_sword_dir();
 void player_dash();

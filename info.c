@@ -357,6 +357,16 @@ void identify_player_sprite_location(struct player* player)
 			player->sprite = init_sprite(96, 0, 16, 24);
 			player->anim = init_render_info(0, 16, 1, 0, (PLAYER_ATTACK_LIMIT + PLAYER_ATTACKING_LIMIT) / 4);
 			break;
+		case ST_P_DEAD:
+			player->sprite = init_sprite(64, 24, 16, 24);
+			player->anim = init_render_info(64, 16, 4, 0, 16);
+			break;
+		case ST_P_GONE:
+			player->sprite = init_sprite(0, 48, 16, 24);
+			player->anim = init_render_info(0, 16, 4, 0, 16);
+			break;
+		default:
+			break;
 	}
 }
 
