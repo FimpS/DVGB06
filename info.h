@@ -7,6 +7,7 @@ void initPlayer();
 
 void identify_mObject_sprite_location();
 void identify_pObject_sprite_location();
+void identify_player_sprite_location();
 
 
 #endif
