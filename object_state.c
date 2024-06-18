@@ -771,6 +771,27 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 
 //player
 
+void check_hit_abilities(struct player* player, struct map* map)
+{
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
+	if(rune != NULL && rune->info.rune_type == gravity)
+	{
+		spawn_pObject(map->pObject_list, player->x, player->y, gravity_well, EAST, player->sword_damage, 0.0, player);
+	}
+
+	rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == rot)
+	{
+		for(int i = 0; i < map->mObject_list->size; i++)
+		{
+			struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
+			if(curr->killable == true)
+				set_status_effect(curr, 0, 360, status_rot);
+		}
+	}
+}
+
+
 void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 {
 		player->speed -= 0.03;
@@ -784,11 +805,12 @@ void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 			//player->timer = 0; 
 			player->global_state = ST_P_NORMAL;
 			player->speed = player->base_speed / 10;
+			check_hit_abilities(player, map);
 			//player->invuln = false;
 		}
 }
 
-void player_invuln(struct player *player)
+void player_invuln(struct player *player, struct map* map)
 {
 	if(player->invuln == true)
 	{
@@ -1003,7 +1025,14 @@ void player_deathrattle(struct player* player, struct map* map)
 	}
 	player->timer ++;
 }
-
+void check_attack_mods(struct player* player, struct map* map, double theta)
+{
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == blood)
+	{
+		spawn_pObject(map->pObject_list, player->x + 0.3*cos(theta) + 0.2, player->y + 0.2*sin(theta) + 0.4, blood_tax, EAST, player->sword_damage * 0.5, theta, player);
+	}
+}
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
 	if(player->timer >= PLAYER_ATTACK_LIMIT) 
@@ -1021,6 +1050,7 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 		const double theta = atan2(dy, dx);
 
 		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.4, PO_PLAYER_SPEAR, EAST, player->sword_damage, theta, player);
+		check_attack_mods(player, map, theta);
 		player->attack_speed_timer = 0;
 		player->timer = 0;
 		return;
@@ -1156,10 +1186,9 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 	struct mObject *curr;
 	bool found = false;
 	//stick to a mObject maybe otherwise its gonna find [1] all the time
-#if 1
-	if(pObject->st.timer > pObject->st.limit)
+	if(pObject->st.timer >= pObject->st.limit)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, 16);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
 	pObject->st.timer ++;
@@ -1170,7 +1199,7 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 			continue;
 		dx = curr->x - pObject->x;
 		dy = curr->y - pObject->y;
-		if(dx * dx + dy * dy < 16)
+		if(sum_square(dx, dy) < 16)
 		{
 			found = true;
 			break;
@@ -1183,7 +1212,7 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 	}
 	if(AABB(curr, pObject))
 	{
-		if(!curr->hit && getTick() % 60 == 0)
+		if(!curr->hit && getTick() % 30 == 0)
 		{
 			curr->theta = PI + atan2(dy, dx);
 			curr->inv_frames = 0;
@@ -1191,67 +1220,14 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 			curr->hit = true;
 		}
 	}
-	if(dx * dx + dy * dy < 0.15)
+	if(sum_square(dx, dy) < 0.15 && found)
+	{
 		return;
-	pObject->theta = atan2(dy, dx); 
+	}
+	if(getTick() % 30 == 0)
+		pObject->theta = atan2(dy, dx);
 	pObject_move(pObject, player, map);
-#endif
 }
-#if 0
-void Estate_wraith_follow(struct pObject *pObject, struct player *player, struct map *map)
-{
-	double dx, dy;
-	struct mObject *curr;
-	bool found = false;
-	int size = 0, index = 0;
-	double dxs[128], dys[128], res[2];
-	//stick to a mObject maybe otherwise its gonna find [1] all the time
-#if 1
-	if(pObject->st.timer > pObject->st.limit)
-	{
-		pObject->global_state = ST_PO_DEAD;
-	}
-	pObject->st.timer ++;
-	for(int i = 0; i < map->mObject_list->size; i++)
-	{
-		curr = (struct mObject*)dynList_get(map->mObject_list, i);
-		if(curr->killable == false)
-			continue;
-		dx = curr->x - pObject->x;
-		dy = curr->y - pObject->y;
-		if(dx * dx + dy * dy < 64)
-		{
-			dxs[index] = dx;
-			dys[index++] = dy;
-			size ++;
-			found = true;
-		}
-	}
-	printf("%d\n", size);
-	find_higheset(dxs, dys, size, res);
-	if(!found)
-	{
-		dx = player->x - pObject->x;
-		dy = player->y - pObject->y;
-	}
-	if(AABB(curr, pObject))
-	{
-		if(!curr->hit && getTick() % 60 == 0)
-		{
-			curr->theta = PI + atan2(dy, dx);
-			curr->inv_frames = 0;
-			mObject_damage(curr, pObject, player);
-			curr->hit = true;
-		}
-	}
-	if(dx * dx + dy * dy < 0.15)
-		return;
-	pObject->theta = atan2(res[1], res[0]);
-	pObject_move(pObject, player, map);
-#endif
-}
-#endif
-
 
 void state_gravity_well_travel(struct pObject *pObject, struct player* player, struct map* map)
 {
@@ -1289,9 +1265,9 @@ void state_gravity_bolt_travel(struct pObject *pObject, struct player* player, s
 
 void state_rot_smog_flower(struct pObject *pObject, struct player* player, struct map* map)
 {
-	if(pObject->st.timer > pObject->st.limit)
+	if(pObject->st.timer >= pObject->st.limit)
 	{
-		set_pObject_state(pObject, ST_PO_DEATHRATTLE, NULL, 0, DEATHRATTLE_LIMIT);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, DEATHRATTLE_LIMIT);
 		return;
 	}
 	check_pObject_mObject_hit(pObject, player, map);
@@ -1367,13 +1343,17 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 	if(mObject->st.timer >= mObject->st.limit)
 	{
 		set_mObject_state(mObject, st_clear, state_deathrattle, 0, 60);
+		if(mObject->killable == false)
+			return;
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
 		if(rune != NULL && rune->info.rune_type == unholy)
 			rune->attribute ++;
 
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == frost)
-			rune->attribute ++;
+		{
+			spawn_pObject(map->pObject_list, mObject->x - 1, mObject->y - 1, frost_storm, EAST, 0.0, 0.0, player);
+		}
 
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == rot)
@@ -1382,6 +1362,14 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == unholy)
 			player->sword_damage += 3;
+
+		rune = (struct rune*)dynList_get(player->rune_list, 3);
+		if(rune != NULL && rune->info.rune_type == blood)
+		{
+			//change list to map for fun results (C feature)
+			for(int i = 0; i < 3; i++)
+				spawn_pObject(map->pObject_list, MIDPOINTX(mObject), MIDPOINTY(mObject), blood_tax, EAST, player->sword_damage, get_frand(-PI/2, PI/2), player);
+		}
 	}
 	mObject->st.timer ++;
 }

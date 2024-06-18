@@ -108,7 +108,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 
-			pObject->speed = 0.25;
+			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
@@ -117,6 +117,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->st = init_pObject_state(state_wraith_follow, 0, player->health * 2.4);
 			if(pObject->type == wraith_big)
 			{
+				pObject->speed = 0.15;
 				pObject->st.limit = 2 << 21;
 			}
 			break;
@@ -124,12 +125,13 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->width = TILE_LENGTH * 3;
 			pObject->height = TILE_LENGTH * 3;
 			pObject->penetration_index = 0;
+			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->pen_wall = false;
 			pObject->knockbacker = false;
 			pObject->status_effect = status_frostbite;
-			pObject->sprite = init_sprite(0, 48, 16, 16);
-			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
+			pObject->sprite = init_sprite(0, 128, 16, 16);
+			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 128);
 			break;
 		case rot_smog:
 			pObject->width = TILE_LENGTH * 3;
@@ -280,7 +282,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			break;
 		case PO_PLAYER_SPEAR:
 			pObject->width = TILE_LENGTH * 3;
-			pObject->height = TILE_LENGTH;
+			pObject->height = TILE_LENGTH * 1;
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = false;
@@ -332,7 +334,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->shock_counter = 6;
 	player->anim1counter = 0;
-	player->sword_damage = 25;
+	player->sword_damage = 100;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();

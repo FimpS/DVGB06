@@ -267,6 +267,7 @@ void init_killcount(struct map *m)
 			m->aggresive_mObj_count ++;
 		}
 	}
+	printf("killables: %d\n", m->aggresive_mObj_count);
 }
 
 void reset_player(struct player *player)
@@ -433,6 +434,7 @@ void replace_boss(struct map* m)
 		{
 			case 'o':
 				spawn_mObject(m, boss->x, boss->y, MO_GOLEM, boss->id);
+				m->aggresive_mObj_count--;
 				dynList_del_index(m->mObject_list, i);
 				break;
 			default:
@@ -452,7 +454,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	m->state = ST_MAP_RUN_TICK;
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
-	replace_boss(m);
+	//replace_boss(m); what is this function??
 	reset_player(player);
 	//printf("%d\n", m->aggresive_mObj_count);
 	//printf("%d\n", m->mObject_list->si

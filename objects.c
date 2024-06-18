@@ -74,6 +74,7 @@ void spawn_mObject(struct map* map, int x, int y, mObject_type type, char id)
 	init_mObject(new, x, y, map);
 	dynList_add(map->mObject_list, (void*)new);
 	new->killable == true ? map->aggresive_mObj_count++ : 1;
+	if(new->killable) printf("killid %c\n", new->id);
 }
 
 void check_damage_modifiers(struct mObject *target, struct pObject *source, struct player* player)
@@ -282,26 +283,26 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	new_x = player->x + player->vel_x;
 	new_y = player->y + player->vel_y;
 
-	//struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-	/*	
-		if(rune == NULL)
-		{
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
+
+	if(rune == NULL)
+	{
 		flight = false;	
-		}
-		else if(!(rune->info.rune_type == holy))
-		{
+	}
+	else if((rune->info.rune_type == holy))
+	{
 		flight = true;
-		}
-		*/
+	}
+
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
 #if 1
 	int fuckx = (int)(player->width/TILE_LENGTH);
 	int fuck = (int)(player->height/TILE_LENGTH);
-// 3/2 -> (1-offw) 5/2 ->
+	// 3/2 -> (1-offw) 5/2 ->
 	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
 	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
-	if(1)
+	if(!flight)
 	{
 		if(player->vel_x <= 0)
 		{
@@ -345,7 +346,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	player->y = new_y;
 
 	//extra clamp check
-#if 0
 	if(player->x >= (double)map->width-2)
 		player->x = (double)map->width-2;
 	if(player->y >= (double)map->height-2)
@@ -354,22 +354,21 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		player->x = 1;
 	if(player->y < 1)
 		player->y = 1;
-#endif
 }
 
 #if 0
-	if(player->health <= 0)
+if(player->health <= 0)
+{
+	struct rune *rune = (struct rune*)dynList_get(player->rune_list, 3);
+	if(rune != NULL && rune->info.rune_type == holy && rune->attribute > 0)
 	{
-		struct rune *rune = (struct rune*)dynList_get(player->rune_list, 3);
-		if(rune != NULL && rune->info.rune_type == holy && rune->attribute > 0)
-		{
-			player->health = player->maxhealth*rune->attribute/4;
-			rune->attribute --;
-			return;
-		}
-		player->health = 0;
+		player->health = player->maxhealth*rune->attribute/4;
+		rune->attribute --;
 		return;
 	}
+	player->health = 0;
+	return;
+}
 #endif
 
 void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
@@ -379,9 +378,9 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	player->vel_x = 0;
 	player->vel_y = 0;
 	//tmp
-#if 0
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
+#if 0
 	if(currentKeyStates[SDL_SCANCODE_9] || 0)
 		player->health = player->maxhealth;
 #endif
@@ -426,7 +425,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		default:
 			break;
 	}
-	player_invuln(player);
+	player_invuln(player, map);
 	if(player->global_state == st_p_knockbacked || player->global_state == ST_P_ATTACKING)
 		return;
 
@@ -739,7 +738,6 @@ void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, 
 void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *cam, SDL_Texture* tex)
 {
 	SDL_Rect r = {(pObject->x - cam->offset_x) * TILE_LENGTH, (pObject->y - cam->offset_y) * TILE_LENGTH, pObject->width, pObject->height};
-
 
 	render_animation(pObject, tex, r, renderer);
 }

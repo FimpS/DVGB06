@@ -61,6 +61,11 @@ void holy_support_initial(struct player *player, struct map* map, struct rune* r
 
 }
 
+void holy_mending_initial(struct player *player, struct map* map, struct rune* rune)
+{
+
+}
+
 //BLOOD
 void blood_anchor_initial(struct player *player, struct map *map, struct rune* rune)
 {
@@ -72,33 +77,12 @@ void blood_support_initial(struct player* player, struct map* map, struct rune* 
 {
 	player->sword_damage += player->sword_damage * 0.25;
 }
+
 void blood_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	double offset = 0.5;
-	if(player->health == player->maxhealth && player->attack_speed_timer > player->attack_speed)
-	{
-		if(ck[SDL_SCANCODE_RIGHT])
-		{
-			spawn_pObject(map->pObject_list, player->x + offset, player->y, blood_tax, EAST, player->sword_damage * 0.5, 0.0, player);
-		}
-		else if(ck[SDL_SCANCODE_LEFT])
-		{
 
-			spawn_pObject(map->pObject_list, player->x - offset, player->y, blood_tax, WEST, player->sword_damage * 0.5, PI, player);
-		}
-		else if(ck[SDL_SCANCODE_UP])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y - offset, blood_tax, NORTH, player->sword_damage * 0.5, -PI/2, player);
-		}
-		else if(ck[SDL_SCANCODE_DOWN])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y + offset, blood_tax, SOUTH, player->sword_damage * 0.5, PI/2, player);
-		}
-	}
 }
+
 void blood_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->maxhealth -= player->maxhealth * 0.25;
@@ -116,79 +100,14 @@ void blood_complete_initial(struct player* player, struct map* map, struct rune*
 void blood_complete_ability(struct player* player, struct map* map, struct rune* rune)
 {
 	//BRIMSTONE
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	if(ck[SDL_SCANCODE_RIGHT])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x + 1*player->width, player->y + 0.5, brimstone, EAST, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;
-	}
-	else if(ck[SDL_SCANCODE_LEFT])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x + 0*player->width, player->y + 0.5, brimstone, WEST, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;	
-	}
-	else if(ck[SDL_SCANCODE_DOWN])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x - 0.5, player->y + player->height, brimstone, SOUTH, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;	
-	}
-	else if(ck[SDL_SCANCODE_UP])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x - 0.5, player->y + player->height, brimstone, NORTH, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;			
-	}
-	else
-		rune->attribute = 0;
+	//other now but works
+	
 }
 //Gravity
 
-
 void gravity_anchor_ability(struct player* player, struct map *map, struct rune* rune)
 {
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	double offset = 0.5;
-	if(player->attack_speed_timer > 16 && 1) //change to 32 for brimcharge
-	{
-		if(ck[SDL_SCANCODE_RIGHT])
-		{
-			spawn_pObject(map->pObject_list, player->x + offset, player->y, gravity_well, EAST, player->sword_damage * 0.5, 0.0, player);
-		}
-		else if(ck[SDL_SCANCODE_LEFT])
-		{
 
-			spawn_pObject(map->pObject_list, player->x - offset, player->y, gravity_well, WEST, player->sword_damage * 0.5, PI, player);
-		}
-		else if(ck[SDL_SCANCODE_UP])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y - offset, gravity_well, NORTH, player->sword_damage * 0.5, -PI/2, player);
-		}
-		else if(ck[SDL_SCANCODE_DOWN])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y + offset, gravity_well, SOUTH, player->sword_damage * 0.5, PI/2, player);
-		}
-	}
 }
 
 void gravity_support_initial(struct player* player, struct map* map, struct rune* rune)
@@ -202,7 +121,7 @@ void gravity_support_initial(struct player* player, struct map* map, struct rune
 void frost_anchor_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->sword_effect_type = status_frostbite;
-	player->attack_speed -= player->attack_speed * 0.10;
+	player->attack_speed -= player->attack_speed * 0.20;
 }
 
 void frost_support_initial(struct player* player, struct map *map, struct rune* rune)
@@ -218,11 +137,7 @@ void frost_mending_initial(struct player* player, struct map* map, struct rune* 
 
 void frost_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	if(rune->attribute > 0)
-	{
-		spawn_pObject(map->pObject_list, player->x, player->y, frost_storm, EAST, 0.0, 0.0, player);
-		rune->attribute = 0;
-	}
+
 }
 
 //rot
