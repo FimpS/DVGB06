@@ -192,15 +192,15 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					m->content[x+y * m->width] = '.';
 					break;
 				case '1':
-					spawn_mObject(m, x, y, runner, '1');
+					spawn_mObject(m, x, y, MO_RUNNER, '1');
 					m->content[x+y * m->width] = '.';
 					break;
 				case '2':
-					spawn_mObject(m, x, y, crawler, '2');
+					spawn_mObject(m, x, y, MO_CRAWLER, '2');
 					m->content[x+y * m->width] = '.';
 					break;
 				case '3':
-					spawn_mObject(m, x, y, rusher, '3');
+					spawn_mObject(m, x, y, MO_RUSHER, '3');
 					m->content[x+y * m->width] = '.';
 					break;
 				case '4':
@@ -216,27 +216,27 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					m->content[x+y * m->width] = '.';
 					break;
 				case '7':
-					spawn_mObject(m, x, y, summoner, '7');
+					spawn_mObject(m, x, y, MO_SUMMONER, '7');
 					m->content[x+y * m->width] = '.';
 					break;
 				case 'B':
-					spawn_mObject(m, x, y, balista, 'B');
+					spawn_mObject(m, x, y, MO_BALISTA, 'B');
 					m->content[x+y * m->width] = '.';
 					break;
 				case 'E':
-					spawn_mObject(m, x, y, interactable, 'E');
+					spawn_mObject(m, x, y, MO_INTERACTABLE, 'E');
 					m->content[x+y * m->width] = 'E';
 					break;
 				case 'D':
-					spawn_mObject(m, x, y, interactable, 'D');
+					spawn_mObject(m, x, y, MO_INTERACTABLE, 'D');
 					m->content[x+y * m->width] = 'D';
 					break;
 				case 'T':
-					spawn_mObject(m, x, y, interactable, 'T');
+					spawn_mObject(m, x, y, MO_INTERACTABLE, 'T');
 					m->content[x+y * m->width] = 'T';
 					break;
 				case 'g':
-					spawn_mObject(m, x, y, rusher, 'g');
+					spawn_mObject(m, x, y, MO_RUSHER, 'g');
 					m->content[x+y * m->width] = '.';
 					break;
 				case 'c':
@@ -248,7 +248,7 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					m->content[x+y * m->width] = '.';
 					break;
 				case 'R':
-					spawn_mObject(m, x, y, rune_shard, 'R'); //disable when real
+					spawn_mObject(m, x, y, MO_RUNE_SHARD, 'R'); //disable when real
 					m->content[x+y * m->width] = '.';
 					break;
 			}
@@ -275,7 +275,7 @@ void reset_player(struct player *player)
 	if(!dynList_is_empty(player->rune_list))
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
-		if(rune != NULL && rune->info.rune_type == holy)
+		if(rune != NULL && rune->info.rune_type == RN_HOLY)
 		{
 			rune->attribute = true;
 		}
@@ -346,7 +346,7 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 		struct mObject *new = (struct mObject*)malloc(sizeof(struct mObject));
 		new->x = coords[2*i + 1];
 		new->y = coords[2*i];
-		new->type = rune_shard;
+		new->type = MO_RUNE_SHARD;
 		new->id = 'R';
 		new->width = TILE_LENGTH * 2;
 		new->height = TILE_LENGTH * 2;

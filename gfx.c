@@ -55,11 +55,11 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
 	int red = 0, green = 0, blue = 0;
-	if(mObject->status_effect.type == status_frostbite)
+	if(mObject->status_effect.type == STATUS_FROSTBITE)
 	{
 		blue = 75;
 	}
-	if(mObject->status_effect.type == status_rot)
+	if(mObject->status_effect.type == STATUS_ROT)
 	{
 		green = 75;
 	}

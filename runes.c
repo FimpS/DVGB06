@@ -37,7 +37,7 @@ void unholy_anchor_ability(struct player *player, struct map *map, struct rune* 
 		if(rand() % 2 == 1 || 1)
 		{
 			printf("att %d\n", rune->attribute);
-			spawn_pObject(map->pObject_list, player->x, player->y, wraith, EAST, 50.0, 0.0, player);
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, 50.0, 0.0, player);
 		}
 		rune->attribute --;
 	}
@@ -45,7 +45,7 @@ void unholy_anchor_ability(struct player *player, struct map *map, struct rune* 
 
 void unholy_complete_initial(struct player *player, struct map* map, struct rune* rune)
 {
-	spawn_pObject(map->pObject_list, player->x, player->y, wraith_big, EAST, 50.0, 0.0, player);
+	spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, 50.0, 0.0, player);
 }
 
 void unholy_support_initial(struct player* player, struct map* map, struct rune* rune)
@@ -120,7 +120,7 @@ void gravity_support_initial(struct player* player, struct map* map, struct rune
 
 void frost_anchor_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->sword_effect_type = status_frostbite;
+	player->sword_effect_type = STATUS_FROSTBITE;
 	player->attack_speed -= player->attack_speed * 0.20;
 }
 
@@ -144,7 +144,7 @@ void frost_mending_ability(struct player* player, struct map* map, struct rune* 
 
 void rot_anchor_initial(struct player* player, struct map *map, struct rune* rune)
 {
-	player->sword_effect_type = status_rot;
+	player->sword_effect_type = STATUS_ROT;
 	player->base_speed += 0.25;
 	player->speed = player->base_speed / 5;
 }
@@ -157,12 +157,7 @@ void rot_support_initial(struct player* player, struct map* map, struct rune* ru
 
 void rot_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	if(rune->attribute > 0)
-	{
-		printf("done\n");
-		spawn_pObject(map->pObject_list, player->x - 1, player->y - 1, rot_smog, EAST, player->sword_damage / 10, 0.0, player);
-		rune->attribute = 0;
-	}
+	
 }
 
 //Generic
@@ -190,7 +185,7 @@ struct rune init_rune(struct rune_info i)
 	new.info = init_rune_info(i.rune_type, i.rune_stage, i.title);
 	switch(i.rune_type)
 	{
-		case unholy:
+		case RN_UNHOLY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -218,7 +213,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case holy:
+		case RN_HOLY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -246,7 +241,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case blood:
+		case RN_BLOOD:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -275,7 +270,7 @@ struct rune init_rune(struct rune_info i)
 
 			}
 			break;
-		case gravity:
+		case RN_GRAVITY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -305,7 +300,7 @@ struct rune init_rune(struct rune_info i)
 			}
 			break;
 
-		case frost:
+		case RN_FROST:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -331,7 +326,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case rot:
+		case RN_ROT:
 			switch(i.rune_stage)
 			{
 				case anchor:

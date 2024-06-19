@@ -13,13 +13,13 @@ typedef enum
 typedef enum
 {
 	ST_P_NORMAL,
-	st_p_invuln,
+	ST_P_INVULN,
 	ST_P_DASH,
 	ST_P_ATTACK,
 	ST_P_ATTACKING,
 	ST_P_DEAD,
 	ST_P_GONE,
-	st_p_knockbacked,
+	ST_P_KNOCKBACK
 } player_global_state;
 
 typedef enum
@@ -30,38 +30,36 @@ typedef enum
 
 typedef enum
 {
-	runner,
-	crawler,
-	rusher,
-	balista,
-	summoner,
-	rune_shard,
+	MO_RUNNER,
+	MO_CRAWLER,	
+	MO_RUSHER,
+	MO_BALISTA,
+	MO_SUMMONER,
+	MO_RUNE_SHARD,
 	MO_ARCHER,
 	MO_SWORDSMAN,
 	MO_MAGUS,
 	MO_CULTIST_CHIEFTAIN,
 	MO_GOLEM,
-	interactable
+	MO_INTERACTABLE	
 } mObject_type;
 
 typedef enum
 {
-	status_frostbite,
-	status_rot,
+	STATUS_FROSTBITE,
+	STATUS_ROT,
 	STATUS_STASIS,
 	status_none
 } mObject_status_effect;
 
 typedef enum
 {
-	holy,
-	unholy,
-	blood,
-	frost,
-	rot,
-	gravity,
-	flame,
-	rage
+	RN_HOLY,
+	RN_UNHOLY,
+	RN_BLOOD,
+	RN_FROST,
+	RN_ROT,
+	RN_GRAVITY,
 } core_type;
 
 typedef enum
@@ -74,23 +72,19 @@ typedef enum
 
 typedef enum
 {
-	fire,
-	sword,
-	balista_bolt,
-	wraith,
-	wraith_big,
-	blood_tax,
-	brimstone,
+	PO_BALISTA_BOLT,
+	PO_WRAITH,
+	PO_BIG_WRAITH,
+	PO_BLOOD_TAX,
 	PO_SWORD_SHOCKWAVE,
 	PO_SWORDSMAN_SWORD,
 	PO_MAGIC_BOLT,
 	PO_GOLEM_ROCK,
 	PO_GOLEM_MELEE_WEAPON,
 	PO_PLAYER_SPEAR,
-	gravity_well,
-	gravity_bolt,
-	frost_storm,
-	rot_smog,
+	PO_GRAVITY_WELL,
+	PO_GRAVITY_BOLT,
+	PO_FROST_STORM,
 	placeholder
 } pObject_type;
 
@@ -101,28 +95,6 @@ typedef enum
 	ST_MAP_CLEAR,
 	ST_MAP_DEFAULT,
 } map_state;
-
-typedef enum
-{
-	st_swinging,
-	st_idle,
-	st_zwei
-} sword_state;
-
-typedef enum
-{
-	st_f,
-	st_b,
-	st_l,
-	st_r
-} dir_state;
-
-typedef enum
-{
-	st_tired,
-	st_running,
-	//st_dead
-} mObject_state;
 
 typedef enum
 {
@@ -160,18 +132,10 @@ typedef enum
 	ST_CHIEFTAIN_AWARE,
 	ST_CHIEFTAIN_READY,
 	ST_CHIEFTAIN_SUMMON,
-	st_crawler_m1,
-	st_crawler_m2,
-	st_crawler_m3,
-	st_runner_m1,
-	st_runner_m2,
-	st_runner_m3,
-	st_summoner_idle,
-	st_summoner_summon,
-	st_enemyknockback,
-	st_enemydead,
-	st_deathrattle,
-	st_clear,
+	ST_ENEMYKNOCKBACK,
+	ST_ENEMYDEAD,
+	ST_DEATHRATTLE,
+	ST_CLEAR,
 	st_placeholder
 } mObject_global_state;
 
