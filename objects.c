@@ -18,24 +18,6 @@ bool AABB(struct mObject *s, struct mObject *t)
 		   s->y + s->height/TILE_LENGTH > t->y;
 }
 
-
-bool AABBpp(struct pObject *pObject, struct player *player)
-{
-	return pObject->x < player->x + player->width/TILE_LENGTH &&
-		   pObject->x + pObject->width/TILE_LENGTH > player->x &&
-		   pObject->y < player->y + player->height/TILE_LENGTH &&
-		   pObject->y + pObject->width/TILE_LENGTH > player->y;
-}
-
-bool AABBpm(struct pObject *pObject, struct mObject *target)
-{
-	return pObject->x < target->x + target->width/TILE_LENGTH &&
-		pObject->x + pObject->width/TILE_LENGTH > target->x &&
-		pObject->y < target->y + target->height/TILE_LENGTH &&
-		pObject->y + pObject->width/TILE_LENGTH > target->y;
-
-}
-
 struct mObject* id_get_mObj(struct map* map, char id)
 {
 	struct mObject* res;
@@ -57,13 +39,12 @@ void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_st
 }
 
 
-struct pObject* spawn_pObject(dynList *pObject_list, double x, double y, pObject_type type, card_dir dir, double dmg, double theta, struct player* player)
+void spawn_pObject(dynList *pObject_list, double x, double y, pObject_type type, card_dir dir, double dmg, double theta, struct player* player)
 {
 	struct pObject* new = (struct pObject*)malloc(sizeof(struct pObject));
 	new->type = type;
 	init_pObject(new, x, y, dir, dmg, theta, player);
 	dynList_add(pObject_list, (void*)new);
-	return new;
 }
 
 void spawn_mObject(struct map* map, int x, int y, mObject_type type, char id)
@@ -79,13 +60,13 @@ void spawn_mObject(struct map* map, int x, int y, mObject_type type, char id)
 void check_damage_modifiers(struct mObject *target, struct pObject *source, struct player* player)
 {	
 	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
-	if(rune != NULL && rune->info.rune_type == blood)
+	if(rune != NULL && rune->info.rune_type == RN_BLOOD)
 	{
 		player->health += player->sword_damage * 0.05;
 	}
 
 	rune = (struct rune*)dynList_get(player->rune_list, 2);
-	if(rune != NULL && rune->info.rune_type == rot && target->status_effect.type == status_rot)
+	if(rune != NULL && rune->info.rune_type == RN_ROT && target->status_effect.type == STATUS_ROT)
 	{
 		target->health -= 0.5 * source->damage;
 	}
@@ -94,7 +75,6 @@ void check_damage_modifiers(struct mObject *target, struct pObject *source, stru
 void stasis_status_effect(struct mObject *mObject, struct player* player)
 {
 	mObject->base_speed = 0;
-	//printf("IM STUNNED\n");
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
 		mObject->base_speed = 1;
@@ -105,14 +85,13 @@ void stasis_status_effect(struct mObject *mObject, struct player* player)
 
 void frozen_status_effect(struct mObject *mObject, struct player* player)
 {
-	//change to basespeed when able
 	mObject->base_speed = 0.25;
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 3);
-		if(rune != NULL && rune->info.rune_type == frost)
+		if(rune != NULL && rune->info.rune_type == RN_FROST)
 		{
-			mObject->health -= mObject->health * 0.5;
+			mObject->health -= 100; //mObject->health * 0.5;
 			printf("frost procced %f\n", mObject->health);
 		}
 		set_status_effect(mObject, 0, 0, status_none);
@@ -125,7 +104,7 @@ void rot_status_effect(struct mObject *mObject)
 {
 	if(getTick() % 60 == 0)
 	{
-		mObject->health -= mObject->health * 0.05;
+		mObject->health -= 20;
 		printf("%f\n", mObject->health);
 	}
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
@@ -139,10 +118,10 @@ void identify_status_effect(struct mObject *mObject, struct player* player)
 {
 	switch(mObject->status_effect.type)
 	{
-		case status_frostbite:
+		case STATUS_FROSTBITE:
 			frozen_status_effect(mObject, player);
 			break;
-		case status_rot:
+		case STATUS_ROT:
 			rot_status_effect(mObject);
 			break;
 		case STATUS_STASIS:
@@ -153,6 +132,7 @@ void identify_status_effect(struct mObject *mObject, struct player* player)
 	}
 }
 
+//misc
 void delete_mObject(dynList *mObject_list, int index)
 {
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);	
@@ -166,12 +146,11 @@ void delete_mObject(dynList *mObject_list, int index)
 		{
 			struct mObject *target = (struct mObject*)dynList_get(mObject_list, i);
 			if(target->hittable == true)
-				target->st.type = st_enemydead;
+				target->st.type = ST_ENEMYDEAD;
 		}
-		//dynList_destroy(mObject_list);
-		//sleep(2);
 	}
 }
+
 void update_all_mObjects(dynList *mObject_list, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
 	if(dynList_is_empty(mObject_list))
@@ -179,7 +158,7 @@ void update_all_mObjects(dynList *mObject_list, struct player *player, struct ma
 	for(int i = 0; i < mObject_list->size; i++)
 	{
 		struct mObject *curr_mObj = (struct mObject*)dynList_get(mObject_list, i);
-		if(curr_mObj->st.type == st_clear)
+		if(curr_mObj->st.type == ST_CLEAR)
 		{
 			dynList_del_index(mObject_list, i);
 		}
@@ -235,13 +214,13 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 		if(AABB((struct mObject*)player, mObject))
 		{
 			add_rune(player, mObject->r_info, map);
-			set_mObject_state(mObject, st_deathrattle, NULL, 0, 32);
+			set_mObject_state(mObject, ST_DEATHRATTLE, NULL, 0, 32);
 			for(int i = 0; i < map->mObject_list->size; i++)
 			{
 				struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
 				if(curr->id == 'R')
 				{
-					set_mObject_state(curr, st_deathrattle, state_deathrattle, 0, 32);
+					set_mObject_state(curr, ST_DEATHRATTLE, state_deathrattle, 0, 32);
 				}
 			}
 		}
@@ -265,12 +244,10 @@ void tp_player_interaction(struct mObject *mObject, struct player* player, struc
 				add_event(ev_list, type_event_teleport, player, map, 0);
 			else
 				printf("Enemies left: %d!\n", map->aggresive_mObj_count);
-			//add_event(ev_list, type_event_lock);
 		}
 		if(AABB((struct mObject*)player, mObject) && mObject->id == 'T')
 		{
 			add_event(ev_list, type_event_inmaptp, player, map, 0);
-			//add_event(ev_list, type_event_lock);
 		}
 	}
 }
@@ -282,26 +259,28 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	new_x = player->x + player->vel_x;
 	new_y = player->y + player->vel_y;
 
-	//struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-	/*	
-		if(rune == NULL)
-		{
-		flight = false;	
-		}
-		else if(!(rune->info.rune_type == holy))
-		{
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == RN_HOLY)
 		flight = true;
-		}
-		*/
+#if 0
+	if(rune == NULL)
+	{
+		flight = false;	
+	}
+	else if((rune->info.rune_type == RN_HOLY))
+	{
+		flight = true;
+	}
+#endif
+
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
-#if 1
-	int fuckx = (int)(player->width/TILE_LENGTH);
-	int fuck = (int)(player->height/TILE_LENGTH);
-// 3/2 -> (1-offw) 5/2 ->
-	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
-	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
-	if(1)
+	int fx = (int)(player->width/TILE_LENGTH);
+	int fy = (int)(player->height/TILE_LENGTH);
+	// 3/2 -> (1-offw) 5/2 ->
+	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fx-offw) : 0.0);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
+	if(!flight)
 	{
 		if(player->vel_x <= 0)
 		{
@@ -336,16 +315,10 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 			}
 		}
 	}
-#endif
-#if 0
-	if(map_get_solid(map, (int)new_x, (int) new_y))
-		return;
-#endif
 	player->x = new_x;
 	player->y = new_y;
 
 	//extra clamp check
-#if 0
 	if(player->x >= (double)map->width-2)
 		player->x = (double)map->width-2;
 	if(player->y >= (double)map->height-2)
@@ -354,42 +327,10 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		player->x = 1;
 	if(player->y < 1)
 		player->y = 1;
-#endif
 }
 
-#if 0
-	if(player->health <= 0)
-	{
-		struct rune *rune = (struct rune*)dynList_get(player->rune_list, 3);
-		if(rune != NULL && rune->info.rune_type == holy && rune->attribute > 0)
-		{
-			player->health = player->maxhealth*rune->attribute/4;
-			rune->attribute --;
-			return;
-		}
-		player->health = 0;
-		return;
-	}
-#endif
-
-void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
+void check_player_state(struct player* player, struct map* map, struct cam* cam, const Uint8* currentKeyStates)
 {
-	//always exec
-	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-	player->vel_x = 0;
-	player->vel_y = 0;
-	//tmp
-	if(player->maxhealth < player->health)
-		player->health = player->maxhealth;
-	if(currentKeyStates[SDL_SCANCODE_9] || 0)
-		player->health = player->maxhealth;
-	if(player->health == 0)
-		return;
-	rune_abilities(player, map);
-	//always exec
-	//tmp
-	//
-	//
 	switch(player->global_state)
 	{
 		case ST_P_NORMAL:
@@ -399,7 +340,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 			player_move(player, map, cam);
 			input_attack(player, map, currentKeyStates);
 			break;
-		case st_p_knockbacked:
+		case ST_P_KNOCKBACK:
 			player_knockbacked(player, cam, map);
 			break;
 		case ST_P_DASH:
@@ -411,21 +352,39 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		case ST_P_ATTACKING:
 			player_attacking(player, map);
 			break;
+		case ST_P_DEAD:
+			player_deathrattle(player, map);
+			return;
+			break;
+		case ST_P_GONE:
+			return;
+			break;
 		default:
 			break;
 	}
-	player_invuln(player);
-	if(player->global_state == st_p_knockbacked || player->global_state == ST_P_ATTACKING)
+	player_invuln(player, map);
+	
+}
+
+void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
+{
+	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+	player->vel_x = 0;
+	player->vel_y = 0;
+	if(player->maxhealth < player->health)
+		player->health = player->maxhealth;
+
+	if(player->health <= 0 && (player->global_state != ST_P_DEAD && player->global_state != ST_P_GONE))
+	{
+		player->global_state = ST_P_DEAD;
+		identify_player_sprite_location(player);
+	}
+	rune_abilities(player, map);
+	check_player_state(player, map, cam, currentKeyStates);
+	if(player->global_state == ST_P_KNOCKBACK || player->global_state == ST_P_ATTACKING)
 		return;
 
 }
-
-void updateSword(struct player *sword, struct player *player)
-{
-
-
-}
-
 
 void pObject_move(struct pObject *pObject, struct player *player, struct map *map)
 {
@@ -438,9 +397,9 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	new_x = pObject->x + pObject->vel_x;
 	new_y = pObject->y + pObject->vel_y;
 
-	double f = 0.1;
-	double offw = pObject->width/TILE_LENGTH;
-	double offh = pObject->height/TILE_LENGTH;
+	const double f = 0.1;
+	const double offw = pObject->width/TILE_LENGTH;
+	const double offh = pObject->height/TILE_LENGTH;
 
 	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : 0.0;
 	double wunderkindh = ((int)pObject->height <= TILE_LENGTH) ? 1 - offh : 0.0;
@@ -486,15 +445,9 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	}
 #endif
 
-	if(hit_wall /* &&? */)
+	if(hit_wall)
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
-		//pObject->st.acp = NULL;
-		/*
-		   pObject->timer = 0;
-		   pObject->limit = 16;
-		   pObject->global_state = ST_PO_DEATHRATTLE;
-		   */
 	}
 
 	pObject->x = new_x;
@@ -502,14 +455,13 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 
 
 }
-
 void set_status_effect_area(struct mObject* mObject, struct map *map, int distancesquared, mObject_status_effect effect)
 {
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
 		struct mObject* mObj_cond = (struct mObject*)dynList_get(map->mObject_list, i);
 		double dx = mObject->x - mObj_cond->x, dy = mObject->y - mObj_cond->y;
-		if(dx * dx + dy * dy < distancesquared)
+		if(sum_square(dy, dx) <= distancesquared)
 		{
 			set_status_effect(mObj_cond, 0, 30, effect);
 		}
@@ -531,15 +483,14 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 
 	const double offw = mObject->width/TILE_LENGTH;
 	const double offh = mObject->height/TILE_LENGTH;
-	int fuckx = (int)(mObject->width/TILE_LENGTH);
-	int fuck = (int)(mObject->height/TILE_LENGTH);
-	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fuckx-offw) : 0.0);
-	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fuck-offh) : 0.0);
+	const int fx = (int)(mObject->width/TILE_LENGTH);
+	const int fy = (int)(mObject->height/TILE_LENGTH);
+	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fx-offw) : 0.0);
+	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
 
 	double f = 0.1;
 	bool hit_wall = false;
 
-	//TODO 
 	if(mObject->vel_x <= 0.0)
 	{
 		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
@@ -578,13 +529,13 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	}
 
 
-	if(mObject->st.type == st_enemyknockback && hit_wall == true)
+	if(mObject->st.type == ST_ENEMYKNOCKBACK && hit_wall == true)
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-		if(rune != NULL && rune->info.rune_type == gravity)
+		if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
 		{
 			rune = (struct rune*)dynList_get(player->rune_list, 3);
-			if(rune != NULL && rune->info.rune_type == gravity)
+			if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
 			{
 				set_status_effect_area(mObject, map, 4, STATUS_STASIS);
 			}
@@ -605,9 +556,8 @@ bool divine_shield(struct player *player)
 	//maybe use div_shield as a counter instead
 	//and at tick 1800 it recharges seems underwhelming now
 	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
-	if(!rune)
-		return false;
-	bool res = rune->info.rune_type == holy && rune->attribute == true ? true : false;
+	if(!rune) return false;
+	bool res = rune->info.rune_type == RN_HOLY && rune->attribute == true ? true : false;
 	rune->attribute = false;
 	return res;
 }
@@ -622,7 +572,7 @@ void player_hit(struct player* player, double damage, double theta)
 	player->health -= damage;
 	player->speed = 0.3;
 	player->theta = theta;
-	player->global_state = st_p_knockbacked;
+	player->global_state = ST_P_KNOCKBACK;
 }
 
 void mObject_damage(struct mObject* target, struct pObject *source, struct player *player)
@@ -631,7 +581,6 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->health -= source->damage;
 	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
-	//this segfaulted for no reason before be careful
 	set_status_effect(target, 0, 360, source->status_effect);
 	printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker || target->hyperarmor)
@@ -640,8 +589,9 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->theta = atan2(dy, dx);
 	target->speed = 0.2 * source->knockkoef - target->mass / 1024;
 	target->speed = target->speed <= 0 ? 0 : target->speed;
-	set_mObject_state(target, st_enemyknockback, state_enemy_knockbacked, 0, 20);
+	set_mObject_state(target, ST_ENEMYKNOCKBACK, state_enemy_knockbacked, 0, 20);
 }
+
 void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 {
 	double dx = player->x - mObject->x, dy = player->y - mObject->y;
@@ -650,47 +600,6 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 		player_hit(player, mObject->contact_damage, mObject->theta);
 	}
 }
-
-#if 0
-void mObject_active_chase(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam)
-{
-	double dx = player->x - mObject->x, dy = player->y - mObject->y;
-	mObject->speed = 0.05;
-	mObject->theta = atan2(dy, dx);
-	if(dx * dx + dy * dy > 48)
-	{
-		//printf("I'm hecking Done chasing\n");
-		mObject->st.type = st_spawn;
-	}
-	mObject_move(mObject, player, map);
-	//mObject_player_hitbox(mObject, player);
-
-}
-
-void mObject_idle_moving(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam)
-{
-	double dx = player->x - mObject->x, dy = player->y - mObject->y;
-	if(mObject->st.timer > mObject->st.limit)
-	{
-		mObject->speed = 0.01;
-		if(rand() % 2 == 1)
-		{	
-			mObject->speed = 0;
-		}
-		mObject->theta = get_frand(PI * 2, 0);//((double)rand()/(double)(RAND_MAX)) * 3.1415 * 2;
-		mObject->st.timer = 0;
-		mObject->st.limit = rand() % 80 + 80;
-	}
-	if(dx * dx + dy * dy < 16)
-	{
-		mObject->st.type = st_runner_m2;
-	}
-
-	//mObject_player_hitbox(mObject, player);
-	mObject_move(mObject, player, map);
-	mObject->st.timer ++;
-}
-#endif
 
 void update_mObject(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
@@ -709,91 +618,25 @@ void update_pObject(struct pObject *pObject, struct player *player, struct map *
 
 void drawPlayer(SDL_Renderer *renderer, struct player *player, struct cam *cam, SDL_Texture *tex)
 {
-	int lul = 0;
-	SDL_Rect s = {0, 0, 16, 24};
-	//SDL_Rect s1 = {80, 80, 32, 32};
-	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH - lul, player->width, player->height + lul}; //20
-
+	SDL_Rect R = {(player->x - cam->offset_x) * TILE_LENGTH, (player->y - cam->offset_y) * TILE_LENGTH, player->width, player->height};
 
 	render_player_animation(player, R, renderer, tex);
-#if 0
-	//SDL_RenderCopy(renderer, tex, &s, &R);
-	//SDL_RenderCopy(renderer, tex, &s1, &R);
-	SDL_SetRenderDrawColor(renderer, 0xDC, 0xA0, 0x22, 0xFF);
-	SDL_RenderFillRect(renderer, &R);
-#endif 
 }
 
 void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *cam, SDL_Texture* tex)
 {
 	SDL_Rect r = {(pObject->x - cam->offset_x) * TILE_LENGTH, (pObject->y - cam->offset_y) * TILE_LENGTH, pObject->width, pObject->height};
 
-
 	render_animation(pObject, tex, r, renderer);
 }
 
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex, struct player* player)
 {
-	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0/*(mObject->width - TILE_LENGTH)*/, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
-	//0.8 , 2.5*mObject->sprite.h
+	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
+	//TODO ooga booga
 	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o')
 		return;
-
-
-	if(mObject->id == '7' && 0) 
-	{
-
-		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
-		SDL_RenderFillRect(renderer, &r);
-		return;
-	}
+	
 	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }
-#if 0
-mobj_t*
-	P_SpawnMobj
-( fixed_t	x,
-  fixed_t	y,
-  fixed_t	z,
-  mobjtype_t	type )
-{
-	mobj_t*	mobj;
-	state_t*	st;
-	mobjinfo_t*	info;
-
-	mobj = Z_Malloc (sizeof(*mobj), PU_LEVEL, NULL);
-	memset (mobj, 0, sizeof (*mobj));
-	info = &mobjinfo[type];
-
-	mobj->type = type;
-	mobj->info = info;
-	mobj->x = x;
-	mobj->y = y;
-	mobj->radius = info->radius;
-	mobj->height = info->height;
-	mobj->flags = info->flags;
-	mobj->health = info->spawnhealth;
-
-
-#endif
-
-#if 0
-	switch(mObject->st.type)
-	{
-		case st_spawn:
-			state_crawler_idle(mObject, player, map);
-			break;
-		case st_crawler_m2:
-			state_crawler_move(mObject, player, map);
-			break;
-		case st_m1:
-		case st_crawler_m3:
-			state_crawler_stay(mObject, player, map);
-			break;
-		case st_enemyknockback:
-			state_crawler_knockbacked(mObject, player, map);
-			break;
-	}
-#endif
-

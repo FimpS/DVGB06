@@ -14,12 +14,12 @@
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
 
-int main(int argc, int **argv) {
+int main(int argc, char **argv) {
 
 	srand(time(NULL));
 	int mode = SDL_WINDOW_BORDERLESS;
 	int nmode = 0;
-	if(argc == 2)
+	if(argc == 2 && !strcmp(argv[1], "full"))
 	{
 		mode = SDL_WINDOW_FULLSCREEN;
 	}

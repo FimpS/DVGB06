@@ -54,16 +54,24 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	int fill = 10;
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
+	int red = 0, green = 0, blue = 0;
+	if(mObject->status_effect.type == STATUS_FROSTBITE)
+	{
+		blue = 75;
+	}
+	if(mObject->status_effect.type == STATUS_ROT)
+	{
+		green = 75;
+	}
 	double dist = 0;
 	double dx = (mObject->x - player->x);
 	double dy = (mObject->y - player->y);
 	dist = dx * dx + dy * dy;
 	dist = 255 - dist*8;
-	//dist += rand() % 8;
 	dist = dist <= 100 ? 100 : dist;
-	dist = dist >= 255 ? 255 : dist;
+	dist = dist >= 180 ? 180 : dist;
 
-	SDL_SetTextureColorMod(tex, dist, dist, dist);
+	SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
 
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{
@@ -80,10 +88,23 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	}
 	mObject->anim.timer ++;
 }
-
+bool cond = false;
 void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SDL_Renderer *renderer)
 {
 	const double conv = 57.29577;
+	const Uint8* cks = SDL_GetKeyboardState(NULL);
+	
+	if(cks[SDL_SCANCODE_P])
+	{
+		cond = !cond;
+		sleep(1);
+		//return;
+	}
+	if(cond)
+	{
+		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
+		SDL_RenderFillRect(renderer, &dR);
+	}
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
 	if(pObject->anim_timer >= pObject->anim_limit)
 	{

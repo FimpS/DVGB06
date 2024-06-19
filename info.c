@@ -80,17 +80,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	pObject->status_effect = player->sword_effect_type;
 	switch(pObject->type)
 	{
-		case fire:
-			pObject->width = TILE_LENGTH / 2;
-			pObject->height = TILE_LENGTH / 2;
-			pObject->speed = 0.3;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->penetration_index = 2;
-			pObject->pen_wall = true;
-			pObject->sprite = init_sprite(0, 0, 16, 16);
-			break;
-		case balista_bolt:
+		case PO_BALISTA_BOLT:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH/2;
 			pObject->speed = 0.1;
@@ -103,47 +93,37 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 16, 16, 16);
 			pObject->st = init_pObject_state(state_balista_shot, 0, 1200);
 			break;
-		case wraith_big:
-		case wraith:
+		case PO_BIG_WRAITH:
+		case PO_WRAITH:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 
-			pObject->speed = 0.25;
+			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
 			pObject->pen_wall = false;
 			pObject->sprite = init_sprite(0, 32, 16, 16);
 			pObject->st = init_pObject_state(state_wraith_follow, 0, player->health * 2.4);
-			if(pObject->type == wraith_big)
+			if(pObject->type == PO_BIG_WRAITH)
 			{
+				pObject->speed = 0.15;
 				pObject->st.limit = 2 << 21;
 			}
 			break;
-		case frost_storm:
+		case PO_FROST_STORM:
 			pObject->width = TILE_LENGTH * 3;
 			pObject->height = TILE_LENGTH * 3;
 			pObject->penetration_index = 0;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->knockbacker = false;
-			pObject->status_effect = status_frostbite;
-			pObject->sprite = init_sprite(0, 48, 16, 16);
-			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
-			break;
-		case rot_smog:
-			pObject->width = TILE_LENGTH * 3;
-			pObject->height = TILE_LENGTH * 3;
 			pObject->damage = dmg;
-			pObject->penetration_index = 100;
 			pObject->transp = false;
 			pObject->pen_wall = false;
 			pObject->knockbacker = false;
-			pObject->status_effect = status_none;
-			pObject->sprite = init_sprite(0, 64, 16, 16);
-			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 240);
+			pObject->status_effect = STATUS_FROSTBITE;
+			pObject->sprite = init_sprite(0, 128, 16, 16);
+			pObject->st = init_pObject_state(state_rot_smog_flower, 0, 128);
 			break;
-		case gravity_well:
+		case PO_GRAVITY_WELL:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.05;
@@ -153,7 +133,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 80, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_well_travel, 0, 300);
 			break;
-		case gravity_bolt:
+		case PO_GRAVITY_BOLT:
 			pObject->width = TILE_LENGTH / 1.5;
 			pObject->height = TILE_LENGTH / 1.5;
 			pObject->speed = 0.05; //prev 0.05
@@ -164,7 +144,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 96, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_bolt_travel, 0, 120);
 			break;
-		case blood_tax:
+		case PO_BLOOD_TAX:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.25;
@@ -174,44 +154,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->pen_wall = true;
 			pObject->sprite = init_sprite(0, 0, 16, 16);
 			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
-			break;
-		case brimstone:
-			pObject->dir = dir;
-			switch(pObject->dir)
-			{
-				case EAST:
-					pObject->x = x;
-					pObject->y = y;
-					pObject->width = TILE_LENGTH * 12;
-					pObject->height = TILE_LENGTH * 2;
-					break;
-				case WEST:
-					pObject->width = TILE_LENGTH * 12;
-					pObject->height = TILE_LENGTH * 2;
-					pObject->x = x - pObject->width;
-					pObject->y = y;
-					break;
-				case SOUTH:
-					pObject->width = TILE_LENGTH * 2;
-					pObject->height = TILE_LENGTH * 12;
-					pObject->x = x;
-					pObject->y = y;
-					break;
-				case NORTH:
-					pObject->width = TILE_LENGTH * 2;
-					pObject->height = TILE_LENGTH * 12;
-					pObject->x = x;
-					pObject->y = y - pObject->height;
-					break;
-			}
-			pObject->speed = 0;
-			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
-			pObject->penetration_index = 0;
-			pObject->knockbacker = false;
-			pObject->sprite = init_sprite(0, 128, 16, 16);
-			pObject->st = init_pObject_state(state_brimstone_beam, 0, 48);
 			break;
 		case PO_SWORDSMAN_SWORD:
 			pObject->width = TILE_LENGTH * 2;
@@ -265,22 +207,9 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
-		case sword:
-			pObject->width = TILE_LENGTH;
-			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.3;
-			pObject->damage = dmg;
-			pObject->transp = true;
-			pObject->penetration_index = 100;
-			pObject->pen_wall = false;
-			pObject->knockkoef = player->pObject_knockkoef;
-			pObject->anim_limit = 4;
-			pObject->sprite = init_sprite(0, 160, 16, 16);
-			pObject->st = init_pObject_state(state_sword_swing, 0, 16);
-			break;
 		case PO_PLAYER_SPEAR:
 			pObject->width = TILE_LENGTH * 3;
-			pObject->height = TILE_LENGTH;
+			pObject->height = TILE_LENGTH * 1;
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = false;
@@ -315,8 +244,8 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
 	player->height = TILE_LENGTH * 6/4;
-	player->base_speed = 1;
-	player->speed = player->base_speed / 10;
+	player->base_speed = 1.0;
+	player->speed = player->base_speed / 20;
 	player->theta = 0;
 	player->maxhealth = 100;
 	player->health = player->maxhealth;
@@ -332,7 +261,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->shock_counter = 6;
 	player->anim1counter = 0;
-	player->sword_damage = 25;
+	player->sword_damage = 100;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->rune_list = dynList_create();
@@ -357,6 +286,16 @@ void identify_player_sprite_location(struct player* player)
 			player->sprite = init_sprite(96, 0, 16, 24);
 			player->anim = init_render_info(0, 16, 1, 0, (PLAYER_ATTACK_LIMIT + PLAYER_ATTACKING_LIMIT) / 4);
 			break;
+		case ST_P_DEAD:
+			player->sprite = init_sprite(64, 24, 16, 24);
+			player->anim = init_render_info(64, 16, 4, 0, 16);
+			break;
+		case ST_P_GONE:
+			player->sprite = init_sprite(0, 48, 16, 24);
+			player->anim = init_render_info(0, 16, 4, 0, 16);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -365,22 +304,22 @@ SDL_Rect identify_rune_sprite(struct rune_info ri)
 	SDL_Rect new = {0};
 	switch(ri.rune_type)
 	{
-		case unholy:
+		case RN_UNHOLY:
 			new = init_sprite(0, 320, 32, 32);
 			break;
-		case holy:
+		case RN_HOLY:
 			new = init_sprite(0, 352, 32, 32);
 			break;
-		case rot:
+		case RN_ROT:
 			new = init_sprite(0, 384, 32, 32);
 			break;
-		case blood:
+		case RN_BLOOD:
 			new = init_sprite(0, 416, 32, 32);
 			break;
-		case gravity:
+		case RN_GRAVITY:
 			new = init_sprite(0, 448, 32, 32);
 			break;
-		case frost:
+		case RN_FROST:
 			new = init_sprite(0, 480, 32, 32);
 			break;
 	}
@@ -403,7 +342,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 	mObject->hyperarmor = false;
 	switch(mObject->type)
 	{
-		case runner:
+		case MO_RUNNER:
 			mObject->x = x;
 			mObject->y = y;
 			mObject->vel_x = 0;
@@ -427,7 +366,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->anim = init_render_info(0, TILE_LENGTH, 4, 0, 4);
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, NULL);
 			break;
-		case crawler:
+		case MO_CRAWLER:
 			mObject->health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
@@ -443,7 +382,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_CRAWLER_IDLE;
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 64, state_crawler_idle);
 			break;
-		case rusher:
+		case MO_RUSHER:
 			mObject->health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
@@ -464,7 +403,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 				mObject->health = 500;
 			}
 			break;
-		case balista:
+		case MO_BALISTA:
 			//TODO weird stuff with balista and blood_tax maybe target_hit problem
 			//mObject->base_speed = 0;
 			mObject->speed = mObject->base_speed;
@@ -532,7 +471,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_MAGUS_AWARE;
 			mObject->st = init_mObject_state(state_magus_idle, 0, 40, state_magus_aware);
 			break;
-		case summoner:
+		case MO_SUMMONER:
 			mObject->speed = mObject->base_speed / 20;
 			mObject->health = 200;
 			mObject->width = TILE_LENGTH;
@@ -583,7 +522,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_chieftain_aware, 0, 48, NULL);
 			break;
-		case interactable:
+		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->hittable = false;
@@ -591,7 +530,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->killable = false;
 			mObject->st.acp = tp_player_interaction;
 			break;
-		case rune_shard:
+		case MO_RUNE_SHARD:
 			mObject->width = TILE_LENGTH * 2;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hittable = false;
@@ -808,7 +747,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 0;
 			break;
-		case st_enemyknockback:
+		case ST_ENEMYKNOCKBACK:
 			switch(mObject->id)
 			{
 				case '6':
@@ -844,7 +783,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					break;
 			}
 			break;
-		case st_deathrattle:
+		case ST_DEATHRATTLE:
 			switch(mObject->id)
 			{
 				case 'B':

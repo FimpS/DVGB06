@@ -37,7 +37,7 @@ void unholy_anchor_ability(struct player *player, struct map *map, struct rune* 
 		if(rand() % 2 == 1 || 1)
 		{
 			printf("att %d\n", rune->attribute);
-			spawn_pObject(map->pObject_list, player->x, player->y, wraith, EAST, 50.0, 0.0, player);
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, 50.0, 0.0, player);
 		}
 		rune->attribute --;
 	}
@@ -45,7 +45,7 @@ void unholy_anchor_ability(struct player *player, struct map *map, struct rune* 
 
 void unholy_complete_initial(struct player *player, struct map* map, struct rune* rune)
 {
-	spawn_pObject(map->pObject_list, player->x, player->y, wraith_big, EAST, 50.0, 0.0, player);
+	spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, 50.0, 0.0, player);
 }
 
 void unholy_support_initial(struct player* player, struct map* map, struct rune* rune)
@@ -61,6 +61,11 @@ void holy_support_initial(struct player *player, struct map* map, struct rune* r
 
 }
 
+void holy_mending_initial(struct player *player, struct map* map, struct rune* rune)
+{
+
+}
+
 //BLOOD
 void blood_anchor_initial(struct player *player, struct map *map, struct rune* rune)
 {
@@ -72,33 +77,12 @@ void blood_support_initial(struct player* player, struct map* map, struct rune* 
 {
 	player->sword_damage += player->sword_damage * 0.25;
 }
+
 void blood_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	double offset = 0.5;
-	if(player->health == player->maxhealth && player->attack_speed_timer > player->attack_speed)
-	{
-		if(ck[SDL_SCANCODE_RIGHT])
-		{
-			spawn_pObject(map->pObject_list, player->x + offset, player->y, blood_tax, EAST, player->sword_damage * 0.5, 0.0, player);
-		}
-		else if(ck[SDL_SCANCODE_LEFT])
-		{
 
-			spawn_pObject(map->pObject_list, player->x - offset, player->y, blood_tax, WEST, player->sword_damage * 0.5, PI, player);
-		}
-		else if(ck[SDL_SCANCODE_UP])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y - offset, blood_tax, NORTH, player->sword_damage * 0.5, -PI/2, player);
-		}
-		else if(ck[SDL_SCANCODE_DOWN])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y + offset, blood_tax, SOUTH, player->sword_damage * 0.5, PI/2, player);
-		}
-	}
 }
+
 void blood_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->maxhealth -= player->maxhealth * 0.25;
@@ -116,79 +100,14 @@ void blood_complete_initial(struct player* player, struct map* map, struct rune*
 void blood_complete_ability(struct player* player, struct map* map, struct rune* rune)
 {
 	//BRIMSTONE
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	if(ck[SDL_SCANCODE_RIGHT])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x + 1*player->width, player->y + 0.5, brimstone, EAST, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;
-	}
-	else if(ck[SDL_SCANCODE_LEFT])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x + 0*player->width, player->y + 0.5, brimstone, WEST, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;	
-	}
-	else if(ck[SDL_SCANCODE_DOWN])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x - 0.5, player->y + player->height, brimstone, SOUTH, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;	
-	}
-	else if(ck[SDL_SCANCODE_UP])
-	{
-		if(rune->attribute >= 64)
-		{
-			rune->attribute = 0;
-			spawn_pObject(map->pObject_list, player->x - 0.5, player->y + player->height, brimstone, NORTH, player->sword_damage * 0.2, 0.0, player);
-
-		}
-		rune->attribute ++;			
-	}
-	else
-		rune->attribute = 0;
+	//other now but works
+	
 }
 //Gravity
 
-
 void gravity_anchor_ability(struct player* player, struct map *map, struct rune* rune)
 {
-	const Uint8* ck = SDL_GetKeyboardState(NULL);
-	double offset = 0.5;
-	if(player->attack_speed_timer > 16 && 1) //change to 32 for brimcharge
-	{
-		if(ck[SDL_SCANCODE_RIGHT])
-		{
-			spawn_pObject(map->pObject_list, player->x + offset, player->y, gravity_well, EAST, player->sword_damage * 0.5, 0.0, player);
-		}
-		else if(ck[SDL_SCANCODE_LEFT])
-		{
 
-			spawn_pObject(map->pObject_list, player->x - offset, player->y, gravity_well, WEST, player->sword_damage * 0.5, PI, player);
-		}
-		else if(ck[SDL_SCANCODE_UP])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y - offset, gravity_well, NORTH, player->sword_damage * 0.5, -PI/2, player);
-		}
-		else if(ck[SDL_SCANCODE_DOWN])
-		{
-
-			spawn_pObject(map->pObject_list, player->x, player->y + offset, gravity_well, SOUTH, player->sword_damage * 0.5, PI/2, player);
-		}
-	}
 }
 
 void gravity_support_initial(struct player* player, struct map* map, struct rune* rune)
@@ -201,8 +120,8 @@ void gravity_support_initial(struct player* player, struct map* map, struct rune
 
 void frost_anchor_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->sword_effect_type = status_frostbite;
-	player->attack_speed -= player->attack_speed * 0.10;
+	player->sword_effect_type = STATUS_FROSTBITE;
+	player->attack_speed -= player->attack_speed * 0.20;
 }
 
 void frost_support_initial(struct player* player, struct map *map, struct rune* rune)
@@ -218,18 +137,14 @@ void frost_mending_initial(struct player* player, struct map* map, struct rune* 
 
 void frost_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	if(rune->attribute > 0)
-	{
-		spawn_pObject(map->pObject_list, player->x, player->y, frost_storm, EAST, 0.0, 0.0, player);
-		rune->attribute = 0;
-	}
+
 }
 
 //rot
 
 void rot_anchor_initial(struct player* player, struct map *map, struct rune* rune)
 {
-	player->sword_effect_type = status_rot;
+	player->sword_effect_type = STATUS_ROT;
 	player->base_speed += 0.25;
 	player->speed = player->base_speed / 5;
 }
@@ -242,12 +157,7 @@ void rot_support_initial(struct player* player, struct map* map, struct rune* ru
 
 void rot_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	if(rune->attribute > 0)
-	{
-		printf("done\n");
-		spawn_pObject(map->pObject_list, player->x - 1, player->y - 1, rot_smog, EAST, player->sword_damage / 10, 0.0, player);
-		rune->attribute = 0;
-	}
+	
 }
 
 //Generic
@@ -275,7 +185,7 @@ struct rune init_rune(struct rune_info i)
 	new.info = init_rune_info(i.rune_type, i.rune_stage, i.title);
 	switch(i.rune_type)
 	{
-		case unholy:
+		case RN_UNHOLY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -303,7 +213,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case holy:
+		case RN_HOLY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -331,7 +241,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case blood:
+		case RN_BLOOD:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -360,7 +270,7 @@ struct rune init_rune(struct rune_info i)
 
 			}
 			break;
-		case gravity:
+		case RN_GRAVITY:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -390,7 +300,7 @@ struct rune init_rune(struct rune_info i)
 			}
 			break;
 
-		case frost:
+		case RN_FROST:
 			switch(i.rune_stage)
 			{
 				case anchor:
@@ -416,7 +326,7 @@ struct rune init_rune(struct rune_info i)
 					break;
 			}
 			break;
-		case rot:
+		case RN_ROT:
 			switch(i.rune_stage)
 			{
 				case anchor:

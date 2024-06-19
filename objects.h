@@ -32,7 +32,7 @@ struct pObj_state
 
 struct mObj_state
 {
-	mObject_state type; 
+	mObject_global_state type; 
 	void (*acp)(struct mObject*, struct player*, struct map*);
 	void (*kcp)(struct mObject*, struct player*, struct map*);
 	int timer;
@@ -200,7 +200,7 @@ void update_pObject();
 void draw_pObjects();
 void update_pObjects();
 void pObject_move();
-struct pObject* spawn_pObject();
+void spawn_pObject();
 //p
 void player_hit();
 void player_move();
