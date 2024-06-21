@@ -104,7 +104,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 1;
 			pObject->pen_wall = false;
 			pObject->sprite = init_sprite(0, 32, 16, 16);
-			pObject->st = init_pObject_state(state_wraith_follow, 0, player->health * 2.4);
+			pObject->st = init_pObject_state(state_wraith_follow, 0, player->maxhealth * 0.4);
 			if(pObject->type == PO_BIG_WRAITH)
 			{
 				pObject->speed = 0.15;
@@ -247,7 +247,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->base_speed = 1.0;
 	player->speed = player->base_speed / 20;
 	player->theta = 0;
-	player->maxhealth = 100;
+	player->maxhealth = 1000;
 	player->health = player->maxhealth;
 	player->global_state = ST_P_NORMAL;
 	player->invuln = false;

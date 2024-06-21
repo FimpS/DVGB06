@@ -262,16 +262,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
 	if(rune != NULL && rune->info.rune_type == RN_HOLY)
 		flight = true;
-#if 0
-	if(rune == NULL)
-	{
-		flight = false;	
-	}
-	else if((rune->info.rune_type == RN_HOLY))
-	{
-		flight = true;
-	}
-#endif
 
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
@@ -308,9 +298,10 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 		}
 		else
 		{
-			if(map_get_solid(map, (int)(new_x), (int)(new_y + player->height/TILE_LENGTH - 0.1)) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH - 0.1), (int)(new_y + player->height/TILE_LENGTH - 0.1)))
+			if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH - 0.1), (int)(new_y + player->height/TILE_LENGTH)))
 			{
 				new_y = (int)new_y + wunderkindh;
+				printf("%lf\n", wunderkindh);
 				player->vel_y = 0;
 			}
 		}
@@ -486,7 +477,7 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 	const int fx = (int)(mObject->width/TILE_LENGTH);
 	const int fy = (int)(mObject->height/TILE_LENGTH);
 	double wunderkindw = ((int)mObject->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fx-offw) : 0.0);
-	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
+	double wunderkindh = ((int)mObject->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
 
 	double f = 0.1;
 	bool hit_wall = false;
