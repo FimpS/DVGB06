@@ -402,6 +402,21 @@ void state_summoner_found(struct mObject *mObj, struct player *player, struct ma
 	mObj->st.timer ++;
 }
 
+void state_rider_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	return;
+}
+
+void state_rider_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	return;
+}
+void state_rider_charge(struct mObject* mObj, struct player* player, struct map* map)
+{
+	return;
+}
+// use swordsman for rest of these with updated gfx -> other states
+
 //GOLEM /BOSS\
 
 void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)

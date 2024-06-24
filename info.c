@@ -522,6 +522,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_chieftain_aware, 0, 48, NULL);
 			break;
+		case MO_RIDER_FIGHTER:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 2;
+			mObject->hit = false;
+			mObject->mass = 200;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 50;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(0, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(0, 224, 16, 24);
+			mObject->type_reg = ST_RIDER_IDLE;
+			mObject->hyperarmor = false;
+			mObject->st = init_mObject_state(state_rider_idle, 0, 102, state_rider_idle);
+			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;

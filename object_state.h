@@ -75,7 +75,10 @@ void state_magus_ready();
 void state_summoner_idle();
 void state_summoner_dash();
 void state_summoner_found();
-//bossas
+//rider_nonranged
+void state_rider_idle();
+
+//bosses
 //Golem
 void state_golem_aware();
 void state_golem_stomp();

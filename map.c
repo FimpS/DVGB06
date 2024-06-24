@@ -219,6 +219,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_SUMMONER, '7');
 					m->content[x+y * m->width] = '.';
 					break;
+				case '8':
+					spawn_mObject(m, x, y, MO_RIDER_FIGHTER, '8');
+					m->content[x+y * m->width] = '.';
+					break;
 				case 'B':
 					spawn_mObject(m, x, y, MO_BALISTA, 'B');
 					m->content[x+y * m->width] = '.';
