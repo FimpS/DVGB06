@@ -22,6 +22,7 @@
 #define MAGUS_CAST_COOLDOWN 32
 #define SUMMONER_RANGE 49
 #define CRAWLER_RANGE 144
+#define RIDER_CHARGE_RANGE 49
 #define CRAWLER_CHARGE_COOLDOWN 32
 //bosses
 #define GOLEM_STOMP_RANGE 16
@@ -77,6 +78,8 @@ void state_summoner_dash();
 void state_summoner_found();
 //rider_nonranged
 void state_rider_idle();
+void state_rider_aware();
+void state_rider_charge();
 
 //bosses
 //Golem
