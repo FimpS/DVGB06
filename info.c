@@ -522,6 +522,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_chieftain_aware, 0, 48, NULL);
 			break;
+		case MO_RIDER_FIGHTER:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 2;
+			mObject->hit = false;
+			mObject->mass = 40;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 50;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(256, 32, 4, 0, 8);
+			mObject->sprite = init_sprite(256, 0, 32, 32);
+			mObject->type_reg = ST_RIDER_AWARE;
+			mObject->hyperarmor = false;
+			mObject->st = init_mObject_state(state_rider_idle, 0, 102, state_rider_idle);
+			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
@@ -685,6 +702,18 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 32;
 			mObject->anim.start_frame = 0;
 			break;
+		case ST_RIDER_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 64;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_RIDER_CHARGE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 32;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 256;
+			break;
 		case ST_GOLEM_AWARE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 512;
@@ -781,6 +810,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 128;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
+				case '8': 
+					mObject->sprite.x = 384;
+					mObject->sprite.y = 0;
+					mObject->anim.start_frame = 384;
+					mObject->anim.limit = mObject->st.limit + 124;
+					break;
 			}
 			break;
 		case ST_DEATHRATTLE:
@@ -815,6 +850,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->sprite.x = 192;
 					mObject->anim.limit = mObject->st.limit / 4 + 0;
 					mObject->anim.start_frame = 192;
+					break;
+				case '8':
+					mObject->sprite.y = 32;
+					mObject->sprite.x = 384;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 384;
 					break;
 				case 'R':
 					mObject->anim.start_frame = 128;

@@ -402,6 +402,45 @@ void state_summoner_found(struct mObject *mObj, struct player *player, struct ma
 	mObj->st.timer ++;
 }
 
+void state_rider_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_RIDER_AWARE, state_rider_aware, 0, 124);
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_rider_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObj->theta = atan2(dy, dx);
+	mObj->speed = mObj->base_speed / 40;
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer >= mObj->st.limit && sum_square(dy, dx) <= RIDER_CHARGE_RANGE)
+	{
+		set_mObject_state(mObj, ST_RIDER_CHARGE, state_rider_charge, 0, 32);	
+		mObj->theta = atan2(dy, dx);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_rider_charge(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObj->speed = mObj->base_speed / 6;
+	mObject_move(mObj, player, map);
+	mObject_player_hitbox(mObj, player);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_RIDER_AWARE, state_rider_aware, 0, 96);
+		return;
+	}
+	mObj->st.timer ++;
+}
+// use swordsman for rest of these with updated gfx -> other states
+
 //GOLEM /BOSS\
 
 void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)
@@ -1200,10 +1239,22 @@ void state_sword_shockwave(struct pObject *pObject, struct player* player, struc
 	pObject->st.timer ++;
 }
 
+void check_deathrattle_specs(struct mObject* mObject, struct player* player, struct map* map)
+{
+	switch(mObject->id)
+	{
+		case '8':
+			spawn_mObject(map, mObject->x + 1, mObject->y + 0.75, MO_SWORDSMAN, '5');
+			break;
+	}
+}
+
 void state_deathrattle(struct mObject *mObject, struct player *player, struct map *map)
 {
 	if(mObject->st.timer >= mObject->st.limit)
 	{
+		check_deathrattle_specs(mObject, player, map);
+
 		set_mObject_state(mObject, ST_CLEAR, state_deathrattle, 0, 60);
 		if(mObject->killable == false)
 			return;
