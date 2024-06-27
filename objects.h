@@ -196,6 +196,7 @@ void mObject_damage();
 
 //proj
 void draw_pObject();
+void pObject_player_hitbox();
 void update_pObject();
 void draw_pObjects();
 void update_pObjects();

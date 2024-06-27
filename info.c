@@ -168,6 +168,19 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->anim_tile_length = 32;
 			pObject->anim_frames = 1;
 			break;
+		case PO_FIRE_SLING:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = false;
+			pObject->pen_wall = false;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 240, 16, 16);
+			pObject->st = init_pObject_state(state_fire_sling_action, 0, 64);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
 		case PO_GOLEM_ROCK:
 			pObject->speed = get_frand(0.1, 0.05);
 			int fuck_you = rand() % 20;
@@ -524,11 +537,11 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RIDER_FIGHTER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
+			mObject->health = 400;
 			mObject->width = TILE_LENGTH * 2;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
-			mObject->mass = 40;
+			mObject->mass = 75;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 50;
 			mObject->hittable = true;
@@ -538,6 +551,41 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_RIDER_AWARE;
 			mObject->hyperarmor = false;
 			mObject->st = init_mObject_state(state_rider_idle, 0, 102, state_rider_idle);
+			break;
+		case MO_DRIDER_FIGHTER:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 1.5;
+			mObject->hit = false;
+			mObject->mass = 40;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 50;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(256, 96, 16, 24);
+			mObject->type_reg = ST_DRIDER_AWARE;
+			mObject->hyperarmor = false;
+			mObject->st = init_mObject_state(state_drider_idle, 0, 102, state_drider_idle);
+			break;
+		case MO_FIRE_TOWER:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 200;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3;
+			mObject->hit = false;
+			mObject->mass = 500;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(256, 144, 16, 48);
+			mObject->type_reg = ST_FIRE_TOWER_IDLE;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_fire_tower_idle, 0, 144, state_fire_tower_idle);
+
 			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
@@ -714,6 +762,36 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = 4;
 			mObject->anim.start_frame = 256;
 			break;
+		case ST_DRIDER_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 96;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_DRIDER_READY:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 96;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 320;
+			break;
+		case ST_DRIDER_FIRE_CHARGE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 120;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_FIRE_TOWER_IDLE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 144;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_FIRE_TOWER_FIRE:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 144;
+			mObject->anim.limit = (mObject->st.limit / 3) / 4;
+			mObject->anim.start_frame = 320;
+			break;
 		case ST_GOLEM_AWARE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 512;
@@ -816,6 +894,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 384;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
+				case '9':
+					mObject->sprite.x = 384;
+					mObject->sprite.y = 96;
+					mObject->anim.start_frame = 384;
+					mObject->anim.limit = mObject->st.limit + 124;
+					break;
 			}
 			break;
 		case ST_DEATHRATTLE:
@@ -856,6 +940,18 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->sprite.x = 384;
 					mObject->anim.limit = mObject->st.limit / 4;
 					mObject->anim.start_frame = 384;
+					break;
+				case '9':
+					mObject->sprite.y = 96;
+					mObject->sprite.x = 448;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
+					break;
+				case 't':
+					mObject->sprite.y = 144;
+					mObject->sprite.x = 448;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
 					break;
 				case 'R':
 					mObject->anim.start_frame = 128;

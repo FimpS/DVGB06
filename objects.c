@@ -591,6 +591,15 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	}
 }
 
+void pObject_player_hitbox(struct pObject* pObject, struct player *player)
+{
+	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
+	{
+		player_hit(player, pObject->damage, pObject->theta);
+		set_pObject_state(pObject, ST_PO_DEAD, state_pObject_deathrattle, 0, 16);
+	}
+}
+
 void update_mObject(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
 	state_enemy_default(mObject, player, map);
@@ -624,9 +633,8 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//TODO ooga booga
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o' && mObject->id != '8')
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o' && mObject->id != '8' && mObject->id != '9' && mObject->id != 't')
 		return;
-	
 	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }

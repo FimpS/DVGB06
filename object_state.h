@@ -23,6 +23,8 @@
 #define SUMMONER_RANGE 49
 #define CRAWLER_RANGE 144
 #define RIDER_CHARGE_RANGE 49
+#define DRIDER_FIRE_RANGE 36
+#define FIRE_TOWER_RANGE 49
 #define CRAWLER_CHARGE_COOLDOWN 32
 //bosses
 #define GOLEM_STOMP_RANGE 16
@@ -80,6 +82,15 @@ void state_summoner_found();
 void state_rider_idle();
 void state_rider_aware();
 void state_rider_charge();
+//rider_demounted
+void state_drider_idle();
+void state_drider_aware();
+void state_drider_ready();
+void state_drider_fire_charge();
+void state_drider_dash();
+//fire_tower
+void state_fire_tower_idle();
+void state_fire_tower_fire();
 
 //bosses
 //Golem
@@ -113,5 +124,6 @@ void state_spell_fire();
 void state_sword_swing();
 void state_wraith_follow();
 void state_blood_tax();
+void state_fire_sling_action();
 
 #endif

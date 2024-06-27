@@ -439,7 +439,103 @@ void state_rider_charge(struct mObject* mObj, struct player* player, struct map*
 	}
 	mObj->st.timer ++;
 }
-// use swordsman for rest of these with updated gfx -> other states
+
+void state_drider_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_DRIDER_AWARE, state_drider_aware, 0, 96);
+	}
+	return;
+}
+void state_drider_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer >= mObj->st.limit && sum_square(dy, dx) <= DRIDER_FIRE_RANGE)
+	{
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_DRIDER_READY, state_drider_ready, 0, 32);
+		return;
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		mObj->speed = mObj->base_speed / 6;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_DRIDER_DASH, state_drider_dash, 0, 16);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_drider_dash(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_DRIDER_AWARE, state_drider_aware, 0, 96);
+		return;
+	}
+	mObj->st.timer ++;
+
+}
+void state_drider_ready(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+		mObj->theta = atan2(dy, dx);
+		mObj->speed = mObj->base_speed / 4;
+		set_mObject_state(mObj, ST_DRIDER_FIRE_CHARGE, state_drider_fire_charge, 0, 48);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_drider_fire_charge(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	mObject_player_hitbox(mObj, player, map);
+	if(mObj->st.timer == mObj->st.limit / 2)
+	{
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_FIRE_SLING, EAST, 40.0, -1 * PI / 2, player);
+		//spawn projectile
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		const double dx = OBJDIFFX(mObj, player), dy = OBJDIFFY(mObj, player);
+		set_mObject_state(mObj, ST_DRIDER_AWARE, state_drider_aware, 0, 32);
+		return;
+	}
+	mObj->st.timer ++;
+}
+
+void state_fire_tower_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= FIRE_TOWER_RANGE)
+	{
+		if(mObj->st.timer >= mObj->st.limit)
+		{
+			set_mObject_state(mObj, ST_FIRE_TOWER_FIRE, state_fire_tower_fire, 0, 256);
+		}
+		mObj->st.timer ++;
+		return;
+	}
+}
+
+void state_fire_tower_fire(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if((mObj->st.timer + 1) % 85 == 0)
+	{
+		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_FIRE_SLING, EAST, 40.0, -1 * PI / 2, player);
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_FIRE_TOWER_IDLE, state_fire_tower_idle, 0, 144);
+		return;
+	}
+	mObj->st.timer ++;
+}
 
 //GOLEM /BOSS\
 
@@ -785,6 +881,20 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 		player_hit(player, pObject->damage, pObject->theta);
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, DEATHRATTLE_LIMIT);
 	}
+	pObject->st.timer ++;
+}
+
+void state_fire_sling_action(struct pObject *pObject, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+	pObject_player_hitbox(pObject, player);
+	pObject_seek(pObject, 0.05, atan2(dy, dx));
+	pObject_move(pObject, player, map);
 	pObject->st.timer ++;
 }
 
@@ -1244,7 +1354,7 @@ void check_deathrattle_specs(struct mObject* mObject, struct player* player, str
 	switch(mObject->id)
 	{
 		case '8':
-			spawn_mObject(map, mObject->x + 1, mObject->y + 0.75, MO_SWORDSMAN, '5');
+			spawn_mObject(map, mObject->x + 1, mObject->y + 0.75, MO_DRIDER_FIGHTER, '9');
 			break;
 	}
 }
