@@ -537,6 +537,88 @@ void state_fire_tower_fire(struct mObject* mObj, struct player* player, struct m
 	mObj->st.timer ++;
 }
 
+void state_fire_bomber_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_FIRE_BOMBER_IDLE, state_fire_bomber_aware, 0, 144);
+		return;
+	}
+}
+void state_fire_bomber_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	double theta = mObj->theta;
+	if(sum_square(dy, dx) >= 1)
+	{
+		theta = atan2(dy, dx);
+		//mObj->theta = atan2(dy, dx);
+	}
+	pObject_seek((struct pObject*)mObj, 0.05, theta);
+	mObject_move(mObj, player, map);
+	
+}
+
+void state_fire_archer_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_FIRE_ARCHER_IDLE, state_fire_archer_aware, 0, 144);
+		return;
+	}
+}
+void state_fire_archer_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dx, dy) <= ARCHER_INRANGE && mObj->st.timer >= mObj->st.limit / 2)
+	{
+		if(rand() % 2) set_mObject_state(mObj, ST_FIRE_ARCHER_DRAW, state_fire_archer_draw, 0, 64);
+		else set_mObject_state(mObj, ST_FIRE_ARCHER_RITE, state_fire_archer_rite, 0, 64);
+		return;
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		mObj->speed = mObj->base_speed / 12;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_FIRE_ARCHER_DASH, state_fire_archer_dash, 0, 48);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_fire_archer_dash(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_FIRE_ARCHER_AWARE, state_fire_archer_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_fire_archer_draw(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObj->theta = atan2(dy, dx);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, PO_BALISTA_BOLT, EAST, 40.0, atan2(dy, dx), player);
+		set_mObject_state(mObj, ST_FIRE_ARCHER_AWARE, state_fire_archer_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_fire_archer_rite(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_FIRE_SLING, EAST, 10.0, -1 * PI / 2, player);
+		set_mObject_state(mObj, ST_FIRE_ARCHER_AWARE, state_fire_archer_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
 //GOLEM /BOSS\
 
 void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)
@@ -805,23 +887,6 @@ void state_magic_bolt_travel(struct pObject* pObject, struct player* player, str
 	}
 }
 
-void pObject_seek(struct pObject* pObject, const double s_koef, const double dsttheta)
-{
-	double dtheta = dsttheta - pObject->theta;
-
-	if(dtheta > PI)
-		dtheta -= 2 * PI;
-	else if(dtheta < -PI)
-		dtheta += 2 * PI;
-
-	pObject->theta += s_koef * dtheta;
-
-	while(pObject->theta >= 2*PI)
-		pObject->theta -= 2*PI;
-	while(pObject->theta < 0.0)
-		pObject->theta += 2*PI;
-}
-
 void state_golem_weapon_swing(struct pObject *pObject, struct player *player,struct map *map)
 {
 
@@ -898,6 +963,17 @@ void state_fire_sling_action(struct pObject *pObject, struct player* player, str
 	pObject->st.timer ++;
 }
 
+void state_lava_pool_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+	pObject_player_hitbox(pObject, player);
+	pObject->st.timer ++;
+}
+
 //player
 
 void check_hit_abilities(struct player* player, struct map* map)
@@ -923,20 +999,20 @@ void check_hit_abilities(struct player* player, struct map* map)
 
 void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 {
-		player->speed -= 0.03;
-		//TODO Check this
-		player->vel_x = player->speed*cos(player->theta);
-		player->vel_y = player->speed*sin(player->theta);
-		player_move(player, map, cam);
-		player->timer++; 
-		if(player->timer > 16 || player->speed <= 0)
-		{   
-			//player->timer = 0; 
-			player->global_state = ST_P_NORMAL;
-			player->speed = player->base_speed / 20;
-			check_hit_abilities(player, map);
-			//player->invuln = false;
-		}
+	player->speed -= 0.03;
+	//TODO Check this
+	player->vel_x = player->speed*cos(player->theta);
+	player->vel_y = player->speed*sin(player->theta);
+	player_move(player, map, cam);
+	player->timer++; 
+	if(player->timer > 16 || player->speed <= 0)
+	{   
+		//player->timer = 0; 
+		player->global_state = ST_P_NORMAL;
+		player->speed = player->base_speed / 20;
+		check_hit_abilities(player, map);
+		//player->invuln = false;
+	}
 }
 
 void player_invuln(struct player *player, struct map* map)
@@ -1349,12 +1425,22 @@ void state_sword_shockwave(struct pObject *pObject, struct player* player, struc
 	pObject->st.timer ++;
 }
 
-void check_deathrattle_specs(struct mObject* mObject, struct player* player, struct map* map)
+void check_deathrattle_abilities(struct mObject* mObject, struct player* player, struct map* map)
 {
 	switch(mObject->id)
 	{
+		case 'a':
+			spawn_mObject(map, mObject->x, mObject->y, MO_FIRE_BOMBER, 's');
+			break;
 		case '8':
 			spawn_mObject(map, mObject->x + 1, mObject->y + 0.75, MO_DRIDER_FIGHTER, '9');
+			break;
+		case 's':
+			spawn_pObject(map->pObject_list, mObject->x - 0.0, mObject->y - 0.0, PO_LAVA_POOL, EAST, 10.0, 0.0, player);
+			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 4*PI / 3, player);
+			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 2*PI / 3, player);
+			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 6*PI / 3, player);
+			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 4*PI / 3, player);
 			break;
 	}
 }
@@ -1363,7 +1449,7 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 {
 	if(mObject->st.timer >= mObject->st.limit)
 	{
-		check_deathrattle_specs(mObject, player, map);
+		check_deathrattle_abilities(mObject, player, map);
 
 		set_mObject_state(mObject, ST_CLEAR, state_deathrattle, 0, 60);
 		if(mObject->killable == false)
