@@ -376,6 +376,23 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 
 }
 
+void pObject_seek(struct pObject* pObject, const double s_koef, const double dsttheta)
+{
+	double dtheta = dsttheta - pObject->theta;
+
+	if(dtheta > PI)
+		dtheta -= 2 * PI;
+	else if(dtheta < -PI)
+		dtheta += 2 * PI;
+
+	pObject->theta += s_koef * dtheta;
+
+	while(pObject->theta >= 2*PI)
+		pObject->theta -= 2*PI;
+	while(pObject->theta < 0.0)
+		pObject->theta += 2*PI;
+}
+
 void pObject_move(struct pObject *pObject, struct player *player, struct map *map)
 {
 	//double dx = player->x - mObject->x, dy = player->y - mObject->y;
@@ -480,61 +497,62 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 
 	double f = 0.1;
 	bool hit_wall = false;
+	if(!mObject->transp)
+	{
+		if(mObject->vel_x <= 0.0)
+		{
+			if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
+			{
+				new_x = (int)new_x + 1;
+				mObject->vel_x = 0;
+				hit_wall = true;
+			}
+		}
+		else
+		{
+			if(map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + (offh - f))))
+			{
+				new_x = (int)(new_x) + wunderkindw;
+				mObject->vel_x = 0;
+				hit_wall = true;
+			}
+		}
+		if(mObject->vel_y <= 0.0)
+		{
+			if(map_get_solid(map, (int)(new_x + 0), (int)(new_y + 0)) || map_get_solid(map, (int)(new_x + (offw - f)), (int)(new_y + 0)))
+			{
+				new_y = (int)new_y + 1;
+				mObject->vel_y = 0;
+				hit_wall = true;
+			}
+		}
+		else
+		{
+			if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw-f)), (int)(new_y + offh)))
+			{
+				new_y = (int)(new_y) + wunderkindh;
+				mObject->vel_y = 0;
+				hit_wall = true;
+			}
+		}
 
-	if(mObject->vel_x <= 0.0)
-	{
-		if(map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + 0), (int)(mObject->y + (offh - f))))
-		{
-			new_x = (int)new_x + 1;
-			mObject->vel_x = 0;
-			hit_wall = true;
-		}
-	}
-	else
-	{
-		if(map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + 0)) || map_get_solid(map, (int)(new_x + offw), (int)(mObject->y + (offh - f))))
-		{
-			new_x = (int)(new_x) + wunderkindw;
-			mObject->vel_x = 0;
-			hit_wall = true;
-		}
-	}
-	if(mObject->vel_y <= 0.0)
-	{
-		if(map_get_solid(map, (int)(new_x + 0), (int)(new_y + 0)) || map_get_solid(map, (int)(new_x + (offw - f)), (int)(new_y + 0)))
-		{
-			new_y = (int)new_y + 1;
-			mObject->vel_y = 0;
-			hit_wall = true;
-		}
-	}
-	else
-	{
-		if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw-f)), (int)(new_y + offh)))
-		{
-			new_y = (int)(new_y) + wunderkindh;
-			mObject->vel_y = 0;
-			hit_wall = true;
-		}
-	}
 
-
-	if(mObject->st.type == ST_ENEMYKNOCKBACK && hit_wall == true)
-	{
-		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-		if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
+		if(mObject->st.type == ST_ENEMYKNOCKBACK && hit_wall == true)
 		{
-			rune = (struct rune*)dynList_get(player->rune_list, 3);
+			struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
 			if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
 			{
-				set_status_effect_area(mObject, map, 4, STATUS_STASIS);
+				rune = (struct rune*)dynList_get(player->rune_list, 3);
+				if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
+				{
+					set_status_effect_area(mObject, map, 4, STATUS_STASIS);
+				}
+				mObject->health -= player->sword_damage * 1;
+				hit_wall = false;
+				mObject->st.type = 0;
 			}
-			mObject->health -= player->sword_damage * 1;
-			hit_wall = false;
-			mObject->st.type = 0;
 		}
 	}
-
 	mObject->wall_collide = hit_wall;
 	mObject->x = new_x;
 	mObject->y = new_y;
@@ -591,6 +609,18 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	}
 }
 
+void pObject_player_hitbox(struct pObject* pObject, struct player *player)
+{
+	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
+	{
+		player_hit(player, pObject->damage, pObject->theta);
+		if(pObject->penetration_index-- == 0)
+		{
+			set_pObject_state(pObject, ST_PO_DEAD, state_pObject_deathrattle, 0, 16);
+		}
+	}
+}
+
 void update_mObject(struct mObject *mObject, struct player *player, struct map *map, struct cam *cam, dynList *ev_list)
 {
 	state_enemy_default(mObject, player, map);
@@ -624,9 +654,11 @@ void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *c
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
 	//TODO ooga booga
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o' && mObject->id != '8')
+#if 0
+	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o' && mObject->id != '8' && mObject->id != '9' && mObject->id != 't' && mObject->id != 's')
 		return;
-	
+#endif
+	//printf("GOT HRE\n");
 	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }

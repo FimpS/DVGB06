@@ -59,9 +59,9 @@ struct player
 	double vel_y;
 	double width;
 	double height;
+	double theta;
 	double health;
 	double maxhealth;
-	double theta;
 	double speed;
 	double base_speed;
 	double pObject_knockkoef;
@@ -97,10 +97,10 @@ struct pObject
 	double vel_y; //const
 	double width; //var
 	double height; //var
+	double theta; //const
 	double knockkoef; //var
 	double speed; //var?
 	double damage; //var
-	double theta; //const
 	double thetaacc; //var
 	bool transp; //var
 	bool pen_wall; //var
@@ -128,6 +128,7 @@ struct mObject
 	double vel_y;
 	double width;
 	double height;
+	double theta;
 	bool hit;
 	int inv_frames;
 	char id;
@@ -136,9 +137,9 @@ struct mObject
 
 	double base_speed;
 	double speed;
-	double theta;
 	double mass;
 	bool wall_collide;
+	bool transp;
 	bool killable;
 	bool hyperarmor;
 
@@ -196,11 +197,13 @@ void mObject_damage();
 
 //proj
 void draw_pObject();
+void pObject_player_hitbox();
 void update_pObject();
 void draw_pObjects();
 void update_pObjects();
 void pObject_move();
 void spawn_pObject();
+void pObject_seek();
 //p
 void player_hit();
 void player_move();
