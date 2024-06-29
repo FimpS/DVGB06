@@ -516,7 +516,7 @@ void state_fire_tower_idle(struct mObject* mObj, struct player* player, struct m
 	{
 		if(mObj->st.timer >= mObj->st.limit)
 		{
-			set_mObject_state(mObj, ST_FIRE_TOWER_FIRE, state_fire_tower_fire, 0, 256);
+			set_mObject_state(mObj, ST_FIRE_TOWER_FIRE, state_fire_tower_fire, 0, 128);
 		}
 		mObj->st.timer ++;
 		return;
@@ -525,7 +525,7 @@ void state_fire_tower_idle(struct mObject* mObj, struct player* player, struct m
 
 void state_fire_tower_fire(struct mObject* mObj, struct player* player, struct map* map)
 {
-	if((mObj->st.timer + 1) % 85 == 0)
+	if((mObj->st.timer + 1) % 43 == 0)
 	{
 		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_FIRE_SLING, EAST, 40.0, -1 * PI / 2, player);
 	}
@@ -603,7 +603,8 @@ void state_fire_archer_draw(struct mObject* mObj, struct player* player, struct 
 	mObj->theta = atan2(dy, dx);
 	if(mObj->st.timer >= mObj->st.limit)
 	{
-		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, PO_BALISTA_BOLT, EAST, 40.0, atan2(dy, dx), player);
+		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y + 0.25, PO_HEX_ARROW, EAST, 40.0, atan2(dy, dx), player);
+		spawn_pObject(map->pObject_list, mObj->x + 0.25, mObj->y - 0.25, PO_HEX_ARROW, EAST, 40.0, atan2(dy, dx), player);
 		set_mObject_state(mObj, ST_FIRE_ARCHER_AWARE, state_fire_archer_aware, 0, 120);
 		return;
 	}
@@ -933,7 +934,7 @@ void state_golem_rock_travel(struct pObject *pObject, struct player *player, str
 
 void state_balista_shot(struct pObject *pObject, struct player *player, struct map *map)
 {
-	if(pObject->st.timer > pObject->st.limit)
+	if(pObject->st.timer >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
@@ -970,6 +971,21 @@ void state_lava_pool_action(struct pObject* pObject, struct player* player, stru
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
+	pObject_player_hitbox(pObject, player);
+	pObject->st.timer ++;
+}
+
+void state_hex_arrow_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		//spawn_pObject(map->pObject_list, pObject->x, pObject->y, PO_LAVA_POOL, EAST, 25.0, 0.0, player);
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+	pObject_seek(pObject, 0.01, atan2(dy, dx));
+	pObject_move(pObject, player, map);
 	pObject_player_hitbox(pObject, player);
 	pObject->st.timer ++;
 }

@@ -411,7 +411,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	double wunderkindw = ((int)pObject->width <= TILE_LENGTH) ? 1 - offw : 0.0;
 	double wunderkindh = ((int)pObject->height <= TILE_LENGTH) ? 1 - offh : 0.0;
 #if 1
-	if(pObject->transp || pObject->pen_wall == true)
+	if(!pObject->transp)
 	{
 		if(pObject->vel_x <= 0)
 		{
@@ -451,15 +451,14 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 		}
 	}
 #endif
-
 	if(hit_wall)
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
 	}
 
 	pObject->x = new_x;
 	pObject->y = new_y;
-
 
 }
 void set_status_effect_area(struct mObject* mObject, struct map *map, int distancesquared, mObject_status_effect effect)
@@ -614,9 +613,9 @@ void pObject_player_hitbox(struct pObject* pObject, struct player *player)
 	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
-		if(pObject->penetration_index-- == 0)
+		if(--pObject->penetration_index == 0)
 		{
-			set_pObject_state(pObject, ST_PO_DEAD, state_pObject_deathrattle, 0, 16);
+			set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		}
 	}
 }

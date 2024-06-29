@@ -88,7 +88,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
-			pObject->pen_wall = true;
 			pObject->status_effect = status_none;
 			pObject->anim_frames = 1;
 			pObject->sprite = init_sprite(0, 16, 16, 16);
@@ -103,7 +102,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
-			pObject->pen_wall = false;
+			
 			pObject->sprite = init_sprite(0, 32, 16, 16);
 			pObject->st = init_pObject_state(state_wraith_follow, 0, player->maxhealth * 0.4);
 			if(pObject->type == PO_BIG_WRAITH)
@@ -118,7 +117,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 0;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->knockbacker = false;
 			pObject->status_effect = STATUS_FROSTBITE;
 			pObject->sprite = init_sprite(0, 128, 16, 16);
@@ -130,7 +129,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.05;
 			pObject->damage = 0;
 			pObject->transp = true;
-			pObject->pen_wall = true;
 			pObject->sprite = init_sprite(0, 80, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_well_travel, 0, 300);
 			break;
@@ -140,7 +138,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.05; //prev 0.05
 			pObject->damage = dmg;
 			pObject->transp = true;
-			pObject->pen_wall = true;
 			pObject->thetaacc = 0;
 			pObject->sprite = init_sprite(0, 96, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_bolt_travel, 0, 120);
@@ -152,7 +149,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->penetration_index = 1;
-			pObject->pen_wall = true;
 			pObject->sprite = init_sprite(0, 0, 16, 16);
 			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
 			break;
@@ -162,7 +158,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 192, 32, 16);
 			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 16);
@@ -174,8 +170,8 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
+			pObject->transp = true;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 240, 16, 16);
 			pObject->st = init_pObject_state(state_fire_sling_action, 0, 64);
@@ -188,10 +184,23 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.0;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 256, 16, 16);
 			pObject->st = init_pObject_state(state_lava_pool_action, 0, 256);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
+		case PO_HEX_ARROW:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH / 2;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = false;
+			pObject->penetration_index = 1;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 272, 16, 16);
+			pObject->st = init_pObject_state(state_hex_arrow_action, 0, 16);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
@@ -202,7 +211,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH + fuck_you;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 208, 16, 16);
 			pObject->st = init_pObject_state(state_golem_rock_travel, 0, 128);
@@ -215,7 +224,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 224, 16, 16);
 			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 128);
@@ -229,7 +238,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->pen_wall = false;
+			
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
@@ -239,8 +248,8 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH * 1;
 			pObject->speed = 0;
 			pObject->damage = dmg;
-			pObject->transp = false;
-			pObject->pen_wall = false;
+			pObject->transp = true;
+			
 			pObject->sprite = init_sprite(0, 48, 48, 16);
 			pObject->st = init_pObject_state(state_player_spear_action, 0, 8);
 			pObject->anim_tile_length = 32;
@@ -253,7 +262,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->penetration_index = 100;
-			pObject->pen_wall = false;
+			
 			pObject->knockkoef = player->pObject_knockkoef;
 			pObject->anim_limit = 2;
 			pObject->sprite = init_sprite(0, 160, 16, 16);

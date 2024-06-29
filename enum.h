@@ -92,6 +92,7 @@ typedef enum
 	PO_FROST_STORM,
 	PO_FIRE_SLING,
 	PO_LAVA_POOL,
+	PO_HEX_ARROW,
 	placeholder
 } pObject_type;
 
