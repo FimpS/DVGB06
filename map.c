@@ -20,6 +20,7 @@ char map_get_tile(struct map *m, int x, int y)
 	return x >= 0 && x < m->width && y >= 0 && y < m->height ? m->content[y*m->width + x] : ' ';
 }
 
+
 //finds coords and puts them in array dest[0] = x, dest[1] = y
 void map_get_coord(struct map* m, char key, int *dest)
 {
@@ -34,6 +35,11 @@ void map_get_coord(struct map* m, char key, int *dest)
 bool map_get_solid(struct map *m, int x, int y)
 {
 	return x >= 0 && x < m->width && y >= 0 && y < m->height ? m->solid_content[y*m->width + x] : false;
+}
+
+int map_get_light(struct map* m, int x, int y)
+{
+	return x >= 0 && x < m->width && y >= 0 && y < m->height ? m->lightmap[y*m->width + x] : 0;
 }
 
 void map_set_tile(struct map *m, int x, int y, char key)
@@ -472,6 +478,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	load_map_file(m, filename);
 	struct rune_info map_runes[3];
 	m->state = ST_MAP_RUN_TICK;
+	get_lightmap(m, m->cam);
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
 	//replace_boss(m); what is this function??
@@ -594,9 +601,74 @@ void map_switch_frame(struct map* map, struct cam *cam)
 	map->anim.timer ++;
 }
 
-void get_lightmap(struct map* map, struct cam *cam)
+bool is_valid(int *m, int x, int y, int x1, int y1, int w, int h)
+{
+	//printf("x1:%d y1:%d\n", x1, y1);
+	//printf("m*%d\n", m[x1 + y1 * w]);
+	return x1 >= 0 && y1 >= 0 && x1 / 10 == x / 10 /*&& y / 10 == y1 / 10 */&& m[x1 + y1 * w] != 3 && m[x1 + y1 * w] != 2;
+	//care
+}
+
+void populate(int *m, int x, int y, int w, int h)
+{
+	if(is_valid(m, x, y, x + 1, y, w, h)) m[(x + 1) + (y)* w] = 2;
+	if(is_valid(m, x, y, x - 1, y, w, h)) m[(x - 1) + (y)* w] = 2;
+	if(is_valid(m, x, y, x, y + 1, w, h)) m[(x) + (y + 1)* w] = 2;
+	if(is_valid(m, x, y, x, y - 1, w, h)) m[(x) + (y - 1)* w] = 2;
+
+
+	if(is_valid(m, x, y, x + 1, y + 1, w, h)) m[(x + 1) + (y + 1)* w] = 1;
+	if(is_valid(m, x, y, x - 1, y - 1, w, h)) m[(x - 1) + (y - 1)* w] = 1;
+	if(is_valid(m, x, y, x + 1, y - 1, w, h)) m[(x + 1) + (y - 1)* w] = 1;
+	if(is_valid(m, x, y, x - 1, y + 1, w, h)) m[(x - 1) + (y + 1)* w] = 1;
+
+	if(is_valid(m, x, y, x + 2, y, w, h)) m[(x + 2) + (y)* w] = 1;
+	if(is_valid(m, x, y, x - 2, y, w, h)) m[(x - 2) + (y)* w] = 1;
+	if(is_valid(m, x, y, x, y + 2, w, h)) m[(x) + (y + 2)* w] = 1;
+	if(is_valid(m, x, y, x, y - 2, w, h)) m[(x) + (y - 2)* w] = 1;
+}
+
+void make_lightmap(int *m, int w, int h)
 {
 
+	for(int i = 0; i < w; i++)
+	{
+		for(int j = 0; j < h; j++)
+			if(m[i + j * w] == 3)
+			{
+				populate(m, i, j, w, h);
+			}
+	}
+}
+
+void get_lightmap(struct map* map, struct cam *cam)
+{
+	for(int i = 0; i < CONTENT_SIZE; i++)
+	{
+		map->lightmap[i] = 0;
+	}
+	for(int i = 0; i < CONTENT_SIZE; i++)
+	{
+		switch(map->content[i])
+		{
+			case 'L':
+				map->lightmap[i] = 3;
+				break;
+			case 't':
+				map->lightmap[i] = 3;
+				break;
+		}
+	}
+	make_lightmap(map->lightmap, map->width, map->height);
+
+	for(int i = 0; i < map->height; i++)
+	{
+		for(int j = 0; j < map->width; j++)
+		{
+			printf("%d ", map->lightmap[j +  i * map->width]);
+		}
+		printf("\n");
+	}
 }
 
 void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture *tex, struct player* player)
@@ -634,12 +706,14 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_Rect r_tile = {i * TILE_LENGTH - cam->tile_offset_x, j * TILE_LENGTH - cam->tile_offset_y, TILE_LENGTH, TILE_LENGTH};
 			//printf("%d %d\n", r_tile.w, r_tile.h);
 			SDL_Rect R = {0, 0, 16, 16};
-			SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
+			//SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
+			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 50;
+			SDL_SetTextureColorMod(tex, 100 + light, 100 + light, 100 + light);
 
 			switch(tile)
 			{
 				case '.':
-					player_lighting(map, i, j, cam, tex, player);
+					//player_lighting(map, i, j, cam, tex, player);
 					R.y += 32;
 					R.x += 0;
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
@@ -656,7 +730,6 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
 					break;
 				case 'G':
-					player_lighting(map, i, j, cam, tex, player);
 					R.y += 32;
 					R.x += 48;
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);

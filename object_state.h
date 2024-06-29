@@ -136,5 +136,6 @@ void state_wraith_follow();
 void state_blood_tax();
 void state_fire_sling_action();
 void state_lava_pool_action();
+void state_hex_arrow_action();
 
 #endif

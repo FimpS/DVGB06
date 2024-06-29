@@ -103,7 +103,6 @@ struct pObject
 	double damage; //var
 	double thetaacc; //var
 	bool transp; //var
-	bool pen_wall; //var
 	bool knockbacker; //var
 	int penetration_index; //var
 	mObject_status_effect status_effect; //const

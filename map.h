@@ -70,6 +70,7 @@ struct map
 	int height;
 	int aggresive_mObj_count;
 	int current_chapter;
+	int lightmap[CONTENT_SIZE];
 	char content[CONTENT_SIZE];
 	bool solid_content[CONTENT_SIZE];
 	struct m_anim_info anim;
@@ -90,7 +91,7 @@ void cam_move_to();
 void screen_shake();
 
 void map_get_coord(struct map* m, char key, int* dest);
-
+void get_lightmap();
 struct map map_init();
 //void get_rand_mapID();
 void map_load_scene();
