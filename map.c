@@ -39,7 +39,7 @@ bool map_get_solid(struct map *m, int x, int y)
 
 int map_get_light(struct map* m, int x, int y)
 {
-	return x >= 0 && x < m->width && y >= 0 && y < m->height ? m->lightmap[y*m->width + x] : 0;
+	return x >= 0 && x < m->width && y >= 0 && y < m->height ? m->lightmap.content[y*m->width + x] : 0;
 }
 
 void map_set_tile(struct map *m, int x, int y, char key)
@@ -420,6 +420,7 @@ void load_map_file(struct map *m, char* filename)
 	FILE *f;
 	char file[64];
 	printf("file: %s\n", filename);
+	m->current_chapter = (int)filename[6] - '0';
 	f = fopen(filename, "r");
 	if(!f)
 	{
@@ -479,6 +480,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	struct rune_info map_runes[3];
 	m->state = ST_MAP_RUN_TICK;
 	get_lightmap(m, m->cam);
+	get_chapterlight(m);
 	//spawn_runes(m, map_runes); enable when real
 	spawn_mObjects(m, eList, player);
 	//replace_boss(m); what is this function??
@@ -487,7 +489,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	//printf("%d\n", m->mObject_list->si
 	cam_update(&m->cam, m, player);
 	map_start_events(m, player);
-
+	printf("chap:%d\n", m->current_chapter);
 }
 
 void default_screen_shake(struct map *m)
@@ -605,7 +607,7 @@ bool is_valid(int *m, int x, int y, int x1, int y1, int w, int h)
 {
 	//printf("x1:%d y1:%d\n", x1, y1);
 	//printf("m*%d\n", m[x1 + y1 * w]);
-	return x1 >= 0 && y1 >= 0 && x1 / 10 == x / 10 /*&& y / 10 == y1 / 10 */&& m[x1 + y1 * w] != 3 && m[x1 + y1 * w] != 2;
+	return x1 >= 0 && y1 >= 0 /*&& x1 / 10 == x / 10 && y / 10 == y1 / 10 */&& m[x1 + y1 * w] != 3 && m[x1 + y1 * w] != 2;
 	//care
 }
 
@@ -641,31 +643,55 @@ void make_lightmap(int *m, int w, int h)
 	}
 }
 
+void get_chapterlight(struct map* map)
+{
+#if 1
+	switch(map->current_chapter)
+	{
+		case 1:
+			map->lightmap.red = 0;
+			map->lightmap.green = 1;
+			map->lightmap.blue= 0;
+			break;
+		case 2:
+			map->lightmap.red = 0;
+			map->lightmap.green = 1;
+			map->lightmap.blue= 1;
+			break;
+		case 3:
+			map->lightmap.red = 1;
+			map->lightmap.green = 0;
+			map->lightmap.blue= 0.25;
+			break;
+	}
+#endif
+}
+
 void get_lightmap(struct map* map, struct cam *cam)
 {
 	for(int i = 0; i < CONTENT_SIZE; i++)
 	{
-		map->lightmap[i] = 0;
+		map->lightmap.content[i] = 0;
 	}
 	for(int i = 0; i < CONTENT_SIZE; i++)
 	{
 		switch(map->content[i])
 		{
 			case 'L':
-				map->lightmap[i] = 3;
+				map->lightmap.content[i] = 3;
 				break;
 			case 't':
-				map->lightmap[i] = 3;
+				map->lightmap.content[i] = 3;
 				break;
 		}
 	}
-	make_lightmap(map->lightmap, map->width, map->height);
+	make_lightmap(map->lightmap.content, map->width, map->height);
 
 	for(int i = 0; i < map->height; i++)
 	{
 		for(int j = 0; j < map->width; j++)
 		{
-			printf("%d ", map->lightmap[j +  i * map->width]);
+			printf("%d ", map->lightmap.content[j +  i * map->width]);
 		}
 		printf("\n");
 	}
@@ -708,7 +734,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_Rect R = {0, 0, 16, 16};
 			//SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
 			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 50;
-			SDL_SetTextureColorMod(tex, 100 + light, 100 + light, 100 + light);
+			SDL_SetTextureColorMod(tex, 100 + light * map->lightmap.red, 100 + light * map->lightmap.green, 100 + light * map->lightmap.blue);
 
 			switch(tile)
 			{
@@ -724,7 +750,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
 					break;
 				case 'L':
-					SDL_SetTextureColorMod(tex, 200, 200, 200);
+					//SDL_SetTextureColorMod(tex, 200, 200, 200);
 					R.y += 48;
 					R.x = 16 * (getTick() % 16 >= 8 && getTick() % 16 < 16 ? 1 : 0);
 					SDL_RenderCopy(renderer, tex, &R, &r_tile);
