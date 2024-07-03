@@ -166,6 +166,100 @@ void state_balista_aware(struct mObject *mObj, struct player *player, struct map
 
 }
 
+void state_peak_local_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_PEAK_LOCAL_AWARE, state_peak_local_aware, 0, 144);
+		return;
+	}
+}
+void state_peak_local_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		mObj->speed = mObj->base_speed / 24;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_PEAK_LOCAL_DASH, state_peak_local_dash, 0, 144);	
+		return;
+	}
+	if(mObj->st.timer >= mObj->st.limit / 2 && sum_square(dy, dx) <= PEAK_LOCAL_CAST_RANGE)
+	{
+		set_mObject_state(mObj, ST_PEAK_LOCAL_CAST, state_peak_local_cast, 0, 144);	
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_peak_local_dash(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_PEAK_LOCAL_AWARE, state_peak_local_aware, 0, 144);
+		return;
+	}
+}
+void state_peak_local_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer++ >= mObj->st.limit)
+	{
+		spawn_pObject(map->pObject_list, player->x, player->y, PO_SWAMP_POOL, EAST, 0.0, 0.0, player);	
+		set_mObject_state(mObj, ST_PEAK_LOCAL_AWARE, state_peak_local_aware, 0, 144);
+		return;
+	}
+	return;
+}
+//TODO WTF IS GOING ON WITH KNOCKBACK something that was done today
+void state_peak_knight_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_PEAK_KNIGHT_AWARE, state_peak_knight_aware, 0, 144);
+		return;
+	}
+	
+}
+void state_peak_knight_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer >= mObj->st.limit && sum_square(dy, dx) <= PEAK_KNIGHT_CAST_RANGE /*&& !(rand() % 3*/)
+	{
+		set_mObject_state(mObj, ST_PEAK_KNIGHT_CAST, state_peak_knight_cast, 0, 96);	
+		return;
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_PEAK_KNIGHT_DASH, state_peak_knight_dash, 0, 64);	
+		mObj->speed = mObj->base_speed / 16;
+		mObj->theta = atan2(dy, dx);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_peak_knight_dash(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_PEAK_KNIGHT_AWARE, state_peak_knight_aware, 0, 144);
+		return;
+	}
+}
+void state_peak_knight_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer++ >= mObj->st.limit)
+	{
+		for(int i = 0; i < 6; i++)
+			spawn_pObject(map->pObject_list, player->x + get_frand(6.0, -3.0), player->y + get_frand(6.0, -3.0), PO_SPEAR_CAST, EAST, 20.0, 0.0, player);
+		set_mObject_state(mObj, ST_PEAK_KNIGHT_AWARE, state_peak_knight_aware, 0, 120);
+		return;
+	}
+}
+
 void state_archer_draw(struct mObject *mObj, struct player *player, struct map* map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
@@ -223,7 +317,7 @@ void state_archer_aware(struct mObject *mObj, struct player *player, struct map*
 
 void state_swordsman_slash(struct mObject *mObj, struct player *player, struct map* map)
 {
-	if(mObj->st.timer > mObj->st.limit)
+	if(mObj->st.timer >= mObj->st.limit)
 	{
 		double dx = player->x - mObj->x, dy = player->y - mObj->y;
 		double theta = atan2(dy, dx);
@@ -557,7 +651,7 @@ void state_fire_bomber_aware(struct mObject* mObj, struct player* player, struct
 	}
 	pObject_seek((struct pObject*)mObj, 0.05, theta);
 	mObject_move(mObj, player, map);
-	
+
 }
 
 void state_fire_archer_idle(struct mObject* mObj, struct player* player, struct map* map)
@@ -658,7 +752,7 @@ void state_golem_ready(struct mObject *mObj, struct player *player, struct map* 
 		const double theta = atan2(dy, dx);
 		mObj->theta = atan2(dy, dx);
 		set_mObject_state(mObj, ST_GOLEM_AWARE, state_golem_aware, 0, GOLEM_ABILITY_COOLDOWN);
-		spawn_pObject(map->pObject_list, mObj->x + 2*cos(theta), mObj->y + 2*sin(theta), PO_GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
+		spawn_pObject(map->pObject_list, mObj->x + 0.5*cos(theta), mObj->y + 0.5*sin(theta), PO_GOLEM_MELEE_WEAPON, EAST, 20.0, theta, player);
 		return;
 	}
 	mObj->st.timer ++;
@@ -888,6 +982,53 @@ void state_magic_bolt_travel(struct pObject* pObject, struct player* player, str
 	}
 }
 
+void state_swamp_pool_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		player->base_speed = 1;
+		return;
+	}
+	if(AABB(pObject, player))
+	{
+		player->base_speed = 0.5;
+	}
+	else player->base_speed = 1;
+}
+
+void state_spear_cast_action2(struct pObject* pObject, struct player* player, struct map* map)
+{
+	//pObject_player_hitbox(pObject, player);
+	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
+	{
+		player_hit(player, pObject->damage, pObject->theta);
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+	}
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		pObject->anim_limit = 4;
+		pObject->anim_start_frame = 64;
+		pObject->anim_frames = 4;
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+}
+
+void state_spear_cast_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		pObject->anim_start_frame = 48;
+		pObject->anim_frames = 1;
+		set_pObject_state(pObject, pObject->st.type, state_spear_cast_action2, 0, 60 + rand() % 40);
+
+		//spawn_pObject(map->pObject_list, pObject->x + 2*cos(pObject->theta), pObject->y + 2*sin(pObject->theta), PO_SPEAR_CAST, EAST, 20.0, pObject->theta, player);
+	}
+}
+
+
 void state_golem_weapon_swing(struct pObject *pObject, struct player *player,struct map *map)
 {
 
@@ -1051,6 +1192,7 @@ void set_dash_vector(struct player* player)
 {
 	double speed = 0.45;
 	double speed2 = 0.45;
+	speed = player->speed * 8;
 	switch(player->dir)
 	{
 		case EAST:

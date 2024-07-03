@@ -64,13 +64,22 @@ struct cam
 	} cin_info;
 };
 
+struct lightmap
+{
+	int content[CONTENT_SIZE];
+	unsigned short red;
+	unsigned short green;
+	unsigned short blue;
+};
+
 struct map
 {
 	int width;
 	int height;
 	int aggresive_mObj_count;
 	int current_chapter;
-	int lightmap[CONTENT_SIZE];
+	struct lightmap lightmap;
+	//int lightmap[CONTENT_SIZE];
 	char content[CONTENT_SIZE];
 	bool solid_content[CONTENT_SIZE];
 	struct m_anim_info anim;
@@ -94,6 +103,7 @@ void map_get_coord(struct map* m, char key, int* dest);
 void get_lightmap();
 struct map map_init();
 //void get_rand_mapID();
+void get_chapterlight();
 void map_load_scene();
 void map_set_tile(struct map *m, int x, int y, char key);
 bool map_get_solid();

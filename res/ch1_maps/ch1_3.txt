@@ -1,15 +1,15 @@
 32 15
-PP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+LP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 #p...G..LPPPL..PPPPPPPPP.R..PPPP
 #..G.....^^^.......^^^^^....PPPP
 #.R..G...VVV.......VVVVV....PPPP
-#.L.....LWWWL........PPPPPPPPPPP
-#.L...G..###....a......PPPPPPPPP
-#.G...G..PPP.....L........PPPPPP
+#.L......WWWL........PPPPPPPPPPP
+#.L...G..###...........PPPPPPPPP
+#.G...G..PPP.....l........PPPPPP
 #........PPP................PPPP
-#..G..G..###..................PP
-#.......LWWWL.........t.......PP
+#..G..G.L###......L...........PP
+#........WWW.....f............PP
 #....G...^^^..................PP
 #........VVV..................PP
 #L......LPPPL...E.............PP
