@@ -152,6 +152,34 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 0, 16, 16);
 			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
 			break;
+		case PO_SWAMP_POOL:
+			pObject->width = TILE_LENGTH * 2;
+			pObject->height = TILE_LENGTH * 2;
+			pObject->speed = 0;
+			pObject->knockbacker = false;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 288, 16, 16);
+			pObject->st = init_pObject_state(state_swamp_pool_action, 0, 128);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
+		case PO_SPEAR_CAST:
+			pObject->width = TILE_LENGTH * 1;
+			pObject->height = TILE_LENGTH * 1;
+			pObject->speed = 0;
+			pObject->knockbacker = false;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 304, 16, 16);
+			int tmp = rand() % 16 + 32;
+			pObject->st = init_pObject_state(state_spear_cast_action, 0, tmp);
+			pObject->anim_limit = tmp / 4 + 1;
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
 		case PO_SWORDSMAN_SWORD:
 			pObject->width = TILE_LENGTH * 2;
 			pObject->height = TILE_LENGTH;
@@ -460,6 +488,40 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_balista_idle, 0, 40, state_balista_idle);
 			mObject->anim.rotatable = true;
 			break;
+		case MO_PEAK_LOCAL:
+			mObject->speed = mObject->base_speed / 24;
+			mObject->health = 150;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 3/2;
+			mObject->hit = false;
+			mObject->mass = 50;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->sprite = init_sprite(256, 320, 16, 24);
+			mObject->anim = init_render_info(256, 16, 4, 0, 16);
+			mObject->type_reg = ST_PEAK_LOCAL_AWARE;
+			mObject->st = init_mObject_state(state_peak_local_idle, 0, 40, state_peak_local_aware);
+			break;
+		case MO_PEAK_KNIGHT:
+			mObject->speed = mObject->base_speed / 16;
+			mObject->health = 150;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 1.5;
+			mObject->hit = false;
+			mObject->mass = 40;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->hyperarmor = false;
+			mObject->sprite = init_sprite(256, 368, 16, 24);
+			mObject->anim = init_render_info(256, 16, 4, 0, 16);
+			mObject->type_reg = ST_PEAK_KNIGHT_AWARE;
+			mObject->st = init_mObject_state(state_peak_knight_idle, 0, 40, state_peak_knight_aware);
+			printf("sp: %lf\n", mObject->speed);
+			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
 			mObject->health = 150;
@@ -718,6 +780,42 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.frames = 4;
 			mObject->anim.start_frame = 0;
 			break;
+		case ST_PEAK_LOCAL_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 320;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_PEAK_LOCAL_DASH:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 344;
+			mObject->anim.limit = 6;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_PEAK_LOCAL_CAST:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 320;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 320;
+			break;
+		case ST_PEAK_KNIGHT_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 368;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_PEAK_KNIGHT_DASH:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 368;
+			mObject->anim.limit = 6;
+			mObject->anim.start_frame = 320;
+			break;
+		case ST_PEAK_KNIGHT_CAST:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 392;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 256;
+			break;
 		case ST_ARCHER_IDLE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 160;
@@ -942,6 +1040,19 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 		case ST_ENEMYKNOCKBACK:
 			switch(mObject->id)
 			{
+
+				case 'f':
+					mObject->sprite.y = 368;
+					mObject->sprite.x = 384;
+					mObject->anim.limit = mObject->st.limit + 124;
+					mObject->anim.start_frame = 320;
+					break;
+				case 'l':
+					mObject->sprite.y = 320;
+					mObject->sprite.x = 384;
+					mObject->anim.limit = mObject->st.limit + 124;
+					mObject->anim.start_frame = 128;
+					break;
 				case '6':
 					mObject->sprite.y = 0;
 					mObject->sprite.x = 128;
@@ -1001,6 +1112,18 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.limit = mObject->st.limit / 4;
 					mObject->anim.frames = 4;
 					mObject->anim.start_frame = 192;
+					break;
+				case 'f':
+					mObject->sprite.x = 448;
+					mObject->sprite.y = 368;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
+					break;
+				case 'l':
+					mObject->sprite.x = 448;
+					mObject->sprite.y = 320;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
 					break;
 				case '4':
 					mObject->sprite.y = 160;

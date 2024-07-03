@@ -15,6 +15,8 @@
 //mObj
 #define HOSTILE_MOBJ_WAKEUP_DIST 64
 #define BALISTA_RANGE 49
+#define PEAK_LOCAL_CAST_RANGE 16
+#define PEAK_KNIGHT_CAST_RANGE 16
 #define ARCHER_INRANGE 49
 #define SWORDSMAN_INRANGE 4
 #define DEATHRATTLE_LIMIT 16
@@ -49,6 +51,16 @@ void player_invuln();
 //Generic for enemy
 void state_enemy_knockbacked();
 void state_deathrattle();
+//peak local
+void state_peak_local_idle();
+void state_peak_local_aware();
+void state_peak_local_dash();
+void state_peak_local_cast();
+//peak knight
+void state_peak_knight_idle();
+void state_peak_knight_aware();
+void state_peak_knight_dash();
+void state_peak_knight_cast();
 //crawler
 void state_crawler_idle();
 void state_crawler_dash();
@@ -123,6 +135,8 @@ void state_pObject_deathrattle();
 void state_player_spear_action();
 void state_sword_shockwave();
 void state_magic_bolt_travel();
+void state_swamp_pool_action();
+void state_spear_cast_action();
 void state_swordsman_sword_swing();
 void state_golem_rock_travel();
 void state_golem_weapon_swing();

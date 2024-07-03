@@ -5,11 +5,11 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 #..G.....^^^.......^^^^^....PPPP
 #.R..G...VVV.......VVVVV....PPPP
 #.L......WWWL........PPPPPPPPPPP
-#.L...G..###....a......PPPPPPPPP
-#.G...G..PPP.....L........PPPPPP
+#.L...G..###...........PPPPPPPPP
+#.G...G..PPP.....l........PPPPPP
 #........PPP................PPPP
-#..G..G.L###..................PP
-#........WWW..........t.......PP
+#..G..G.L###......L...........PP
+#........WWW.....f............PP
 #....G...^^^..................PP
 #........VVV..................PP
 #L......LPPPL...E.............PP

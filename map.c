@@ -209,6 +209,14 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_RUSHER, '3');
 					m->content[x+y * m->width] = '.';
 					break;
+				case 'l':
+					spawn_mObject(m, x, y, MO_PEAK_LOCAL, 'l');
+					m->content[x+y * m->width] = '.';
+					break;
+				case 'f':
+					spawn_mObject(m, x, y, MO_PEAK_KNIGHT, 'f');
+					m->content[x+y * m->width] = '.';
+					break;
 				case '4':
 					spawn_mObject(m, x, y, MO_ARCHER, '4');
 					m->content[x+y * m->width] = '.';
@@ -733,7 +741,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			//printf("%d %d\n", r_tile.w, r_tile.h);
 			SDL_Rect R = {0, 0, 16, 16};
 			//SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
-			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 50;
+			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 30 + rand() % 20;
 			SDL_SetTextureColorMod(tex, 100 + light * map->lightmap.red, 100 + light * map->lightmap.green, 100 + light * map->lightmap.blue);
 
 			switch(tile)
