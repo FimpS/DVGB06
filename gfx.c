@@ -71,7 +71,8 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	dist = dist <= 100 ? 100 : dist;
 	dist = dist >= 180 ? 180 : dist;
 
-	SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
+	//SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
+	SDL_SetTextureColorMod(tex, 255, 255, 255);
 
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{

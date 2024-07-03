@@ -217,6 +217,14 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_PEAK_KNIGHT, 'f');
 					m->content[x+y * m->width] = '.';
 					break;
+				case 'w':
+					spawn_mObject(m, x, y, MO_ROCK_WELL, 'w');
+					m->content[x+y * m->width] = '.';
+					break;
+				case 'r':
+					spawn_mObject(m, x, y, MO_ROCK_ROLLER, 'r');
+					m->content[x+y * m->width] = '.';
+					break;
 				case '4':
 					spawn_mObject(m, x, y, MO_ARCHER, '4');
 					m->content[x+y * m->width] = '.';

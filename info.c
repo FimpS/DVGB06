@@ -180,6 +180,18 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
+		case PO_ROCK_CAST:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 320, 16, 16);
+			pObject->st = init_pObject_state(state_rock_cast_action, 0, 128);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
 		case PO_SWORDSMAN_SWORD:
 			pObject->width = TILE_LENGTH * 2;
 			pObject->height = TILE_LENGTH;
@@ -520,7 +532,41 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->anim = init_render_info(256, 16, 4, 0, 16);
 			mObject->type_reg = ST_PEAK_KNIGHT_AWARE;
 			mObject->st = init_mObject_state(state_peak_knight_idle, 0, 40, state_peak_knight_aware);
-			printf("sp: %lf\n", mObject->speed);
+			break;
+		case MO_ROCK_WELL:
+			mObject->speed = mObject->base_speed / 24;
+			mObject->health = 150;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 1.5;
+			mObject->hit = false;
+			mObject->mass = 60;
+			mObject->transp = true;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->hyperarmor = false;
+			mObject->sprite = init_sprite(256, 416, 16, 16);
+			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->type_reg = ST_ROCK_WELL_AWARE;
+			mObject->st = init_mObject_state(state_rock_well_idle, 0, 40, state_rock_well_aware);
+			break;
+		case MO_ROCK_ROLLER:
+			mObject->speed = mObject->base_speed / 24;
+			mObject->health = 150;
+			mObject->width = TILE_LENGTH;
+			mObject->height = TILE_LENGTH;
+			mObject->hit = false;
+			mObject->mass = 60;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 50.0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->hyperarmor = false;
+			mObject->sprite = init_sprite(256, 448, 16, 16);
+			mObject->anim = init_render_info(256, 16, 8, 0, 16);
+			mObject->type_reg = ST_ROCK_ROLLER_AWARE;
+			mObject->st = init_mObject_state(state_rock_roller_idle, 0, 40, state_rock_roller_aware);
 			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
@@ -816,6 +862,37 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 256;
 			break;
+		case ST_ROCK_WELL_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 416;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_ROCK_WELL_CAST:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 432;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_ROCK_ROLLER_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 448;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 256;
+			mObject->anim.frames = 8;
+			break;
+		case ST_ROCK_ROLLER_AROLL:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 464;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_ROCK_ROLLER_DROLL:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 464;
+			mObject->anim.limit = 6;
+			mObject->anim.start_frame = 320;
+			break;
 		case ST_ARCHER_IDLE:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 160;
@@ -1047,11 +1124,23 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.limit = mObject->st.limit + 124;
 					mObject->anim.start_frame = 320;
 					break;
+				case 'r':
+					mObject->sprite.y = 448;
+					mObject->sprite.x = 384;
+					mObject->anim.limit = mObject->st.limit + 124;
+					mObject->anim.start_frame = 384;
+					break;
 				case 'l':
 					mObject->sprite.y = 320;
 					mObject->sprite.x = 384;
 					mObject->anim.limit = mObject->st.limit + 124;
 					mObject->anim.start_frame = 128;
+					break;
+				case 'w':
+					mObject->sprite.x = 320;
+					mObject->sprite.y = 416;
+					mObject->anim.limit = mObject->st.limit + 124;
+					mObject->anim.start_frame = 320;
 					break;
 				case '6':
 					mObject->sprite.y = 0;
@@ -1113,6 +1202,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.frames = 4;
 					mObject->anim.start_frame = 192;
 					break;
+				case 'r':
+					mObject->sprite.x = 448;
+					mObject->sprite.y = 448;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
+					break;
 				case 'f':
 					mObject->sprite.x = 448;
 					mObject->sprite.y = 368;
@@ -1122,6 +1217,12 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 				case 'l':
 					mObject->sprite.x = 448;
 					mObject->sprite.y = 320;
+					mObject->anim.limit = mObject->st.limit / 4;
+					mObject->anim.start_frame = 448;
+					break;
+				case 'w':
+					mObject->sprite.x = 448;
+					mObject->sprite.y = 416;
 					mObject->anim.limit = mObject->st.limit / 4;
 					mObject->anim.start_frame = 448;
 					break;
