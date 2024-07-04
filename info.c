@@ -568,6 +568,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_ROCK_ROLLER_AWARE;
 			mObject->st = init_mObject_state(state_rock_roller_idle, 0, 40, state_rock_roller_aware);
 			break;
+		case MO_ROCK_VORTEX:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 2000;
+			mObject->width = TILE_LENGTH * 4;
+			mObject->height = TILE_LENGTH * 4;
+			mObject->hit = false;
+			mObject->mass = 999;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(256, 32, 4, 0, 12);
+			mObject->sprite = init_sprite(256, 480, 32, 32);
+			mObject->type_reg = 0;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_rock_vortex_aware, 0, 48, NULL);
+			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
 			mObject->health = 150;
@@ -1051,6 +1068,42 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->sprite.y = 232;
 			mObject->anim.limit =  mObject->st.limit / 4;
 			mObject->anim.start_frame = 320;
+			break;
+		case ST_ROCK_VORTEX_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 480;
+			mObject->anim.limit = 12;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_ROCK_VORTEX_CAST:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 512;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_ROCK_VORTEX_DECAST:
+			mObject->sprite.x = 384;
+			mObject->sprite.y = 512;
+			mObject->anim.limit = 6;
+			mObject->anim.start_frame = 384;
+			break;
+		case ST_ROCK_VORTEX_STORM:
+			mObject->sprite.x = 384;
+			mObject->sprite.y = 480;
+			mObject->anim.limit = 15;
+			mObject->anim.start_frame = 384;
+			break;
+		case ST_ROCK_VORTEX_SUMMON:
+			mObject->sprite.x = 384;
+			mObject->sprite.y = 544;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 384;
+			break;
+		case ST_ROCK_VORTEX_PRESTORM:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 544;
+			mObject->anim.limit = mObject->st.limit;
+			mObject->anim.start_frame = 256;
 			break;
 		case ST_GOLEM_AWARE:
 			mObject->sprite.x = 0;

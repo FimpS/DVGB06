@@ -19,6 +19,7 @@
 #define PEAK_KNIGHT_CAST_RANGE 16
 #define ROCK_WELL_CAST_RANGE 36
 #define ROCK_ROLLER_ROLL_RANGE 49
+#define VORTEX_CLOSE_CAST_RANGE 8
 #define ARCHER_INRANGE 49
 #define SWORDSMAN_INRANGE 4
 #define DEATHRATTLE_LIMIT 16
@@ -126,6 +127,12 @@ void state_fire_archer_dash();
 void state_fire_archer_draw();
 void state_fire_archer_rite();
 //bosses
+//Vortex
+void state_rock_vortex_aware();
+void state_rock_vortex_storm();
+void state_rock_vortex_summon();
+void state_rock_vortex_cast();
+void state_rock_vortex_decast();
 //Golem
 void state_golem_aware();
 void state_golem_stomp();

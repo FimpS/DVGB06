@@ -789,6 +789,85 @@ void state_fire_archer_rite(struct mObject* mObj, struct player* player, struct 
 	}
 	mObj->st.timer ++;
 }
+
+//ROCK_VORTEX /BOSS\
+
+void state_rock_vortex_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		int choice = rand() % 2, close = rand() % 5;
+		if(sum_square(dy, dx) <= VORTEX_CLOSE_CAST_RANGE && choice >= 1)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_CAST, state_rock_vortex_cast, 0, 120);
+			return;
+		}
+		if(choice == 0)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_SUMMON, state_rock_vortex_summon, 0, 120);
+			return;
+		}
+		if(choice == 1)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_STORM, state_rock_vortex_storm, 0, 360);
+			return;
+		}
+	}
+
+	mObj->st.timer ++;
+}
+void state_rock_vortex_summon(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		spawn_mObject(map, mObj->x + 1, mObj->y, MO_ROCK_WELL, 'w');
+		spawn_mObject(map, mObj->x - 1, mObj->y, MO_ROCK_WELL, 'w');
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+	}
+	return;
+}
+
+void state_rock_vortex_storm(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer == 60)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_PRESTORM, mObj->st.acp, mObj->st.timer, mObj->st.limit);
+	}
+	if((mObj->st.timer + 1) % (mObj->st.limit / 12) == 0 && mObj->st.timer >= 60)
+	{
+		printf("true\n");
+		const double start_theta = get_frand(-PI/2, PI/2), offset = 0.6;
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta, player);
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta + 2*PI/3, player);
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta + 4*PI/3, player);
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_rock_vortex_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		//vortex explosion
+		set_mObject_state(mObj, ST_ROCK_VORTEX_DECAST, state_rock_vortex_decast, 0, 120);
+	}
+	return;
+}
+
+void state_rock_vortex_decast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_player_hitbox(mObj, player, map);	
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+	}
+}
+
 //GOLEM /BOSS\
 
 void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)
