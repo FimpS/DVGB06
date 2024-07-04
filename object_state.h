@@ -17,6 +17,9 @@
 #define BALISTA_RANGE 49
 #define PEAK_LOCAL_CAST_RANGE 16
 #define PEAK_KNIGHT_CAST_RANGE 16
+#define ROCK_WELL_CAST_RANGE 36
+#define ROCK_ROLLER_ROLL_RANGE 49
+#define VORTEX_CLOSE_CAST_RANGE 8
 #define ARCHER_INRANGE 49
 #define SWORDSMAN_INRANGE 4
 #define DEATHRATTLE_LIMIT 16
@@ -61,6 +64,15 @@ void state_peak_knight_idle();
 void state_peak_knight_aware();
 void state_peak_knight_dash();
 void state_peak_knight_cast();
+//rock_well
+void state_rock_well_idle();
+void state_rock_well_aware();
+void state_rock_well_cast();
+//rock_roller
+void state_rock_roller_idle();
+void state_rock_roller_aware();
+void state_rock_roller_aroll();
+void state_rock_roller_droll();
 //crawler
 void state_crawler_idle();
 void state_crawler_dash();
@@ -115,6 +127,12 @@ void state_fire_archer_dash();
 void state_fire_archer_draw();
 void state_fire_archer_rite();
 //bosses
+//Vortex
+void state_rock_vortex_aware();
+void state_rock_vortex_storm();
+void state_rock_vortex_summon();
+void state_rock_vortex_cast();
+void state_rock_vortex_decast();
 //Golem
 void state_golem_aware();
 void state_golem_stomp();
@@ -137,6 +155,7 @@ void state_sword_shockwave();
 void state_magic_bolt_travel();
 void state_swamp_pool_action();
 void state_spear_cast_action();
+void state_rock_cast_action();
 void state_swordsman_sword_swing();
 void state_golem_rock_travel();
 void state_golem_weapon_swing();

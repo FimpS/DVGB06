@@ -260,6 +260,81 @@ void state_peak_knight_cast(struct mObject* mObj, struct player* player, struct 
 	}
 }
 
+void state_rock_well_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_ROCK_WELL_AWARE, state_rock_well_aware, 0, 128);
+		return;
+	}
+}
+void state_rock_well_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObj->speed = mObj->base_speed / 24;
+	pObject_seek((struct pObject*)mObj, 0.05, atan2(dy, dx));
+	mObject_move(mObj, player, map);
+	if(sum_square(dy, dx) <= ROCK_WELL_CAST_RANGE && mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_WELL_CAST, state_rock_well_cast, 0, 64);
+		return;
+	}
+
+}
+void state_rock_well_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObj->speed = mObj->base_speed / 16;
+	pObject_seek((struct pObject*)mObj, 0.1, atan2(dy, dx));
+	mObject_move(mObj, player, map);
+	if(mObj->st.timer++ >= mObj->st.limit)
+	{
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_ROCK_CAST, EAST, 100.0, atan2(dy, dx), player);
+		set_mObject_state(mObj, ST_ROCK_WELL_AWARE, state_rock_well_aware, 0, 128);
+		return;
+	}
+
+}
+
+void state_rock_roller_idle(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= HOSTILE_MOBJ_WAKEUP_DIST)
+	{
+		set_mObject_state(mObj, ST_ROCK_ROLLER_AWARE, state_rock_roller_aware, 0, 128);
+	}
+}
+void state_rock_roller_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(sum_square(dy, dx) <= ROCK_ROLLER_ROLL_RANGE && mObj->st.timer ++ >= mObj->st.limit)
+	{
+		mObj->speed = mObj->base_speed / 30;
+		mObj->theta = atan2(dy, dx);
+		set_mObject_state(mObj, ST_ROCK_ROLLER_AROLL, state_rock_roller_aroll, 0, 32);
+	}
+	return;
+}
+void state_rock_roller_aroll(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_ROLLER_DROLL, state_rock_roller_droll, 0, 64);
+	}
+}
+void state_rock_roller_droll(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObj->st.timer++ >= mObj->st.limit ? mObj->speed -= 0.003 : (mObj->speed += 0.002);
+	mObject_player_hitbox(mObj, player);
+	mObject_move(mObj, player, map);
+	if(mObj->speed <= 0.025)
+	{
+		set_mObject_state(mObj, ST_ROCK_ROLLER_AWARE, state_rock_roller_aware, 0, 128);
+	}
+}
+
 void state_archer_draw(struct mObject *mObj, struct player *player, struct map* map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
@@ -714,6 +789,85 @@ void state_fire_archer_rite(struct mObject* mObj, struct player* player, struct 
 	}
 	mObj->st.timer ++;
 }
+
+//ROCK_VORTEX /BOSS\
+
+void state_rock_vortex_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		int choice = rand() % 2, close = rand() % 5;
+		if(sum_square(dy, dx) <= VORTEX_CLOSE_CAST_RANGE && choice >= 1)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_CAST, state_rock_vortex_cast, 0, 120);
+			return;
+		}
+		if(choice == 0)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_SUMMON, state_rock_vortex_summon, 0, 120);
+			return;
+		}
+		if(choice == 1)
+		{
+			set_mObject_state(mObj, ST_ROCK_VORTEX_STORM, state_rock_vortex_storm, 0, 360);
+			return;
+		}
+	}
+
+	mObj->st.timer ++;
+}
+void state_rock_vortex_summon(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		spawn_mObject(map, mObj->x + 1, mObj->y, MO_ROCK_WELL, 'w');
+		spawn_mObject(map, mObj->x - 1, mObj->y, MO_ROCK_WELL, 'w');
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+	}
+	return;
+}
+
+void state_rock_vortex_storm(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer == 60)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_PRESTORM, mObj->st.acp, mObj->st.timer, mObj->st.limit);
+	}
+	if((mObj->st.timer + 1) % (mObj->st.limit / 12) == 0 && mObj->st.timer >= 60)
+	{
+		printf("true\n");
+		const double start_theta = get_frand(-PI/2, PI/2), offset = 0.6;
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta, player);
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta + 2*PI/3, player);
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta + 4*PI/3, player);
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_rock_vortex_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		//vortex explosion
+		set_mObject_state(mObj, ST_ROCK_VORTEX_DECAST, state_rock_vortex_decast, 0, 120);
+	}
+	return;
+}
+
+void state_rock_vortex_decast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	mObject_player_hitbox(mObj, player, map);	
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 120);
+	}
+}
+
 //GOLEM /BOSS\
 
 void state_golem_stomp(struct mObject *mObj, struct player *player, struct map* map)
@@ -1023,8 +1177,16 @@ void state_spear_cast_action(struct pObject* pObject, struct player* player, str
 		pObject->anim_start_frame = 48;
 		pObject->anim_frames = 1;
 		set_pObject_state(pObject, pObject->st.type, state_spear_cast_action2, 0, 60 + rand() % 40);
+	}
+}
 
-		//spawn_pObject(map->pObject_list, pObject->x + 2*cos(pObject->theta), pObject->y + 2*sin(pObject->theta), PO_SPEAR_CAST, EAST, 20.0, pObject->theta, player);
+void state_rock_cast_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	pObject_move(pObject, player, map);
+	pObject_player_hitbox(pObject, player);
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 	}
 }
 
