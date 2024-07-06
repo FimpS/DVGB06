@@ -133,6 +133,11 @@ void state_rock_vortex_storm();
 void state_rock_vortex_summon();
 void state_rock_vortex_cast();
 void state_rock_vortex_decast();
+//queen
+void state_local_queen_aware();
+void state_local_queen_dash();
+void state_local_queen_cast();
+void state_local_queen_bog();
 //Golem
 void state_golem_aware();
 void state_golem_stomp();

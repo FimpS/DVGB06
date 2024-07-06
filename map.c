@@ -285,6 +285,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_ROCK_VORTEX, 'v');
 					m->content[x+y * m->width] = '.';
 					break;
+				case 'q':
+					spawn_mObject(m, x, y, MO_LOCAL_QUEEN, 'q');
+					m->content[x+y * m->width] = '.';
+					break;
 				case 'c':
 					spawn_mObject(m, x, y, MO_CULTIST_CHIEFTAIN, 'c');
 					m->content[x+y * m->width] = '.';
