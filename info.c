@@ -161,7 +161,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->transp = true;
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 288, 16, 16);
-			pObject->st = init_pObject_state(state_swamp_pool_action, 0, 128);
+			pObject->st = init_pObject_state(state_swamp_pool_action, 0, 640);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
@@ -189,6 +189,18 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 320, 16, 16);
 			pObject->st = init_pObject_state(state_rock_cast_action, 0, 128);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
+		case PO_SWAMP_BOLT:
+			pObject->width = TILE_LENGTH;
+			pObject->height = TILE_LENGTH;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = false;
+			pObject->status_effect = status_none;
+			pObject->sprite = init_sprite(0, 336, 16, 16);
+			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 128);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
@@ -536,7 +548,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 		case MO_ROCK_WELL:
 			mObject->speed = mObject->base_speed / 24;
 			mObject->health = 150;
-			mObject->width = TILE_LENGTH;
+			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 60;
@@ -554,8 +566,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 		case MO_ROCK_ROLLER:
 			mObject->speed = mObject->base_speed / 24;
 			mObject->health = 150;
-			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->width = TILE_LENGTH * 1.5;
+			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 60;
 			mObject->wall_collide = false;
@@ -584,6 +596,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = 0;
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_rock_vortex_aware, 0, 48, NULL);
+			break;
+		case MO_LOCAL_QUEEN:
+			mObject->speed = mObject->base_speed / 20;
+			mObject->health = 2000;
+			mObject->width = TILE_LENGTH * 1;
+			mObject->height = TILE_LENGTH * 2;
+			mObject->hit = false;
+			mObject->mass = 999;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(256, 16, 4, 0, 16);
+			mObject->sprite = init_sprite(256, 672, 16, 32);
+			mObject->type_reg = 0;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_local_queen_aware, 0, 120, NULL);
 			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
@@ -1098,6 +1127,30 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->sprite.y = 544;
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 384;
+			break;
+		case ST_LOCAL_QUEEN_AWARE:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 672;
+			mObject->anim.limit = 16;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_LOCAL_QUEEN_DASH:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 704;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_LOCAL_QUEEN_CAST:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 672;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 320;
+			break;
+		case ST_LOCAL_QUEEN_BOG:
+			mObject->sprite.x = 320;
+			mObject->sprite.y = 704;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 320;
 			break;
 		case ST_ROCK_VORTEX_PRESTORM:
 			mObject->sprite.x = 256;

@@ -790,6 +790,84 @@ void state_fire_archer_rite(struct mObject* mObj, struct player* player, struct 
 	mObj->st.timer ++;
 }
 
+//LOCAL_QUEEN /BOSS\
+
+void state_local_queen_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+		const int choice = rand() % 3;
+		if(choice == 0 && 1)
+		{
+			printf("BOGGED\n");
+			printf("%d %d\n", mObj->sprite.x, mObj->sprite.y);
+			set_mObject_state(mObj, ST_LOCAL_QUEEN_BOG, state_local_queen_bog, 0, 120);
+			printf("%d %d\n", mObj->sprite.x, mObj->sprite.y);
+			return;
+		}
+		if(choice == 1)
+		{
+			printf("BOLT\n");
+			mObj->theta = atan2(dy, dx);
+			set_mObject_state(mObj, ST_LOCAL_QUEEN_CAST, state_local_queen_cast, 0, 120);
+			return;
+		}
+		if(choice == 2)
+		{
+			printf("BOLT\n");
+			mObj->speed = mObj->base_speed / 20;
+			set_mObject_state(mObj, ST_LOCAL_QUEEN_DASH, state_local_queen_dash, 0, 120);
+			return;
+		}
+	}
+	mObj->st.timer ++;
+}
+void state_local_queen_dash(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObject_move(mObj, player, map);
+	pObject_seek(mObj, 0.015, atan2(dy, dx));
+	if((mObj->st.timer + 1) % (mObj->st.limit / 4) == 0)
+	{
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj), MIDPOINTY(mObj), PO_SWAMP_BOLT, EAST, 10.0, get_frand(2*PI, 0.0), player);
+
+	}
+	if(mObj->st.timer >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_LOCAL_QUEEN_AWARE, state_local_queen_aware, 0, 120);
+		return;
+	}
+	mObj->st.timer ++;
+}
+void state_local_queen_cast(struct mObject* mObj, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+	mObj->theta = atan2(dy, dx);
+	if((mObj->st.timer + 1) % (mObj->st.limit / 8) == 0)
+	{
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj), MIDPOINTY(mObj), PO_SWAMP_BOLT, EAST, 10.0, atan2(dy, dx), player);
+
+	}
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_LOCAL_QUEEN_AWARE, state_local_queen_aware, 0, 120);
+		return;
+	}
+}
+
+void state_local_queen_bog(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		const double dist = 6.0;
+		for(int i = 0; i < 6; i++)
+		{
+			spawn_pObject(map->pObject_list, mObj->x + get_frand(dist * 2, -dist), mObj->y + get_frand(dist*2, -dist), PO_SWAMP_POOL, EAST, 0.0, 0.0, player);
+		}
+		set_mObject_state(mObj, ST_LOCAL_QUEEN_AWARE, state_local_queen_aware, 0, 120);
+	}
+}
 //ROCK_VORTEX /BOSS\
 
 void state_rock_vortex_aware(struct mObject* mObj, struct player* player, struct map* map)
@@ -836,7 +914,6 @@ void state_rock_vortex_storm(struct mObject* mObj, struct player* player, struct
 	}
 	if((mObj->st.timer + 1) % (mObj->st.limit / 12) == 0 && mObj->st.timer >= 60)
 	{
-		printf("true\n");
 		const double start_theta = get_frand(-PI/2, PI/2), offset = 0.6;
 		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta, player);
 		spawn_pObject(map->pObject_list, MIDPOINTX(mObj) - offset, MIDPOINTY(mObj) - offset, PO_ROCK_CAST, EAST, 20.0, start_theta + 2*PI/3, player);
@@ -1124,16 +1201,19 @@ void state_swordsman_sword_swing(struct pObject* pObject, struct player* player,
 void state_magic_bolt_travel(struct pObject* pObject, struct player* player, struct map* map)
 {
 	pObject_move(pObject, player, map);
-	if(pObject->st.timer > pObject->st.limit)
+	pObject_player_hitbox(pObject, player);
+	if(pObject->st.timer >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
 	pObject->st.timer ++;
+#if 0
 	if(!player->invuln && AABB((struct mObject*)pObject, player))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
 	}
+#endif
 }
 
 void state_swamp_pool_action(struct pObject* pObject, struct player* player, struct map* map)
@@ -1188,6 +1268,11 @@ void state_rock_cast_action(struct pObject* pObject, struct player* player, stru
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 	}
+}
+
+void state_swamp_bolt(struct pObject* pObject, struct player* player, struct map* map)
+{
+
 }
 
 

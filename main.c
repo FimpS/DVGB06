@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	if(argc == 3)
 		nmode = SDL_RENDERER_PRESENTVSYNC;
 
-	struct map map = map_init();
+	const struct map map = map_init();
 	double reduce;
 
 	//char maps[1024][32];
