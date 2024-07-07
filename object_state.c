@@ -800,22 +800,17 @@ void state_local_queen_aware(struct mObject* mObj, struct player* player, struct
 		const int choice = rand() % 3;
 		if(choice == 0 && 1)
 		{
-			printf("BOGGED\n");
-			printf("%d %d\n", mObj->sprite.x, mObj->sprite.y);
 			set_mObject_state(mObj, ST_LOCAL_QUEEN_BOG, state_local_queen_bog, 0, 120);
-			printf("%d %d\n", mObj->sprite.x, mObj->sprite.y);
 			return;
 		}
 		if(choice == 1)
 		{
-			printf("BOLT\n");
 			mObj->theta = atan2(dy, dx);
 			set_mObject_state(mObj, ST_LOCAL_QUEEN_CAST, state_local_queen_cast, 0, 120);
 			return;
 		}
 		if(choice == 2)
 		{
-			printf("BOLT\n");
 			mObj->speed = mObj->base_speed / 20;
 			set_mObject_state(mObj, ST_LOCAL_QUEEN_DASH, state_local_queen_dash, 0, 120);
 			return;
@@ -1225,11 +1220,12 @@ void state_swamp_pool_action(struct pObject* pObject, struct player* player, str
 		player->base_speed = 1;
 		return;
 	}
+#if 1
 	if(AABB(pObject, player))
 	{
-		player->base_speed = 0.5;
+		apply_player_status_effect(player, pObject->status_effect);
 	}
-	else player->base_speed = 1;
+#endif
 }
 
 void state_spear_cast_action2(struct pObject* pObject, struct player* player, struct map* map)

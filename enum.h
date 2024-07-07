@@ -57,11 +57,13 @@ typedef enum
 
 typedef enum
 {
+	STATUS_BOGGED,
+	STATUS_BURN,
 	STATUS_FROSTBITE,
 	STATUS_ROT,
 	STATUS_STASIS,
-	status_none
-} mObject_status_effect;
+	STATUS_NONE
+} object_status_effect;
 
 typedef enum
 {
