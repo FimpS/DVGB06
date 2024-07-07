@@ -7,7 +7,7 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 #.L......WWWL........PPPPPPPPPPP
 #.L...G..###...........PPPPPPPPP
 #.G...G..PPP..............PPPPPP
-#........PPP.......q........PPPP
+#........PPP......a.........PPPP
 #..G..G.L###..................PP
 #........WWW..................PP
 #....G...^^^.....V............PP

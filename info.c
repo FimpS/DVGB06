@@ -57,7 +57,7 @@ struct status_effect init_status_effect()
 	struct status_effect new = {0};
 	new.timer = 0;
 	new.limit = 0;
-	new.type = status_none;
+	new.type = STATUS_NONE;
 	return new;
 }
 void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, double dmg, double theta, struct player *player)
@@ -77,8 +77,8 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	pObject->anim_frames = 4;
 	pObject->anim_limit = 4;
 	pObject->anim_start_frame = 0;
+	pObject->status_effect = STATUS_NONE;
 
-	pObject->status_effect = player->sword_effect_type;
 	switch(pObject->type)
 	{
 		case PO_BALISTA_BOLT:
@@ -88,7 +88,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
-			pObject->status_effect = status_none;
 			pObject->anim_frames = 1;
 			pObject->sprite = init_sprite(0, 16, 16, 16);
 			pObject->st = init_pObject_state(state_balista_shot, 0, 1200);
@@ -159,7 +158,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->knockbacker = false;
 			pObject->damage = dmg;
 			pObject->transp = true;
-			pObject->status_effect = status_none;
+			pObject->status_effect = STATUS_BOGGED;
 			pObject->sprite = init_sprite(0, 288, 16, 16);
 			pObject->st = init_pObject_state(state_swamp_pool_action, 0, 640);
 			pObject->anim_tile_length = 16;
@@ -172,7 +171,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->knockbacker = false;
 			pObject->damage = dmg;
 			pObject->transp = true;
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 304, 16, 16);
 			int tmp = rand() % 16 + 32;
 			pObject->st = init_pObject_state(state_spear_cast_action, 0, tmp);
@@ -186,7 +184,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
 			pObject->transp = true;
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 320, 16, 16);
 			pObject->st = init_pObject_state(state_rock_cast_action, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -198,7 +195,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 336, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -211,7 +207,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 192, 32, 16);
 			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 16);
 			pObject->anim_tile_length = 32;
@@ -223,8 +218,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
 			pObject->transp = true;
-			
-			pObject->status_effect = status_none;
+			pObject->status_effect = STATUS_BURN;	
 			pObject->sprite = init_sprite(0, 240, 16, 16);
 			pObject->st = init_pObject_state(state_fire_sling_action, 0, 64);
 			pObject->anim_tile_length = 16;
@@ -237,7 +231,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 256, 16, 16);
 			pObject->st = init_pObject_state(state_lava_pool_action, 0, 256);
 			pObject->anim_tile_length = 16;
@@ -250,7 +243,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 272, 16, 16);
 			pObject->st = init_pObject_state(state_hex_arrow_action, 0, 16);
 			pObject->anim_tile_length = 16;
@@ -264,7 +256,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 208, 16, 16);
 			pObject->st = init_pObject_state(state_golem_rock_travel, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -277,7 +268,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 224, 16, 16);
 			pObject->st = init_pObject_state(state_golem_weapon_swing, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -290,8 +280,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			
-			pObject->status_effect = status_none;
 			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
@@ -301,7 +289,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = true;
-			
+			pObject->status_effect = player->sword_effect_type;
 			pObject->sprite = init_sprite(0, 48, 48, 16);
 			pObject->st = init_pObject_state(state_player_spear_action, 0, 8);
 			pObject->anim_tile_length = 32;
@@ -352,10 +340,11 @@ void initPlayer(struct player *player, int width, int height)
 	player->sword_damage = 100;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
+	player->se_list = dynList_create();
 	player->rune_list = dynList_create();
 	player->anim = init_render_info(0, 16, 4, 0, 16);
 	player->sprite = init_sprite(0, 0, 16, 24);
-	player->sword_effect_type = status_none;
+	player->sword_effect_type = STATUS_NONE;
 }
 void identify_player_sprite_location(struct player* player)
 {

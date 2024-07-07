@@ -17,7 +17,7 @@ struct player;
 
 struct status_effect
 {
-	mObject_status_effect type;
+	object_status_effect type;
 	int timer;
 	int limit;
 };
@@ -74,11 +74,12 @@ struct player
 	int shock_counter;
 	int hit_counter;
 	double sword_damage;
-	mObject_status_effect sword_effect_type;
+	object_status_effect sword_effect_type;
 	int cd;
 	player_global_state global_state; 
 	bool change_map;
 	bool invuln;
+	dynList *se_list;
 	dynList *rune_list;
 	card_dir dir;
 	int anim1counter;
@@ -105,7 +106,7 @@ struct pObject
 	bool transp; //var
 	bool knockbacker; //var
 	int penetration_index; //var
-	mObject_status_effect status_effect; //const
+	object_status_effect status_effect; //const
 	card_dir dir; //const
 	pObject_type type; //const
 	struct mObject *seeking_target; //var
@@ -180,6 +181,8 @@ bool AABBpm();
 struct mObject* id_get_mObj(struct map* map, char id);
 void set_status_effect();
 void identify_status_effect();
+void apply_player_status_effect();
+void run_player_status_effects();
 //e
 void tp_player_interaction();
 void rune_player_interaction();

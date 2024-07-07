@@ -31,7 +31,7 @@ struct mObject* id_get_mObj(struct map* map, char id)
 }
 
 
-void set_status_effect(struct mObject *mObject, int timer, int limit, mObject_status_effect type)
+void set_status_effect(struct mObject *mObject, int timer, int limit, object_status_effect type)
 {
 	mObject->status_effect.timer = timer;
 	mObject->status_effect.limit = limit;
@@ -78,7 +78,7 @@ void stasis_status_effect(struct mObject *mObject, struct player* player)
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
 		mObject->base_speed = 1;
-		set_status_effect(mObject, 0, 0, status_none);
+		set_status_effect(mObject, 0, 0, STATUS_NONE);
 	}
 	mObject->status_effect.timer ++;
 }
@@ -94,7 +94,7 @@ void frozen_status_effect(struct mObject *mObject, struct player* player)
 			mObject->health -= 100; //mObject->health * 0.5;
 			printf("frost procced %f\n", mObject->health);
 		}
-		set_status_effect(mObject, 0, 0, status_none);
+		set_status_effect(mObject, 0, 0, STATUS_NONE);
 		mObject->base_speed = 1;
 	}
 	mObject->status_effect.timer ++;
@@ -109,7 +109,7 @@ void rot_status_effect(struct mObject *mObject)
 	}
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
-		set_status_effect(mObject, 0, 0, status_none);
+		set_status_effect(mObject, 0, 0, STATUS_NONE);
 	}
 	mObject->status_effect.timer ++;
 }
@@ -130,6 +130,11 @@ void identify_status_effect(struct mObject *mObject, struct player* player)
 		default:
 			break;
 	}
+}
+
+void player_status_effect(struct player* player)
+{
+
 }
 
 //misc
@@ -370,6 +375,7 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 		identify_player_sprite_location(player);
 	}
 	rune_abilities(player, map);
+	run_player_status_effects(player);
 	check_player_state(player, map, cam, currentKeyStates);
 	if(player->global_state == ST_P_KNOCKBACK || player->global_state == ST_P_ATTACKING)
 		return;
@@ -461,7 +467,7 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	pObject->y = new_y;
 
 }
-void set_status_effect_area(struct mObject* mObject, struct map *map, int distancesquared, mObject_status_effect effect)
+void set_status_effect_area(struct mObject* mObject, struct map *map, int distancesquared, object_status_effect effect)
 {
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
@@ -608,11 +614,74 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	}
 }
 
+void burn_status_effect(struct player* player, struct status_effect *effect, int index)
+{
+	if(effect->timer % 40 == 0)
+	{
+		player->health -= 100.0;
+	}
+}
+void bogged_status_effect(struct player* player, struct status_effect *effect, int index)
+{
+	player->base_speed = 0.5;
+	if(effect->timer >= effect->limit)
+	{
+		player->base_speed = 1.0;
+	}
+}
+
+void run_player_status_effects(struct player* player)
+{
+	if(dynList_is_empty(player->se_list))
+		return;
+	for(int i = 0; i < player->se_list->size; i++)
+	{
+		struct status_effect *effect = dynList_get(player->se_list, i);
+		switch(effect->type)
+		{
+			case STATUS_BOGGED:
+				bogged_status_effect(player, effect, i);
+				break;
+			case STATUS_BURN:
+				burn_status_effect(player, effect, i);
+				break;
+		}
+
+		if(effect->timer ++ >= effect->limit)
+		{
+			dynList_del_index(player->se_list, i); 
+		}
+	}
+}
+bool effect_exists(struct player* player, object_status_effect effect)
+{
+	for(int i = 0; i < player->se_list->size; i++)
+	{
+		struct status_effect *peffect = dynList_get(player->se_list, i);
+		if(effect == peffect->type)
+			return true;
+	}
+	return false;
+}
+
+void apply_player_status_effect(struct player* player, object_status_effect effect)
+{
+	if(effect == STATUS_NONE || effect_exists(player, effect))
+		return;
+	struct status_effect *new = (struct status_effect*)malloc(sizeof(struct status_effect));
+	new->timer = 0;
+	new->limit = 128; //maybe fix later
+	new->type = effect;
+	dynList_add(player->se_list, (void*)new);
+	printf("%d %d\n", effect, player->se_list->size);
+}
+
 void pObject_player_hitbox(struct pObject* pObject, struct player *player)
 {
 	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
+		apply_player_status_effect(player, pObject->status_effect);
 		if(--pObject->penetration_index == 0)
 		{
 			set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
