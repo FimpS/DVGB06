@@ -10,12 +10,13 @@
 #include "event.h"
 #include "gfx.h"
 #include "info.h"
+#include "font.h"
 
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
 
 int main(int argc, char **argv) {
-
+#if 1
 	srand(time(NULL));
 	int mode = SDL_WINDOW_BORDERLESS;
 	int nmode = 0;
@@ -100,6 +101,9 @@ int main(int argc, char **argv) {
 		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 
 		render_hpbar(renderer, &player, &map.cam, &reduce);
+		render_messages(map.msg_list, &map.cam, renderer, tex[FONT_SPRITESHEET]);
+		//render_message(((struct message*)dynList_get(map.msg_list, 0)), renderer, tex[FONT_SPRITESHEET]);
+		//printf("%d\n", ((struct message*)dynList_get(map.msg_list, 0))->size);
 		//draw
 		update_tick();
 		SDL_RenderPresent(renderer);
@@ -120,6 +124,6 @@ out:
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
+#endif
 	return 0;
-
 }

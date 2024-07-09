@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include "objects.h"
 #include "global.h"
+#include "font.h"
 
 #define TEXTURE_AMOUNT 8
 
@@ -18,6 +19,8 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 	textures[RUNES_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 	surface = IMG_Load("assets/player_spritesheet.png");
 	textures[PLAYER_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
+	surface = IMG_Load("assets/font_spritesheet.png");
+	textures[FONT_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 }
 
 void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Rect R, SDL_Rect r)
@@ -116,6 +119,19 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 		return;
 	}
 	pObject->anim_timer ++;
+}
+
+void render_message(struct message* msg, struct cam* cam, SDL_Renderer *renderer, SDL_Texture *tex)
+{
+	if(msg->timer ++ >= msg->limit)
+	{
+		msg->complete = true;
+	}
+	for(double i = 0; i < msg->size; i++)
+	{
+		SDL_Rect dest = {((msg->x + i / 2) - cam->offset_x) * TILE_LENGTH, (msg->y - cam->offset_y) * TILE_LENGTH, 16, 16};
+		SDL_RenderCopyEx(renderer, tex, &msg->s_chars[(int)i], &dest, 0.0, NULL, false);
+	}
 }
 
 void process_symmetric_animation(SDL_Renderer *renderer, SDL_Texture *tex, SDL_Rect sR, SDL_Rect dR, struct pObject *pObject)

@@ -138,6 +138,7 @@ struct map map_init()
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
+	m.msg_list = dynList_create();
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 
@@ -710,7 +711,7 @@ void get_lightmap(struct map* map, struct cam *cam)
 		}
 	}
 	make_lightmap(map->lightmap.content, map->width, map->height);
-
+#if 0
 	for(int i = 0; i < map->height; i++)
 	{
 		for(int j = 0; j < map->width; j++)
@@ -719,6 +720,7 @@ void get_lightmap(struct map* map, struct cam *cam)
 		}
 		printf("\n");
 	}
+#endif
 }
 
 void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture *tex, struct player* player)

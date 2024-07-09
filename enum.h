@@ -8,6 +8,7 @@ typedef enum
 	MOBJECT_SPRITESHEET,
 	RUNES_SPRITESHEET,
 	PLAYER_SPRITESHEET,
+	FONT_SPRITESHEET,
 } textureID;
 
 typedef enum
@@ -57,6 +58,8 @@ typedef enum
 
 typedef enum
 {
+	STATUS_HEX,
+	STATUS_STUN,
 	STATUS_BOGGED,
 	STATUS_BURN,
 	STATUS_FROSTBITE,

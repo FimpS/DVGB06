@@ -88,6 +88,7 @@ struct map
 	dynList *mObject_list;
 	dynList *pObject_list;
 	dynList *event_list;
+	dynList *msg_list;
 	map_state state;
 };
 
