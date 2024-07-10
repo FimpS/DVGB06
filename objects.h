@@ -60,7 +60,7 @@ struct player
 	double width;
 	double height;
 	double theta;
-	double health;
+	int health;
 	double maxhealth;
 	double speed;
 	double base_speed;

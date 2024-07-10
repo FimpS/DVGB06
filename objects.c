@@ -10,7 +10,6 @@
 
 static int tick = 0;
 
-//this only works if all elements are in the same memory field (C is the language of gods)
 bool AABB(struct mObject *s, struct mObject *t)
 {
 	return s->x < t->x + t->width/TILE_LENGTH &&

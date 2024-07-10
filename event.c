@@ -63,7 +63,7 @@ void golem_cutscene(struct player* player, struct event* event, struct map* map)
 	int time = 64;
 	if(event->clock >= time)
 	{
-		add_message(map->msg_list, "DEFEAT THE ANIMATED GOLEM", MIDPOINTX(golem), MIDPOINTY(golem) - 2, 460);
+		add_message(map->msg_list, "DEFEAT THE ANIMATED GOLEM", MIDPOINTX(golem), MIDPOINTY(golem) - 2, 460, 1);
 		for(int i = 0; i < map->mObject_list->size; i++)
 		{
 			struct mObject *magus = (struct mObject*)dynList_get(map->mObject_list, i);

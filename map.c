@@ -139,6 +139,7 @@ struct map map_init()
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
 	m.msg_list = dynList_create();
+	m.msg_list_UI = dynList_create();
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 
