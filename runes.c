@@ -1,6 +1,7 @@
 #include "objects.h"
 #include "runes.h"
 #include "SDL2/SDL.h"
+#include "font.h"
 
 
 int get_rand_rune_type()
@@ -52,7 +53,7 @@ void unholy_support_initial(struct player* player, struct map* map, struct rune*
 {
 	player->maxhealth += 50;
 	player->health = player->maxhealth;
-	printf("%f\n", player->health);
+	//printf("%f\n", player->health);
 }
 
 //HOLY
@@ -179,7 +180,7 @@ void rune_abilities(struct player *player, struct map *map, struct rune* rune)
 	}
 }
 
-struct rune init_rune(struct rune_info i)
+struct rune init_rune(struct rune_info i, struct map* map)
 {
 	struct rune new = {0};
 	new.info = init_rune_info(i.rune_type, i.rune_stage, i.title);
@@ -190,6 +191,7 @@ struct rune init_rune(struct rune_info i)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nunholy anchor rune acquired\n");
+					add_message(map->msg_list, "UNHOLY ANCHOR RUNE ACQUIRED", 10.0, 2.0, 240, 1);
 					new.attribute = 0;
 					new.ability = unholy_anchor_ability;
 					new.initial = unholy_anchor_initial;
@@ -365,7 +367,7 @@ struct rune_info init_rune_info(core_type type, core_stage stage, const char *ti
 void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 {
 	struct rune* new = (struct rune*)malloc(sizeof(struct rune));
-	*new = init_rune(rinfo);
+	*new = init_rune(rinfo, map);
 	dynList_add(player->rune_list, (void*)new);
 	if(new->initial != NULL)
 		new->initial(player, map, new);

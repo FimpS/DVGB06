@@ -1843,6 +1843,8 @@ void check_deathrattle_abilities(struct mObject* mObject, struct player* player,
 			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 6*PI / 3, player);
 			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 4*PI / 3, player);
 			break;
+		default:
+			break;
 	}
 }
 
@@ -1851,7 +1853,6 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 	if(mObject->st.timer >= mObject->st.limit)
 	{
 		check_deathrattle_abilities(mObject, player, map);
-
 		set_mObject_state(mObject, ST_CLEAR, state_deathrattle, 0, 60);
 		if(mObject->killable == false)
 			return;
@@ -1872,11 +1873,13 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
 			player->sword_damage += 3;
+//BIG PROBLEM
 
 		rune = (struct rune*)dynList_get(player->rune_list, 3);
 		if(rune != NULL && rune->info.rune_type == RN_BLOOD)
 		{
 			//change list to map for fun results (C feature)
+			//printf("%d\n", 1);
 			for(int i = 0; i < 3; i++)
 				spawn_pObject(map->pObject_list, MIDPOINTX(mObject), MIDPOINTY(mObject), PO_BLOOD_TAX, EAST, player->sword_damage, get_frand(-PI/2, PI/2), player);
 		}

@@ -8,6 +8,8 @@ typedef enum
 	MOBJECT_SPRITESHEET,
 	RUNES_SPRITESHEET,
 	PLAYER_SPRITESHEET,
+	FONT_SPRITESHEET,
+	UI_SPRITESHEET,
 } textureID;
 
 typedef enum
@@ -57,6 +59,8 @@ typedef enum
 
 typedef enum
 {
+	STATUS_HEX,
+	STATUS_STUN,
 	STATUS_BOGGED,
 	STATUS_BURN,
 	STATUS_FROSTBITE,
@@ -230,5 +234,17 @@ typedef enum
 	NORTHWEST,
 	SOUTHWEST
 } card_dir;
+
+typedef enum
+{
+	UI_CURRENT_HEALTH,
+	UI_FULL_HEALTH,
+	UI_HEALTH_BORDER,
+} UI_id;
+#if 0
+	UI_CURRENT_HEALTH_D,
+	UI_FULL_HEALTH_D,
+	UI_HEALTH_BORDER_D,
+#endif
 
 #endif

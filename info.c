@@ -230,7 +230,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0.0;
 			pObject->damage = dmg;
 			pObject->transp = false;
-			
 			pObject->sprite = init_sprite(0, 256, 16, 16);
 			pObject->st = init_pObject_state(state_lava_pool_action, 0, 256);
 			pObject->anim_tile_length = 16;
@@ -243,6 +242,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
+			pObject->status_effect = STATUS_HEX;	
 			pObject->sprite = init_sprite(0, 272, 16, 16);
 			pObject->st = init_pObject_state(state_hex_arrow_action, 0, 16);
 			pObject->anim_tile_length = 16;

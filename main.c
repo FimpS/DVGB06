@@ -10,12 +10,14 @@
 #include "event.h"
 #include "gfx.h"
 #include "info.h"
+#include "font.h"
 
 #define MY_SCREEN_HEIGHT 1280
 #define MY_SCREEN_WIDTH 960
 
 int main(int argc, char **argv) {
-
+	//printf("%d\n", init_UI_el(1.0, 2.0).sprite.w);
+#if 1
 	srand(time(NULL));
 	int mode = SDL_WINDOW_BORDERLESS;
 	int nmode = 0;
@@ -26,7 +28,10 @@ int main(int argc, char **argv) {
 	if(argc == 3)
 		nmode = SDL_RENDERER_PRESENTVSYNC;
 
-	const struct map map = map_init();
+	struct map map = map_init();
+	dynList* ui_el_list = dynList_create();
+	init_UI(ui_el_list);
+	add_message(map.msg_list_UI, "HP++", 0.5, 3.0, 0, 1);
 	double reduce;
 
 	//char maps[1024][32];
@@ -100,6 +105,11 @@ int main(int argc, char **argv) {
 		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
 
 		render_hpbar(renderer, &player, &map.cam, &reduce);
+		render_UI_elements(ui_el_list, &player, renderer, tex[UI_SPRITESHEET]);
+		render_messages(map.msg_list, &map.cam, renderer, tex[FONT_SPRITESHEET]);
+		render_UI_texts(map.msg_list_UI, renderer, tex[FONT_SPRITESHEET]);
+		//render_message(((struct message*)dynList_get(map.msg_list, 0)), renderer, tex[FONT_SPRITESHEET]);
+		//printf("%d\n", ((struct message*)dynList_get(map.msg_list, 0))->size);
 		//draw
 		update_tick();
 		SDL_RenderPresent(renderer);
@@ -120,6 +130,6 @@ out:
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
+#endif
 	return 0;
-
 }

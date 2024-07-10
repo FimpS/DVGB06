@@ -74,7 +74,8 @@ void dynList_set(dynList *a, int index, void *tmp)
 
 void *dynList_get(dynList* a, int index)
 {
-	return a->size != 0 ? a->body[index] : NULL;
+	//return a->size != 0 ? a->body[index] : NULL;
+	return a->size > index ? a->body[index] : NULL;
 }
 
 void dynList_clear(dynList *a)

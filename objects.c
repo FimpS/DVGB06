@@ -6,10 +6,10 @@
 #include "runes.h"
 #include "gfx.h"
 #include "info.h"
+#include "font.h"
 
 static int tick = 0;
 
-//this only works if all elements are in the same memory field (C is the language of gods)
 bool AABB(struct mObject *s, struct mObject *t)
 {
 	return s->x < t->x + t->width/TILE_LENGTH &&
@@ -219,6 +219,7 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 		if(AABB((struct mObject*)player, mObject))
 		{
 			add_rune(player, mObject->r_info, map);
+			//add_message(map->msg_list, "YOU PICKED UP A RUNE", 10.0, 2.0, 240);
 			set_mObject_state(mObject, ST_DEATHRATTLE, NULL, 0, 32);
 			for(int i = 0; i < map->mObject_list->size; i++)
 			{
@@ -614,20 +615,32 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	}
 }
 
-void burn_status_effect(struct player* player, struct status_effect *effect, int index)
+void burn_status_effect(struct player* player, struct status_effect *effect)
 {
 	if(effect->timer % 40 == 0)
 	{
 		player->health -= 100.0;
 	}
 }
-void bogged_status_effect(struct player* player, struct status_effect *effect, int index)
+void bogged_status_effect(struct player* player, struct status_effect *effect)
 {
 	player->base_speed = 0.5;
 	if(effect->timer >= effect->limit)
 	{
 		player->base_speed = 1.0;
 	}
+}
+void stun_status_effect(struct player* player, struct status_effect *effect)
+{
+	player->base_speed = 0.0;
+	if(effect->timer >= effect->limit)
+	{
+		player->base_speed = 1.0;
+	}
+}
+void hex_status_effect(struct player* player, struct status_effect *effect)
+{
+	player->dash_cooldown_timer = 0;
 }
 
 void run_player_status_effects(struct player* player)
@@ -640,10 +653,16 @@ void run_player_status_effects(struct player* player)
 		switch(effect->type)
 		{
 			case STATUS_BOGGED:
-				bogged_status_effect(player, effect, i);
+				bogged_status_effect(player, effect);
 				break;
 			case STATUS_BURN:
-				burn_status_effect(player, effect, i);
+				burn_status_effect(player, effect);
+				break;
+			case STATUS_STUN:
+				stun_status_effect(player, effect);
+				break;
+			case STATUS_HEX:
+				hex_status_effect(player, effect);
 				break;
 		}
 
