@@ -3,6 +3,7 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "gfx.h"
 #include "map.h"
 #include "objects.h"
 #include "global.h"
@@ -140,6 +141,8 @@ struct map map_init()
 	m.event_list = dynList_create();
 	m.msg_list = dynList_create();
 	m.msg_list_UI = dynList_create();
+	m.UI_el_list = dynList_create();
+	init_UI(m.UI_el_list);
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 

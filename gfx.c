@@ -26,41 +26,56 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 	textures[UI_SPRITESHEET] = SDL_CreateTextureFromSurface(renderer, surface);
 }
 
+
+#define DD 32
 const struct UI_element UI_sprite_info[] = {
-	{
-		NULL,
-		{0,16,336,16},
-		{8,8,384,16},
-	},
-	{
-		UI_curr_health_update,
-		{0,0,336,16},
-		{8,8,384,16},
-	},
-	{
-		NULL,
-		{0,32,384,16},
-		{-8, 8, 428, 16},
-	}
+	{UI_curr_health_update, {0,0,336,16}, {8,8,384,16}, },
+	{NULL, {0,16,336,16}, {8,8,384,16}, },
+	{NULL, {0,32,384,16}, {-8, 8, 428, 16}, },
+	{NULL, {0,48,32,32}, {800 - 32 - 8, 40, 24, 24}, },
+	{NULL, {0,48,32,32}, {800 - 32 - 8, 72 + 12, 24, 24}, },
+	{NULL, {0,48,32,32}, {800 - 32 - 8, 104 + 24, 24, 24}, },
+
+	{NULL, {32,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
+	{NULL, {64,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
+	{NULL, {96,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
+	{NULL, {128,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
+	{NULL, {160,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
+	{NULL, {192,48,32,32}, {800 - 32 - 8, 264, DD, DD}, },
 };
 
 void init_UI(dynList* ui_el_list)
 {
-	dynList_add(ui_el_list, (void*)init_UI_el(UI_FULL_HEALTH));
-	dynList_add(ui_el_list, (void*)init_UI_el(UI_CURRENT_HEALTH));
-	dynList_add(ui_el_list, (void*)init_UI_el(UI_HEALTH_BORDER));
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_FULL_HEALTH));
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_CURRENT_HEALTH));
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_HEALTH_BORDER));
+
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_1));
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_2));
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_3));
 }
 
-struct UI_element *init_UI_el(UI_id type)
+struct UI_element *init_UI_el(int x, int y, UI_id type)
 {
 	struct UI_element* new = (struct UI_element*)malloc(sizeof(struct UI_element));
 	*new = UI_sprite_info[type];
+	if(x != -1 && y != -1)
+	{
+		new->dest.x = x;
+		new->dest.y = y;
+	}
 	return new;
 }
 
 void UI_curr_health_update(struct UI_element* el, struct player* player)
 {
 	if((el->dest.w > 384 * player->health / player->maxhealth)) (el->dest.w) -= 2;
+}
+
+void UI_rune0_display_update(struct UI_element* el, struct player* player)
+{
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
+
 }
 
 void render_UI_elements(dynList* ui_el_list, struct player* player, SDL_Renderer *renderer, SDL_Texture* tex)
@@ -72,10 +87,9 @@ void render_UI_elements(dynList* ui_el_list, struct player* player, SDL_Renderer
 		{
 			curr->UI_update(curr, player);
 		}
+		
 		SDL_RenderCopy(renderer, tex, &curr->sprite, &curr->dest);
 	}
-
-
 }
 
 void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Rect R, SDL_Rect r)

@@ -90,6 +90,7 @@ struct map
 	dynList *event_list;
 	dynList *msg_list;
 	dynList *msg_list_UI;
+	dynList *UI_el_list;
 	map_state state;
 };
 

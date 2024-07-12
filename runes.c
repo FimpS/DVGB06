@@ -2,7 +2,12 @@
 #include "runes.h"
 #include "SDL2/SDL.h"
 #include "font.h"
+#include "gfx.h"
 
+#define FIRST 36
+#define SECOND 80
+#define THIRD 124
+#define ALWAYS 800 - 32 - 12
 
 int get_rand_rune_type()
 {
@@ -191,18 +196,21 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nunholy anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_UNHOLY));
 					add_message(map->msg_list, "UNHOLY ANCHOR RUNE ACQUIRED", 10.0, 2.0, 240, 1);
 					new.attribute = 0;
 					new.ability = unholy_anchor_ability;
 					new.initial = unholy_anchor_initial;
 					break;
 				case support:
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_UNHOLY));
 					printf("#WISH GRANTED#\nunholy suppot rune acquired\n");
 					new.attribute = 0;
 					new.ability = NULL;
 					new.initial = unholy_support_initial;
 					break;
 				case mending:
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_UNHOLY));
 					printf("#WISH GRANTED#\nunholy mending rune acquired\n");
 					new.attribute = 0;
 					new.ability = NULL;
@@ -220,18 +228,21 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nholy anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
 					new.initial = NULL;
 					break;
 				case support:
 					printf("#WISH GRANTED#\nholy anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
 					new.initial = NULL;
 					break;
 				case mending:
 					printf("#WISH GRANTED#\nholy anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
 					new.initial = NULL;
@@ -248,6 +259,7 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nblood anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_BLOOD));
 					new.ability = NULL;
 					new.initial = blood_mending_initial;
 					new.ability = blood_mending_ability;
@@ -255,11 +267,13 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					break;
 				case support:
 					printf("#WISH GRANTED#\nblood support rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_BLOOD));
 					new.ability = NULL;
 					new.initial = blood_support_initial;
 					break;
 				case mending:
 					printf("#WISH GRANTED#\nblood mending rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_BLOOD));
 					new.ability = blood_mending_ability;
 					new.initial = blood_mending_initial;
 					break;
@@ -277,18 +291,21 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nGravity anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_GRAVITY));
 					new.attribute = 0;
 					new.ability = gravity_anchor_ability;
 					new.initial = NULL;
 					break;
 				case support:
 					printf("#WISH GRANTED#\nGravity suppot rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_GRAVITY));
 					new.attribute = 0;
 					new.ability = NULL;
 					new.initial = gravity_support_initial;
 					break;
 				case mending:
 					printf("#WISH GRANTED#\nGravity mending rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_GRAVITY));
 					new.attribute = 0;
 					new.ability = NULL;
 					new.initial = NULL;
@@ -307,16 +324,19 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nfrost anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_FROST));
 					new.ability = NULL;
 					new.initial = frost_anchor_initial;
 					break;
 				case support:
 					printf("#WISH GRANTED#\nfrost support rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_FROST));
 					new.ability = NULL;
 					new.initial = frost_support_initial;
 					break;
 				case mending:
 					printf("#WISH GRANTED#\nfrost mending rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_FROST));
 					new.ability = frost_mending_ability;
 					new.initial = NULL;
 					new.attribute = 0;
@@ -333,16 +353,19 @@ struct rune init_rune(struct rune_info i, struct map* map)
 			{
 				case anchor:
 					printf("#WISH GRANTED#\nrot anchor rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_ROT));
 					new.ability = NULL;
 					new.initial = rot_anchor_initial;
 					break;
 				case support:
 					printf("#WISH GRANTED#\nrot support rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_ROT));
 					new.ability = NULL;
 					new.initial = rot_support_initial;
 					break;
 				case mending:
 					printf("#WISH GRANTED#\nrot mending rune acquired\n");
+					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_ROT));
 					new.attribute = 0;
 					new.ability = rot_mending_ability;
 					new.initial = NULL;
@@ -366,6 +389,7 @@ struct rune_info init_rune_info(core_type type, core_stage stage, const char *ti
 
 void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 {
+	//dynList_add()()()();
 	struct rune* new = (struct rune*)malloc(sizeof(struct rune));
 	*new = init_rune(rinfo, map);
 	dynList_add(player->rune_list, (void*)new);
