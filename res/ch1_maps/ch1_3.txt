@@ -5,7 +5,7 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 #..G.....^^^.......^^^^^....PPPP
 #.R..G...VVV.......VVVVV....PPPP
 #.LR.....WWWL........PPPPPPPPPPP
-#.L.R.G..###..4........PPPPPPPPP
+#.L.R.G..###..a........PPPPPPPPP
 #.G...G..PPP..............PPPPPP
 #........PPP................PPPP
 #..G..G.L###..................PP

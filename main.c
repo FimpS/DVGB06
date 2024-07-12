@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 	struct map map = map_init();
 	//dynList* ui_el_list = dynList_create();
 	init_UI(map.UI_el_list);
-	add_message(map.msg_list_UI, "HP++", 0.5, 3.0, 0, 1);
+	add_message(map.msg_list_UI, "TEST123", 0.5, 3.0, 0, 1);
 	double reduce;
 
 	//char maps[1024][32];
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
 		update_tick();
 		SDL_RenderPresent(renderer);
 		//SDL_Delay(1000/70);
-#if 0
+#if 1
 		framecount++;
 		int end = SDL_GetTicks();
 		if(end - start >= 1000)
