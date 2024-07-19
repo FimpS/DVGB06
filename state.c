@@ -35,10 +35,14 @@ void run_tick(struct map *map, struct player *player)
 			update_pObjects(map->pObject_list, player, map);
 			update_all_mObjects(map->mObject_list, player, map, &map->cam, map->event_list);
 			run_event(map->event_list, map, player);
+			menu_put(map);
 			break;
 		case ST_MAP_CINEMATIC:
 			run_event(map->event_list, map, player);
 			control_cam_update(&map->cam, map, player);
+		case ST_MAP_PAUSE:
+			run_menu();
+			break;
 		case ST_MAP_DEFAULT:
 			
 			break;

@@ -117,6 +117,7 @@ typedef enum
 	ST_MAP_RUN_TICK,
 	ST_MAP_CINEMATIC,
 	ST_MAP_CLEAR,
+	ST_MAP_PAUSE,
 	ST_MAP_DEFAULT,
 } map_state;
 
@@ -251,6 +252,9 @@ typedef enum
 	UI_UNHOLY,
 	UI_HOLY,
 	UI_ROT,
+
+	UI_MENU,
+	UI_MENU_POINTER,
 	
 } UI_id;
 #if 0

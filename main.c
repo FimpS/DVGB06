@@ -16,6 +16,7 @@
 #define MY_SCREEN_WIDTH 960
 
 int main(int argc, char **argv) {
+	//printf("map:%ld, mObject:%ld, pObject:%ld, player:%ld\n", sizeof(struct map), sizeof(struct mObject), sizeof(struct pObject), sizeof(struct player));
 	//printf("%d\n", init_UI_el(1.0, 2.0).sprite.w);
 #if 1
 	srand(time(NULL));
@@ -95,7 +96,7 @@ int main(int argc, char **argv) {
 		SDL_RenderClear(renderer);
 		
 		run_tick(&map, &player);
-		if(cdr[SDL_SCANCODE_V])
+		if(cdr[SDL_SCANCODE_V] || map.quit)
 			goto out;
 		SDL_MouseMotionEvent m;
 		//draw
@@ -114,7 +115,7 @@ int main(int argc, char **argv) {
 		update_tick();
 		SDL_RenderPresent(renderer);
 		//SDL_Delay(1000/70);
-#if 1
+#if 0
 		framecount++;
 		int end = SDL_GetTicks();
 		if(end - start >= 1000)

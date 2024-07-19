@@ -6,6 +6,7 @@ struct UI_element
 	void (*UI_update)(struct UI_element*, struct player* player);
 	SDL_Rect sprite;
 	SDL_Rect dest;
+	UI_id id;
 };
 struct UI_element *init_UI_el();
 void init_UI();
@@ -13,6 +14,8 @@ SDL_Rect init_sprite();
 void render_UI_elements();
 void UI_curr_health_update();
 
+void menu_put();
+void run_menu();
 
 
 void render_animation();

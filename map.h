@@ -78,6 +78,7 @@ struct map
 	int height;
 	int aggresive_mObj_count;
 	int current_chapter;
+	bool quit;
 	struct lightmap lightmap;
 	//int lightmap[CONTENT_SIZE];
 	char content[CONTENT_SIZE];

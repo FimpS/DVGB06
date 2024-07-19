@@ -133,6 +133,7 @@ struct map map_init()
 	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT; i++)
 		printf("%s\n", m.s_map.content[i]);
 	m.s_map.index = 0;
+	m.quit = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
 	m.cam = cam_init();
