@@ -78,6 +78,7 @@ struct map
 	int height;
 	int aggresive_mObj_count;
 	int current_chapter;
+	bool quit;
 	struct lightmap lightmap;
 	//int lightmap[CONTENT_SIZE];
 	char content[CONTENT_SIZE];
@@ -90,6 +91,7 @@ struct map
 	dynList *event_list;
 	dynList *msg_list;
 	dynList *msg_list_UI;
+	dynList *UI_el_list;
 	map_state state;
 };
 

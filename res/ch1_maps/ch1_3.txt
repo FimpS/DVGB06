@@ -4,8 +4,8 @@ PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
 #p...G..LPPPL..PPPPPPPPP....PPPP
 #..G.....^^^.......^^^^^....PPPP
 #.R..G...VVV.......VVVVV....PPPP
-#.L......WWWL........PPPPPPPPPPP
-#.L...G..###..4........PPPPPPPPP
+#.LR.....WWWL........PPPPPPPPPPP
+#.L.R.G..###...4.......PPPPPPPPP
 #.G...G..PPP..............PPPPPP
 #........PPP................PPPP
 #..G..G.L###..................PP

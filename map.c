@@ -3,6 +3,7 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "gfx.h"
 #include "map.h"
 #include "objects.h"
 #include "global.h"
@@ -132,6 +133,7 @@ struct map map_init()
 	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT; i++)
 		printf("%s\n", m.s_map.content[i]);
 	m.s_map.index = 0;
+	m.quit = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
 	m.cam = cam_init();
@@ -140,6 +142,8 @@ struct map map_init()
 	m.event_list = dynList_create();
 	m.msg_list = dynList_create();
 	m.msg_list_UI = dynList_create();
+	m.UI_el_list = dynList_create();
+	init_UI(m.UI_el_list);
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 
