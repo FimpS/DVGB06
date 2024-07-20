@@ -72,6 +72,11 @@ struct lightmap
 	unsigned short blue;
 };
 
+struct tile_enh
+{
+	
+};
+
 struct map
 {
 	int width;

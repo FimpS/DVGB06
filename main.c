@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	initPlayer(&player, 20, 20);
 	reduce = player.health / player.maxhealth * 8 * TILE_LENGTH;
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	const char* tmp = "res/ch1_maps/ch1_3.txt";
+	const char* tmp = "res/ch1_maps/ch1_1.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];
@@ -95,9 +95,10 @@ int main(int argc, char **argv) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 		
-		run_tick(&map, &player);
 		if(cdr[SDL_SCANCODE_V] || map.quit)
 			goto out;
+		run_tick(&map, &player);
+#if 1
 		SDL_MouseMotionEvent m;
 		//draw
 		map_draw(&map, &map.cam, renderer, *tex, &player);
@@ -115,6 +116,7 @@ int main(int argc, char **argv) {
 		update_tick();
 		SDL_RenderPresent(renderer);
 		//SDL_Delay(1000/70);
+#endif
 #if 0
 		framecount++;
 		int end = SDL_GetTicks();

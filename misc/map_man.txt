@@ -3,3 +3,6 @@
 1 = default enemy
 E = EXIT
 T,D = Teleport to Destination
+
+
+lanterns as mObject

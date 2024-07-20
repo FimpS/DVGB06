@@ -40,8 +40,9 @@ void run_tick(struct map *map, struct player *player)
 		case ST_MAP_CINEMATIC:
 			run_event(map->event_list, map, player);
 			control_cam_update(&map->cam, map, player);
+			break;
 		case ST_MAP_PAUSE:
-			run_menu();
+			run_menu(map); //very weird works without args, since run_tick is map first? prob A C exclusive
 			break;
 		case ST_MAP_DEFAULT:
 			

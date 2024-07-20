@@ -18,6 +18,16 @@ bool AABB(struct mObject *s, struct mObject *t)
 		   s->y + s->height/TILE_LENGTH > t->y;
 }
 
+
+bool POLARBB(struct mObject* target, struct mObject* source)
+{
+	const double r = source->width > source->height ? source->width / TILE_LENGTH / 2 : source->height / TILE_LENGTH / 2;
+	return MIDPOINTX(source) + r*cos(source->theta) >= target->x &&
+		   MIDPOINTX(source) + r*cos(source->theta) < target->x + target->width/TILE_LENGTH &&
+		   MIDPOINTY(source) + r*sin(source->theta) < target->y + target->height/TILE_LENGTH&&
+		   MIDPOINTY(source) + r*sin(source->theta) >= target->y;
+}
+
 struct mObject* id_get_mObj(struct map* map, char id)
 {
 	struct mObject* res;

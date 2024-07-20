@@ -1,4 +1,4 @@
-PARMS = -lSDL2 -lSDL2_image -lm
+PARMS = -lSDL2 -lSDL2_image -lm -g
 noPARMS = -lm -g
 O = main.o objects.o dynList.o map.o state.o event.o object_state.o gfx.o global.o runes.o info.o font.o
 

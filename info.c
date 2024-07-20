@@ -798,6 +798,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = init_sprite(256, 192, 16, 16);
 			mObject->anim = init_render_info(256, 16, 4, 0, 8);
 			mObject->st.acp = tp_player_interaction;
+			mObject->type_reg = st_placeholder;
+			mObject->st.kcp = NULL;
 			break;
 		case MO_RUNE_SHARD:
 			mObject->width = TILE_LENGTH * 2;
