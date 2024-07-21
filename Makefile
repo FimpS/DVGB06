@@ -1,3 +1,4 @@
+SRC_DIR = src
 OBJ_DIR = obj
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -16,3 +17,6 @@ $(TARGET): $(OBJS)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJ_DIR) $(TARGET)
