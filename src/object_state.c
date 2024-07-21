@@ -452,7 +452,7 @@ void state_swordsman_aware(struct mObject *mObj, struct player *player, struct m
 void state_swordsman_idle(struct mObject *mObj, struct player *player, struct map* map)
 {
 	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	if(sum_square(dx, dy) < HOSTILE_MOBJ_WAKEUP_DIST)
+	if(sum_square(dx, dy) <= HOSTILE_MOBJ_WAKEUP_DIST)
 	{
 		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 100);
 		return;
@@ -1186,7 +1186,7 @@ void state_swordsman_sword_swing(struct pObject* pObject, struct player* player,
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 16);
 		return;
 	}
-	if(!player->invuln && AABB(pObject, player))
+	if(!player->invuln && POLARBB(player, pObject))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
 	}
@@ -1636,6 +1636,7 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 		const double dx = mx + (int)map->cam.offset_x - player->x;
 		const double dy = my + (int)map->cam.offset_y - player->y;
 		const double theta = atan2(dy, dx);
+		player->theta = theta;
 
 		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.4, PO_PLAYER_SPEAR, EAST, player->sword_damage, theta, player);
 		check_attack_mods(player, map, theta);
@@ -1686,6 +1687,30 @@ void check_pObject_mObject_hit(struct pObject *pObject, struct player* player, s
 		if(!target->hittable)
 			continue;
 		if(!target->hit && AABB(target, (struct mObject*)pObject))
+		{
+			dx = pObject->x - target->x;
+			dy = pObject->y - target->y;
+			//target->theta = atan2(dy, dx);
+			mObject_damage(target, pObject, player);
+			target->hit = true;
+
+		}
+	}
+}
+// TODO IMPLEMENT PLEASE
+//
+
+void check_pObject_mObject_polar(struct pObject *pObject, struct player* player, struct map* map)
+{
+	struct mObject* target;
+	double dx, dy;
+	//printf("x:%lf y:%lf %lf\n", x, y, sqrt(sum_square(x, y)));	
+	for(int i = 0; i < map->mObject_list->size; i++)
+	{
+		target = (struct mObject*)dynList_get(map->mObject_list, i);
+		if(!target->hittable)
+			continue;
+		if(!target->hit && POLARBB(target, (struct mObject*)pObject))
 		{
 			dx = pObject->x - target->x;
 			dy = pObject->y - target->y;
@@ -1795,14 +1820,15 @@ void state_rot_smog_flower(struct pObject *pObject, struct player* player, struc
 
 void state_player_spear_action(struct pObject *pObject, struct player* player, struct map* map)
 {
-	if(pObject->st.timer > pObject->st.limit)
+	if(pObject->st.timer >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
 	pObject->speed = 0.10;
 	pObject_move(pObject, player, map);
-	check_pObject_mObject_hit(pObject, player, map);
+	//if(sum_square(pObject->x, pObject->y) >=
+	check_pObject_mObject_polar(pObject, player, map);
 	pObject->st.timer ++;
 }
 
@@ -1873,7 +1899,7 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
 			player->sword_damage += 3;
-//BIG PROBLEM
+		//BIG PROBLEM
 
 		rune = (struct rune*)dynList_get(player->rune_list, 3);
 		if(rune != NULL && rune->info.rune_type == RN_BLOOD)
@@ -1903,6 +1929,9 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 
 	if(!mObject->hittable || mObject->st.type == ST_DEATHRATTLE)
 		return;
+	if(mObject->id == 'E')
+		printf("lol\n");
+
 	identify_status_effect(mObject, player);
 	if(mObject->st.type == ST_ENEMYDEAD)
 	{

@@ -146,6 +146,7 @@ struct map map_init()
 	init_UI(m.UI_el_list);
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
+	m.anim.limit = 12;
 
 	return m;
 }
@@ -445,6 +446,16 @@ void map_start_events(struct map *m, struct player *player)
 	}
 }
 
+static const char solids[] = {"# W!P-%|C+-*/_{[]}"};
+
+bool solid_chars(char match)
+{
+	for(int i = 0; solids[i]; i++)
+		if(solids[i] == match)
+			return true;
+	return false;
+}
+
 void load_map_file(struct map *m, char* filename)
 {
 	FILE *f;
@@ -470,7 +481,10 @@ void load_map_file(struct map *m, char* filename)
 	}
 	for(int i = 0; i < content_size; i++)
 	{
-		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W' || m->content[i] == '!' || m->content[i] == 'P')
+#if 0
+		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W' || m->content[i] == '!' || m->content[i] == 'P' || m->content[i] == '-' || m->content[i] == '%' || m->content[i] == '|' || m->content[i] == 'C')
+#endif
+		if(solid_chars(m->content[i]))
 		{
 			m->solid_content[i] = true;
 		}
@@ -629,6 +643,7 @@ void map_switch_frame(struct map* map, struct cam *cam)
 	{
 		map->anim.frame += 16;
 		map->anim.frame %= 64;
+		map->anim.timer = 0;
 	}
 	map->anim.timer ++;
 }
@@ -741,6 +756,36 @@ void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture
 	SDL_SetTextureColorMod(tex, dist, dist, dist);
 }
 
+
+static const SDL_Rect tile_info[] = 
+{
+	['.'] = {0, 32, 16, 16},
+	['#'] = {16, 32, 16, 16},
+	['_'] = {80, 48, 16, 16},
+	['|'] = {48, 48, 16, 16},
+	['%'] = {64, 48, 16, 16},
+	['+'] = {80, 16, 16, 16},
+	['-'] = {96, 16, 16, 16},
+	['*'] = {80, 32, 16, 16},
+	['/'] = {96, 32, 16, 16},
+	['{'] = {64, 64, 16, 16},
+	['['] = {48, 64, 16, 16},
+	[']'] = {48, 80, 16, 16},
+	['}'] = {64, 80, 16, 16},
+	['L'] = {0, 112, 16, 16},
+	['W'] = {0, 96, 16, 16},
+	['G'] = {48, 32, 16, 16},
+	['P'] = {32, 32, 16, 16},
+	['F'] = {0, 64, 16, 16},
+	['^'] = {64, 16, 16, 16},
+	['V'] = {64, 32, 16, 16},
+	['E'] = {128, 128, 16, 16},
+	['T'] = {128, 128, 16, 16},
+	['D'] = {128, 128, 16, 16},
+	['!'] = {128, 128, 16, 16},
+	[' '] = {128, 128, 16, 16},
+};
+
 void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Texture *tex, struct player* player)
 {
 	//SDL_Surface *sur = IMG_Load("assets/Untitled.png");
@@ -751,84 +796,130 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 	double dx = 0;
 	double dy = 0;
 	double dist = 0;
-#if 1
 	for(int i = -1; i < cam->vis_tile_x + 1; i++)
 	{
 		for(int j = -1; j < cam->vis_tile_y + 1; j++)
 		{
-			//maybe map owns a rectangle that everyone follows
-			//tradeof if everyone owns there own pObj draw could look very small
-			//if map owns everything == less setup but switch hell in draw
 			char tile = map_get_tile(map, i + (int)cam->offset_x, j + (int)cam->offset_y);	
 			SDL_Rect r_tile = {i * TILE_LENGTH - cam->tile_offset_x, j * TILE_LENGTH - cam->tile_offset_y, TILE_LENGTH, TILE_LENGTH};
-			//printf("%d %d\n", r_tile.w, r_tile.h);
-			SDL_Rect R = {0, 0, 16, 16};
-			//SDL_SetTextureColorMod(tex, 100, 100, 100); //map->lightlevel for maps with different lighting
-			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 30 + rand() % 20;
-			SDL_SetTextureColorMod(tex, 100 + light * map->lightmap.red, 100 + light * map->lightmap.green, 100 + light * map->lightmap.blue);
 
-			switch(tile)
+			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 40 + rand() % 10;
+			const int defR = 120 * map->lightmap.red;
+			const int defG = 120 * map->lightmap.green;
+			const int defB = 120 * map->lightmap.blue;
+			
+			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
+			//SDL_Rect R = {0, 0, 16, 16};
+			SDL_Rect R = tile_info[tile];
+			if(tile == 'L' || tile == 'W')
 			{
-				case '.':
-					//player_lighting(map, i, j, cam, tex, player);
-					R.y += 32;
-					R.x += 0;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case '#':
-					R.y += 32;
-					R.x += 16;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'L':
-					//SDL_SetTextureColorMod(tex, 200, 200, 200);
-					R.y += 48;
-					R.x = 16 * (getTick() % 16 >= 8 && getTick() % 16 < 16 ? 1 : 0);
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'G':
-					R.y += 32;
-					R.x += 48;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'W':
-					player_lighting(map, i, j, cam, tex, player);
-					R.x += 32;
-					R.y += 48;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'P':
-					R.x += 32;
-					R.y += 32;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-				case '^':
-					R.x += 64;
-					R.y += 16;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'V':
-					R.x += 64;
-					R.y += 32;
-					SDL_RenderCopy(renderer, tex, &R, &r_tile);
-					break;
-				case 'E':
-					SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-					SDL_RenderFillRect(renderer, &r_tile);
-					break;
-				case 'T':
-					//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
-					break;
-				case 'D':
-					//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
-					break;
-				case '!':
-				case ' ':
-					SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-					SDL_RenderFillRect(renderer, &r_tile);
-					break;
+				R.x = map->anim.frame;
 			}
-			//printf("d: %f\n", dist);
+			SDL_RenderCopy(renderer, tex, &R, &r_tile);
 		}
 	}
+}
+
+#if 0
+#if 0
+switch(tile)
+{
+	case '.':
+		//player_lighting(map, i, j, cam, tex, player);
+		R = tile_info['.'];
+		//R.y += 32;
+		//R.x += 0;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '_':
+		R = tile_info[tile];
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '|':
+		R.x += 48;
+		R.y += 48;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '%':
+		R.x += 64;
+		R.y += 48;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '+':
+		R.x += 80;
+		R.y += 16;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '-':
+		R.x += 96;
+		R.y += 16;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '*':
+		R.x += 80;
+		R.y += 32;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '/':
+		R.x += 96;
+		R.y += 32;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '#':
+		R.y += 32;
+		R.x += 16;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'L':
+		//SDL_SetTextureColorMod(tex, 200, 200, 200);
+		R.y += 48;
+		R.x = 16 * (getTick() % 16 >= 8 && getTick() % 16 < 16 ? 1 : 0);
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'G':
+		R.y += 32;
+		R.x += 48;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'W':
+		R.x += 32;
+		R.y += 48;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'P':
+		R.x += 32;
+		R.y += 32;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case '^':
+		R.x += 64;
+		R.y += 16;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'V':
+		R.x += 64;
+		R.y += 32;
+		SDL_RenderCopy(renderer, tex, &R, &r_tile);
+		break;
+	case 'E':
+		SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		SDL_RenderFillRect(renderer, &r_tile);
+		break;
+	case 'T':
+		//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
+		break;
+	case 'D':
+		//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
+		break;
+	case '!':
+	case ' ':
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+		SDL_RenderFillRect(renderer, &r_tile);
+		break;
+}
+//printf("d: %f\n", dist);
 #endif
 }
+}
+#endif
+

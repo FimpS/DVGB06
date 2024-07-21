@@ -67,7 +67,6 @@ struct UI_element *init_UI_el(int x, int y, UI_id type)
 		new->dest.x = x;
 		new->dest.y = y;
 	}
-	printf("%d %d\n", new->dest.x, new->dest.w + new->dest.x);
 	return new;
 }
 
@@ -109,6 +108,8 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 	{
 		flip = true;
 	}
+	const int fill = 150;
+	SDL_SetTextureColorMod(tex, fill, fill, fill);
 	SDL_RenderCopyEx(renderer, tex, &player->sprite, &dR, 0, NULL, flip);
 	if(player->anim.timer >= player->anim.limit)
 	{
@@ -127,7 +128,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	const double conv = 57.29577;
 	bool flip = false;
 	double theta = mObject->anim.rotatable ? mObject->theta : 0;
-	int fill = 10;
+	int fill = 100;
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
 	int red = 0, green = 0, blue = 0;
@@ -146,9 +147,9 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	dist = 255 - dist*8;
 	dist = dist <= 100 ? 100 : dist;
 	dist = dist >= 180 ? 180 : dist;
-
+	const int def = 100;
 	//SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
-	SDL_SetTextureColorMod(tex, 150 + red, 150 + green, 150 + blue);
+	SDL_SetTextureColorMod(tex, def + red, def + green, def + blue);
 
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{
@@ -183,6 +184,8 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 		SDL_RenderFillRect(renderer, &dR);
 	}
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
+	const int def = 150;
+	SDL_SetTextureColorMod(tex, def, def, def);
 	if(pObject->anim_timer >= pObject->anim_limit)
 	{
 		pObject->anim_timer = 0;
@@ -357,16 +360,14 @@ void run_menu(struct map* map)
 		const Uint8* c = SDL_GetKeyboardState(NULL);
 		if(c[SDL_SCANCODE_W] || c[SDL_SCANCODE_UP]) 
 		{
-			menu_index <= 0 ? menu_index : menu_index --;
+			menu_index <= 0 ? menu_index = 2: menu_index --;
 			menu_timer = 0;
-			printf("menu_index: %d\n", menu_index);
 		}
 		if(c[SDL_SCANCODE_S] || c[SDL_SCANCODE_DOWN])
 		{
 			//menu_index ++;
-			menu_index >= 2 ? menu_index : menu_index ++ ;
+			menu_index >= 2 ? menu_index = 0: menu_index ++ ;
 			menu_timer = 0;
-			printf("menu_index: %d\n", menu_index);
 		}
 
 
@@ -381,7 +382,6 @@ void run_menu(struct map* map)
 			menu_exit(map);
 		};
 #endif
-		//printf("menu_index: %d\n", menu_index);
 	}
 
 }

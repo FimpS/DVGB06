@@ -176,6 +176,7 @@ void destroyShot();
 
 //general
 bool AABB();
+bool POLARBB();
 bool AABBpp();
 bool AABBpm();
 struct mObject* id_get_mObj(struct map* map, char id);
