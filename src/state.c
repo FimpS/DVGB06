@@ -14,7 +14,7 @@ void map_manager(struct map *map, dynList* eList)
 	{
 		sleep(1);
 		dynList_clear(eList);
-		map_load_scene(map, "res/ch1_maps/ch1_2.txt", eList);
+		map_load_scene(map, "../res/ch1_maps/ch1_2.txt", eList);
 	}
 
 }

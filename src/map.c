@@ -146,7 +146,7 @@ struct map map_init()
 	init_UI(m.UI_el_list);
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
-	m.anim.limit = 8;
+	m.anim.limit = 12;
 
 	return m;
 }
@@ -637,16 +637,13 @@ void map_update(struct map *map, struct player *player, dynList *event_list)
 	tmptimer++;
 }
 
-static int tile_len = 0;
-
 void map_switch_frame(struct map* map, struct cam *cam)
 {
 	if(map->anim.timer >= map->anim.limit)
 	{
 		map->anim.frame += 16;
-		map->anim.frame %= 32;
+		map->anim.frame %= 64;
 		map->anim.timer = 0;
-		tile_len = map->anim.frame;
 	}
 	map->anim.timer ++;
 }
@@ -775,8 +772,8 @@ static const SDL_Rect tile_info[] =
 	['['] = {48, 64, 16, 16},
 	[']'] = {48, 80, 16, 16},
 	['}'] = {64, 80, 16, 16},
-	['L'] = {0, 48, 16, 16},
-	['W'] = {32, 48, 16, 16},
+	['L'] = {0, 112, 16, 16},
+	['W'] = {0, 96, 16, 16},
 	['G'] = {48, 32, 16, 16},
 	['P'] = {32, 32, 16, 16},
 	['F'] = {0, 64, 16, 16},
@@ -814,7 +811,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
 			//SDL_Rect R = {0, 0, 16, 16};
 			SDL_Rect R = tile_info[tile];
-			if(tile == 'L')
+			if(tile == 'L' || tile == 'W')
 			{
 				R.x = map->anim.frame;
 			}
