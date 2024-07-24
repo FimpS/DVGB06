@@ -9,6 +9,7 @@ typedef struct state
 
 void map_handler();
 void run_tick();
+void render_tick();
 
 void logic_manager();
 #endif

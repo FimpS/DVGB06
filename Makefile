@@ -6,7 +6,7 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
 CC = gcc
-CFLAGS = -lSDL2 -lSDL2_image -lm -g
+CFLAGS = -lSDL2 -lSDL2_image -lm -g -I$(SRC_DIR)
 TARGET = game
 
 all: $(TARGET)

@@ -45,6 +45,10 @@ const struct UI_element UI_sprite_info[] = {
 
 	{NULL, {0, 80, 64, 80}, {234, 100, 300, 400}, 12},
 	{NULL, {64, 80, 16, 16}, {280, 100, 32, 32}, 13},
+
+	{UI_boss_health_update, {0,0,336,16}, {100,500,600,32}, 14},
+	{NULL, {0,16,336,16}, {100,500,600,32}, 15},
+	{NULL, {0,160,336,16}, {100,500,600,32}, 16},
 };
 
 void init_UI(dynList* ui_el_list)
@@ -70,9 +74,22 @@ struct UI_element *init_UI_el(int x, int y, UI_id type)
 	return new;
 }
 
-void UI_curr_health_update(struct UI_element* el, struct player* player)
+void UI_curr_health_update(struct UI_element* el, struct player* player, struct map* map)
 {
 	if((el->dest.w > 384 * player->health / player->maxhealth)) (el->dest.w) -= 2;
+}
+
+void UI_boss_health_update(struct UI_element* el, struct player* player, struct map* map)
+{
+	struct mObject* boss;
+	for(int i = 0; i < map->mObject_list->size; i++)
+	{
+		boss = (struct mObject*)dynList_get(map->mObject_list, i);
+		if(boss->id == 'o' || boss->id == 'c' || boss->id == 'q' || boss->id == 'v')
+			break;
+	}
+	if((el->dest.w > 600 * boss->health / boss->max_health)) (el->dest.w) -= 4;
+	
 }
 
 void UI_rune0_display_update(struct UI_element* el, struct player* player)
@@ -81,14 +98,14 @@ void UI_rune0_display_update(struct UI_element* el, struct player* player)
 
 }
 
-void render_UI_elements(dynList* ui_el_list, struct player* player, SDL_Renderer *renderer, SDL_Texture* tex)
+void render_UI_elements(dynList* ui_el_list, struct player* player, struct map* map, SDL_Renderer *renderer, SDL_Texture* tex)
 {
 	for(int i = 0; i < ui_el_list->size; i++)
 	{
 		struct UI_element *curr = (struct UI_element*)dynList_get(ui_el_list, i);	
 		if(curr->UI_update != NULL) 
 		{
-			curr->UI_update(curr, player);
+			curr->UI_update(curr, player, map);
 		}
 		
 		SDL_RenderCopy(renderer, tex, &curr->sprite, &curr->dest);
@@ -220,67 +237,37 @@ void render_UI_text(struct message* msg, SDL_Renderer *renderer, SDL_Texture *te
 	}
 }
 
-void process_symmetric_animation(SDL_Renderer *renderer, SDL_Texture *tex, SDL_Rect sR, SDL_Rect dR, struct pObject *pObject)
+void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map, struct player* player)
 {
-	const double conv = 57.29577;
+	if(sm->tone < 255)
+	{
+		sm->tone += 5;
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
+		SDL_RenderFillRect(renderer, NULL);
+	}
+	else
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
+		SDL_RenderFillRect(renderer, NULL);
+		map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
+		map->state = ST_MAP_FADE_IN;
+	}
 
-	if(pObject->anim_timer < 4)
-	{
-		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
-	}
-	else if(pObject->anim_timer >= 4 && pObject->anim_timer < 8)
-	{
-		sR.x += 16;
-		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
-	}
-	else if(pObject->anim_timer >= 8 && pObject->anim_timer < 12)
-	{
-		sR.x += 32;
-		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
-	}
-	else if(pObject->anim_timer >= 12 && pObject->anim_timer < 16)
-	{
-		sR.x += 48;
-		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
-	}
-	else if(pObject->anim_timer >= 16)
-	{
-		SDL_RenderCopyEx(renderer, tex, &sR, &dR, pObject->theta*conv, NULL, 0);
-		pObject->anim_timer = -1;	
-	}
-	pObject->anim_timer ++;
 }
 
-void render_hpbar(SDL_Renderer *renderer, struct player* player, struct cam *cam, double *reduce)
+void fade_in(SDL_Renderer* renderer, struct screen_manager *sm, struct map* map, struct player* player)
 {
-	//TODO good enough for now but should be altererd prob
-	//Prob health should be integer so +1/-1 will fix everything
-#if 0
-	for(int i = 0; i < 6; i++)
+	if(sm->tone > 0)
 	{
-		if((*reduce <= 320 * player->health / player->maxhealth))
-		{
-			(*reduce) += 1.0;
-		}
+		sm->tone -= 5;
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
+		SDL_RenderFillRect(renderer, NULL);
 	}
-	for(int i = 0; i < 6; i++)
-	{
-		if((*reduce > 320 * player->health / player->maxhealth))
-			(*reduce) -= 1.0;
-	}
-
-
-	SDL_Rect curr_health = {(0.5) * TILE_LENGTH, (0.5) * TILE_LENGTH, *reduce, TILE_LENGTH / 2};
-	SDL_Rect full_health = {0.5 * TILE_LENGTH, 0.5 * TILE_LENGTH, 8 * TILE_LENGTH, TILE_LENGTH / 2};
-	SDL_Rect surround = {0.25 * TILE_LENGTH, 0.35 * TILE_LENGTH, 10.75 * 32, 32};
-
-	SDL_SetRenderDrawColor(renderer, 0x60, 0x60, 0x60, 0xFF);
-	SDL_RenderFillRect(renderer, &surround);
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderFillRect(renderer, &full_health);
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-	SDL_RenderFillRect(renderer, &curr_health);
-#endif 
+	else
+		map->state = ST_MAP_RUN_TICK;
 }
 
 SDL_Rect init_sprite(int x, int y, int w, int h)

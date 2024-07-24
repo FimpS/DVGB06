@@ -3,6 +3,7 @@
 #include "object_state.h"
 #include "dynList.h"
 #include "map.h"
+#include "gfx.h"
 #include "info.h"
 
 void set_mObject_state(struct mObject *mObject, mObject_global_state type,
@@ -1868,6 +1869,14 @@ void check_deathrattle_abilities(struct mObject* mObject, struct player* player,
 			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 2*PI / 3, player);
 			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 6*PI / 3, player);
 			spawn_pObject(map->pObject_list, mObject->x, mObject->y, PO_FIRE_SLING, EAST, 20.0, 4*PI / 3, player);
+			break;
+		case 'c':
+		case 'v':
+		case 'o':
+		case 'q':
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_BAR));
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_DEC_BAR));
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_FULL_BAR));
 			break;
 		default:
 			break;

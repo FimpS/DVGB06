@@ -143,7 +143,8 @@ struct mObject
 	bool killable;
 	bool hyperarmor;
 
-	double health;
+	int health;
+	int max_health;
 
 	struct mObj_state st;
 	struct rune_info r_info;

@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	initPlayer(&player, 20, 20);
 	reduce = player.health / player.maxhealth * 8 * TILE_LENGTH;
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	const char* tmp = "res/ch1_maps/ch1_1.txt";
+	const char* tmp = "res/ch1_maps/ch1_7.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];
@@ -97,23 +97,22 @@ int main(int argc, char **argv) {
 		
 		if(cdr[SDL_SCANCODE_V] || map.quit)
 			goto out;
-		run_tick(&map, &player);
+		if(cdr[SDL_SCANCODE_C])
+		{
+			map_load_scene(&map, map.map_name, map.mObject_list, &player);
+			sleep(1);
+		}
+		run_tick(&map, &player, renderer);
 #if 1
 		SDL_MouseMotionEvent m;
+		render_tick(&map, &player, renderer, tex);
 		//draw
-		map_draw(&map, &map.cam, renderer, *tex, &player);
-		drawPlayer(renderer, &player, &map.cam, tex[PLAYER_SPRITESHEET]);
-		draw_all_mObjects(renderer, map.mObject_list, &map.cam, tex[MOBJECT_SPRITESHEET], &player);
-		draw_pObjects(renderer, map.pObject_list, &map.cam, tex[POBJECT_SPRITESHEET]);
-
-		render_hpbar(renderer, &player, &map.cam, &reduce);
-		render_UI_elements(map.UI_el_list, &player, renderer, tex[UI_SPRITESHEET]);
-		render_messages(map.msg_list, &map.cam, renderer, tex[FONT_SPRITESHEET]);
-		render_UI_texts(map.msg_list_UI, renderer, tex[FONT_SPRITESHEET]);
+		
 		//render_message(((struct message*)dynList_get(map.msg_list, 0)), renderer, tex[FONT_SPRITESHEET]);
 		//printf("%d\n", ((struct message*)dynList_get(map.msg_list, 0))->size);
 		//draw
 		update_tick();
+		//fade_in(renderer, &map.sm);
 		SDL_RenderPresent(renderer);
 		//SDL_Delay(1000/70);
 #endif

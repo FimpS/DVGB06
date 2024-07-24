@@ -118,6 +118,8 @@ typedef enum
 	ST_MAP_CINEMATIC,
 	ST_MAP_CLEAR,
 	ST_MAP_PAUSE,
+	ST_MAP_TRANSITION,
+	ST_MAP_FADE_IN,
 	ST_MAP_DEFAULT,
 } map_state;
 
@@ -255,6 +257,10 @@ typedef enum
 
 	UI_MENU,
 	UI_MENU_POINTER,
+
+	UI_BOSS_BAR,
+	UI_BOSS_FULL_BAR,
+	UI_BOSS_DEC_BAR,
 	
 } UI_id;
 #if 0

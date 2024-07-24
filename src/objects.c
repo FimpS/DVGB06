@@ -102,7 +102,7 @@ void frozen_status_effect(struct mObject *mObject, struct player* player)
 		if(rune != NULL && rune->info.rune_type == RN_FROST)
 		{
 			mObject->health -= 100; //mObject->health * 0.5;
-			printf("frost procced %f\n", mObject->health);
+			printf("frost procced %d\n", mObject->health);
 		}
 		set_status_effect(mObject, 0, 0, STATUS_NONE);
 		mObject->base_speed = 1;
@@ -115,7 +115,7 @@ void rot_status_effect(struct mObject *mObject)
 	if(getTick() % 60 == 0)
 	{
 		mObject->health -= 20;
-		printf("%f\n", mObject->health);
+		printf("%d\n", mObject->health);
 	}
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
@@ -606,7 +606,7 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
 	set_status_effect(target, 0, 360, source->status_effect);
-	printf("damage dealt %f dmg: %f\n", healthbefore - target->health, source->damage);
+	printf("damage dealt %d dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker || target->hyperarmor)
 		return;
 	const double dx = OBJDIFF(target, source, 'X'), dy = OBJDIFF(target, source, 'Y');

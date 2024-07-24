@@ -418,6 +418,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 	mObject->transp = false;
 	mObject->anim.rotatable = false;
 	mObject->hyperarmor = false;
+	mObject->max_health = 1;
 	switch(mObject->type)
 	{
 		case MO_RUNNER:
@@ -425,7 +426,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->y = y;
 			mObject->vel_x = 0;
 			mObject->vel_y = 0;
-			mObject->health = 100;
+			mObject->max_health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->speed = 0.01;
@@ -445,7 +446,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, NULL);
 			break;
 		case MO_CRAWLER:
-			mObject->health = 100;
+			mObject->max_health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->speed = mObject->base_speed / 6.67;
@@ -461,7 +462,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 64, state_crawler_idle);
 			break;
 		case MO_RUSHER:
-			mObject->health = 100;
+			mObject->max_health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->speed = mObject->base_speed / 50;
@@ -478,14 +479,14 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 				mObject->width = TILE_LENGTH * 2;
 				mObject->height = TILE_LENGTH * 2;
 				mObject->mass = 90;
-				mObject->health = 500;
+				mObject->max_health = 500;
 			}
 			break;
 		case MO_BALISTA:
 			//TODO weird stuff with balista and blood_tax maybe target_hit problem
 			//mObject->base_speed = 0;
 			mObject->speed = mObject->base_speed;
-			mObject->health = 500;
+			mObject->max_health = 500;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->theta = PI/2;
@@ -503,7 +504,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_PEAK_LOCAL:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->health = 150;
+			mObject->max_health = 150;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
@@ -519,7 +520,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_PEAK_KNIGHT:
 			mObject->speed = mObject->base_speed / 16;
-			mObject->health = 150;
+			mObject->max_health = 150;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -536,7 +537,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ROCK_WELL:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->health = 150;
+			mObject->max_health = 150;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -554,7 +555,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ROCK_ROLLER:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->health = 150;
+			mObject->max_health = 150;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -571,7 +572,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ROCK_VORTEX:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 2000;
+			mObject->max_health = 2000;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
@@ -588,7 +589,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_LOCAL_QUEEN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 2000;
+			mObject->max_health = 2000;
 			mObject->width = TILE_LENGTH * 1;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
@@ -605,7 +606,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
-			mObject->health = 150;
+			mObject->max_health = 150;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
@@ -621,7 +622,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_SWORDSMAN:
 			mObject->speed = mObject->base_speed;
-			mObject->health = 250;
+			mObject->max_health = 250;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -637,7 +638,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;		
 		case MO_MAGUS:
 			mObject->speed = mObject->base_speed;
-			mObject->health = 75;
+			mObject->max_health = 75;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -653,7 +654,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_SUMMONER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
+			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -669,7 +670,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_GOLEM:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 2000;
+			mObject->max_health = 2000;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
@@ -686,7 +687,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_CULTIST_CHIEFTAIN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
+			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
@@ -704,7 +705,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RIDER_FIGHTER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 400;
+			mObject->max_health = 400;
 			mObject->width = TILE_LENGTH * 2;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
@@ -721,7 +722,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_DRIDER_FIGHTER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
+			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -738,7 +739,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_FIRE_TOWER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 200;
+			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3;
 			mObject->hit = false;
@@ -756,7 +757,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_FIRE_BOMBER:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->health = 100;
+			mObject->max_health = 100;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->hit = false;
@@ -774,7 +775,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_FIRE_ARCHER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->health = 400;
+			mObject->max_health = 400;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -814,6 +815,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st.acp = rune_player_interaction;
 			break;
 	}
+	mObject->health = mObject->max_health;
 }
 
 void identify_pObject_sprite_location(struct pObject *pObject)

@@ -123,6 +123,12 @@ void gen_seed_map(struct map* m)
 	}
 }
 
+struct screen_manager sm_init()
+{
+	struct screen_manager new = {0};
+	new.tone = 255;
+	return new;
+}
 struct map map_init()
 {
 	struct map m = {0};
@@ -136,6 +142,7 @@ struct map map_init()
 	m.quit = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
+	m.sm = sm_init();
 	m.cam = cam_init();
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
@@ -431,6 +438,15 @@ void map_start_events(struct map *m, struct player *player)
 {
 	//tmp solutions maybe an & check for this
 		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index], hash_map_name(m->s_map.content[m->s_map.index]));
+	switch(hash_map_name(m->s_map.content[m->s_map.index]))
+	{
+		case 247480:
+		case 247379:
+			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_FULL_BAR));
+			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_BAR));
+			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_DEC_BAR));
+			break;
+	}
 
 	switch(hash_map_name(m->s_map.content[m->s_map.index]))
 	{
@@ -484,14 +500,14 @@ void load_map_file(struct map *m, char* filename)
 #if 0
 		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W' || m->content[i] == '!' || m->content[i] == 'P' || m->content[i] == '-' || m->content[i] == '%' || m->content[i] == '|' || m->content[i] == 'C')
 #endif
-		if(solid_chars(m->content[i]))
-		{
-			m->solid_content[i] = true;
-		}
-		else
-		{
-			m->solid_content[i] = false;
-		}
+			if(solid_chars(m->content[i]))
+			{
+				m->solid_content[i] = true;
+			}
+			else
+			{
+				m->solid_content[i] = false;
+			}
 	}
 	fclose(f);
 }
@@ -519,10 +535,12 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 {
 	dynList_clear(m->mObject_list);
 	dynList_clear(m->pObject_list);
+	//m->sm.tone = 255;
 	m->aggresive_mObj_count = 0;
 	load_map_file(m, filename);
+	strcpy(m->map_name, filename);
 	struct rune_info map_runes[3];
-	m->state = ST_MAP_RUN_TICK;
+	m->state = ST_MAP_FADE_IN;
 	get_lightmap(m, m->cam);
 	get_chapterlight(m);
 	//spawn_runes(m, map_runes); enable when real
@@ -807,7 +825,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			const int defR = 120 * map->lightmap.red;
 			const int defG = 120 * map->lightmap.green;
 			const int defB = 120 * map->lightmap.blue;
-			
+
 			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
 			//SDL_Rect R = {0, 0, 16, 16};
 			SDL_Rect R = tile_info[tile];
