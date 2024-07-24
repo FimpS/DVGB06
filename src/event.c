@@ -10,7 +10,9 @@
 
 void teleport_event(struct player *player, struct event* event, struct map* map)
 {	
-	map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
+	map->state = ST_MAP_TRANSITION;
+	map->sm.tone = 0;
+	//map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
 	event->complete = true;
 }
 

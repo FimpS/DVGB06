@@ -13,6 +13,11 @@
 #define CONTENT_SIZE 4096
 #define MAP_CARD 6
 
+struct screen_manager
+{
+	int tone;
+};
+
 struct seed_map
 {
 	char content[SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT][SEED_MAP_CHAR_MAX_LENGTH];
@@ -79,10 +84,12 @@ struct map
 	int aggresive_mObj_count;
 	int current_chapter;
 	bool quit;
+	char map_name[128];
 	struct lightmap lightmap;
 	//int lightmap[CONTENT_SIZE];
 	char content[CONTENT_SIZE];
 	bool solid_content[CONTENT_SIZE];
+	struct screen_manager sm;
 	struct m_anim_info anim;
 	struct seed_map s_map;
 	struct cam cam;
