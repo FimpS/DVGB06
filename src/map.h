@@ -11,7 +11,7 @@
 #define SEED_CHAPTER_SIZE 5
 #define SEED_MAP_CHAR_MAX_LENGTH 128
 #define CONTENT_SIZE 4096
-#define MAP_CARD 6
+#define MAP_CARD 10
 
 struct screen_manager
 {
@@ -112,6 +112,7 @@ void screen_shake();
 
 void map_get_coord(struct map* m, char key, int* dest);
 void get_lightmap();
+void map_start_events();
 struct map map_init();
 //void get_rand_mapID();
 void get_chapterlight();

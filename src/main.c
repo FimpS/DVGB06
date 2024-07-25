@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	initPlayer(&player, 20, 20);
 	reduce = player.health / player.maxhealth * 8 * TILE_LENGTH;
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	const char* tmp = "res/ch1_maps/ch1_7.txt";
+	const char* tmp = "res/ch1_maps/ch1_boss2.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];

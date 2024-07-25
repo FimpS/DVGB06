@@ -43,7 +43,7 @@ void golem_start(struct player* player, struct event* event, struct map* map)
 	}
 	//map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
 	//map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
-	printf("in golem_start %c\n", golem->id);
+	printf("in golem_start %c %lf\n", golem->id, map->cam.cin_info.s_coord.x);
 }
 
 void golem_cutscene2(struct player* player, struct event* event, struct map* map)
@@ -128,6 +128,74 @@ void chieftain_cutscene(struct player* player, struct event* event, struct map* 
 	event->clock ++;
 }
 
+void queen_start(struct player* player, struct event* event, struct map* map)
+{
+	map->state = ST_MAP_CINEMATIC;
+	struct mObject *queen = id_get_mObj(map, 'q');
+	map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(queen);
+	map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(queen);
+}
+
+void queen_cutscene2(struct player* player, struct event* event, struct map* map)
+{
+	if(event->clock ++ >= event->burst_time)
+	{
+		struct mObject* queen = id_get_mObj(map, 'q');
+		map->state = ST_MAP_RUN_TICK;
+		set_mObject_state(queen, ST_LOCAL_QUEEN_AWARE, state_local_queen_aware, 0, 124);
+		event->complete = true;
+		return;
+	}
+}
+
+void queen_cutscene(struct player* player, struct event* event, struct map* map)
+{
+	const int time = 60;
+	if(event->clock ++ >= time)
+	{
+		struct mObject* queen = id_get_mObj(map, 'q');
+		event->event_tick = queen_cutscene2;
+		SET_CAM_MID_CORDS(map->cam, queen);
+	}
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
+	
+}
+
+void vortex_start(struct player* player, struct event* event, struct map* map)
+{
+	map->state = ST_MAP_CINEMATIC;
+	struct mObject *vort = id_get_mObj(map, 'v');
+	map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(vort);
+	map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(vort);
+}
+
+void vortex_cutscene2(struct player* player, struct event* event, struct map* map)
+{
+	if(event->clock ++ >= event->burst_time)
+	{
+		struct mObject* vort = id_get_mObj(map, 'v');
+		map->state = ST_MAP_RUN_TICK;
+		set_mObject_state(vort, ST_ROCK_VORTEX_AWARE, state_rock_vortex_aware, 0, 124);
+		event->complete = true;
+		return;
+	}
+}
+
+void vortex_cutscene(struct player* player, struct event* event, struct map* map)
+{
+	const int time = 60;
+	if(event->clock ++ >= time)
+	{
+		struct mObject* vort = id_get_mObj(map, 'v');
+		event->event_tick = vortex_cutscene2;
+		SET_CAM_MID_CORDS(map->cam, vort);
+	}
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
+	
+}
+
 void lock(struct player *player, struct event* event, struct map* map)
 {
 	if(event->clock < event->burst_time)
@@ -154,6 +222,14 @@ void identify_start_tick(struct event* event)
 		case TYPE_EVENT_CHIEFTAIN:
 			event->start_event = chieftain_start;
 			event->event_tick = chieftain_cutscene;
+			break;
+		case TYPE_EVENT_QUEEN:
+			event->start_event = queen_start;
+			event->event_tick = queen_cutscene;
+			break;
+		case TYPE_EVENT_VORTEX:
+			event->start_event = vortex_start;
+			event->event_tick = vortex_cutscene;
 			break;
 		case type_event_teleport:
 			event->start_event = NULL;

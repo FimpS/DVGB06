@@ -219,6 +219,8 @@ typedef enum
 {
 	TYPE_EVENT_GOLEM,
 	TYPE_EVENT_CHIEFTAIN,
+	TYPE_EVENT_QUEEN,
+	TYPE_EVENT_VORTEX,
 	type_event_teleport,
 	type_event_inmaptp,
 	type_event_lock,
