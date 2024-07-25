@@ -51,10 +51,9 @@ void map_set_tile(struct map *m, int x, int y, char key)
 
 char* get_rand_mapID(char *fn, const char* chapter)
 {
-	int id = rand() % 5 + 1;
+	int id = rand() % MAP_CARD + 1;
 	char magic[16];
-	magic[0] = '0' + id;
-	magic[1] = '\0';
+	sprintf(magic, "%d", id);
 
 	strcpy(fn, "res/");
 	strcat(fn, chapter);
@@ -78,6 +77,22 @@ char* get_rand_bossID(char *fn, const char* chapter)
 	strcat(fn, "_maps/");
 	strcat(fn, chapter);
 	strcat(fn, "_boss");
+	strcat(fn, magic);
+	strcat(fn, ".txt");
+	return fn;
+}
+
+char* get_rand_itemmapID(char *fn, const char* chapter)
+{
+	int id = rand() % 2 + 1;
+	char magic[16];
+	magic[0] = '0' + id;
+	magic[1] = '\0';
+	strcpy(fn, "res/");
+	strcat(fn, chapter);
+	strcat(fn, "_maps/");
+	strcat(fn, chapter);
+	strcat(fn, "_item");
 	strcat(fn, magic);
 	strcat(fn, ".txt");
 	return fn;
@@ -107,6 +122,10 @@ void gen_seed_map(struct map* m)
 		strcat(curr_chapter, (char*)magic);
 		for(int i = 0; i < SEED_CHAPTER_SIZE; i++)
 		{
+			if(current == SEED_CHAPTER_SIZE / 2)
+			{
+				get_rand_itemmapID(m->s_map.content[current++], curr_chapter);
+			}
 			bool dupe = true;
 			while(dupe)
 			{
@@ -440,8 +459,10 @@ void map_start_events(struct map *m, struct player *player)
 		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index], hash_map_name(m->s_map.content[m->s_map.index]));
 	switch(hash_map_name(m->s_map.content[m->s_map.index]))
 	{
+		case 247177:
 		case 247480:
 		case 247379:
+		case 247278:
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_FULL_BAR));
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_BAR));
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_DEC_BAR));
@@ -450,6 +471,12 @@ void map_start_events(struct map *m, struct player *player)
 
 	switch(hash_map_name(m->s_map.content[m->s_map.index]))
 	{
+		case 247278:
+			add_event(m->event_list, TYPE_EVENT_VORTEX, player, m, BOSS_CUTSCENE_TIME / 2);
+			break;
+		case 247177:
+			add_event(m->event_list, TYPE_EVENT_QUEEN, player, m, BOSS_CUTSCENE_TIME / 2);
+			break;
 		case 247480:
 			add_event(m->event_list, TYPE_EVENT_GOLEM, player, m, BOSS_CUTSCENE_TIME);
 			break;
@@ -462,7 +489,7 @@ void map_start_events(struct map *m, struct player *player)
 	}
 }
 
-static const char solids[] = {"# W!P-%|C+-*/_{[]}"};
+static const char solids[] = {"# W!P-%|C+-*/_{[]}H"};
 
 bool solid_chars(char match)
 {
@@ -550,7 +577,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	//printf("%d\n", m->aggresive_mObj_count);
 	//printf("%d\n", m->mObject_list->si
 	cam_update(&m->cam, m, player);
-	map_start_events(m, player);
+	//map_start_events(m, player);
 	printf("chap:%d\n", m->current_chapter);
 }
 
@@ -779,6 +806,7 @@ static const SDL_Rect tile_info[] =
 {
 	['.'] = {0, 32, 16, 16},
 	['#'] = {16, 32, 16, 16},
+	['H'] = {32, 0, 16, 16},
 	['_'] = {80, 48, 16, 16},
 	['|'] = {48, 48, 16, 16},
 	['%'] = {64, 48, 16, 16},

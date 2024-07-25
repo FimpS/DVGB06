@@ -29,9 +29,9 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 
 #define DD 32
 const struct UI_element UI_sprite_info[] = {
-	{UI_curr_health_update, {0,0,336,16}, {8,8,384,16}, 0},
-	{NULL, {0,16,336,16}, {8,8,384,16}, 1},
-	{NULL, {0,32,384,16}, {-8, 8, 428, 16}, 2},
+	{UI_curr_health_update, {0,0,336,16}, {8,8,384,16}, 0}, //player-health
+	{NULL, {0,16,336,16}, {8,8,384,16}, 1}, //player-maxhealth
+	{NULL, {0,32,384,16}, {-8, 8, 428, 16}, 2}, //player-maxhealthdecor
 	{NULL, {0,48,32,32}, {800 - 32 - 8, 40, 24, 24}, 3},
 	{NULL, {0,48,32,32}, {800 - 32 - 8, 72 + 12, 24, 24}, 4},
 	{NULL, {0,48,32,32}, {800 - 32 - 8, 104 + 24, 24, 24}, 5},
@@ -46,9 +46,9 @@ const struct UI_element UI_sprite_info[] = {
 	{NULL, {0, 80, 64, 80}, {234, 100, 300, 400}, 12},
 	{NULL, {64, 80, 16, 16}, {280, 100, 32, 32}, 13},
 
-	{UI_boss_health_update, {0,0,336,16}, {100,500,600,32}, 14},
-	{NULL, {0,16,336,16}, {100,500,600,32}, 15},
-	{NULL, {0,160,336,16}, {100,500,600,32}, 16},
+	{UI_boss_health_update, {0,0,336,16}, {100,550,600,32}, 14}, //boss-health
+	{NULL, {0,16,336,16}, {100,550,600,32}, 15}, //boss-maxhealth
+	{NULL, {0,160,336,16}, {100,550,600,32}, 16}, //boss-maxhealthdecor
 };
 
 void init_UI(dynList* ui_el_list)
@@ -241,7 +241,7 @@ void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map
 {
 	if(sm->tone < 255)
 	{
-		sm->tone += 5;
+		sm->tone += 17;
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
 		SDL_RenderFillRect(renderer, NULL);
@@ -254,20 +254,22 @@ void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map
 		map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
 		map->state = ST_MAP_FADE_IN;
 	}
-
 }
 
 void fade_in(SDL_Renderer* renderer, struct screen_manager *sm, struct map* map, struct player* player)
 {
 	if(sm->tone > 0)
 	{
-		sm->tone -= 5;
+		sm->tone -= 17;
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
 		SDL_RenderFillRect(renderer, NULL);
 	}
 	else
+	{
 		map->state = ST_MAP_RUN_TICK;
+		map_start_events(map, player);
+	}
 }
 
 SDL_Rect init_sprite(int x, int y, int w, int h)

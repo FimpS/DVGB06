@@ -69,8 +69,8 @@ void render_tick(struct map* map, struct player* player, SDL_Renderer *renderer,
 			render_UI_elements(map->UI_el_list, player, map, renderer, tex[UI_SPRITESHEET]);
 			render_messages(map->msg_list, &map->cam, renderer, tex[FONT_SPRITESHEET]);
 			render_UI_texts(map->msg_list_UI, renderer, tex[FONT_SPRITESHEET]);
-			fade_in(renderer, &map->sm, map);
-			fade_out(renderer, &map->sm, map);
+			//fade_in(renderer, &map->sm, map);
+			//fade_out(renderer, &map->sm, map);
 			break;
 		case ST_MAP_TRANSITION:
 			map_draw(map, &map->cam, renderer, *tex, player);
