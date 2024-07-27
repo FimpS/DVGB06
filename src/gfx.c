@@ -27,7 +27,6 @@ void gfx_init(SDL_Texture **textures, SDL_Renderer *renderer)
 }
 
 
-#define DD 32
 const struct UI_element UI_sprite_info[] = {
 	{UI_curr_health_update, {0,0,336,16}, {8,8,384,16}, 0}, //player-health
 	{NULL, {0,16,336,16}, {8,8,384,16}, 1}, //player-maxhealth
@@ -36,19 +35,20 @@ const struct UI_element UI_sprite_info[] = {
 	{NULL, {0,48,32,32}, {800 - 32 - 8, 72 + 12, 24, 24}, 4},
 	{NULL, {0,48,32,32}, {800 - 32 - 8, 104 + 24, 24, 24}, 5},
 
-	{NULL, {32,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 6},
-	{NULL, {64,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 7},
-	{NULL, {96,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 8},
-	{NULL, {128,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 9},
-	{NULL, {160,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 10},
-	{NULL, {192,48,32,32}, {800 - 32 - 8, 264, DD, DD}, 11},
+	{NULL, {32,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 6},
+	{NULL, {64,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 7},
+	{NULL, {96,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 8},
+	{NULL, {128,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 9},
+	{NULL, {160,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 10},
+	{NULL, {192,48,32,32}, {800 - 32 - 8, 264, 32, 32}, 11},
 
-	{NULL, {0, 80, 64, 80}, {234, 100, 300, 400}, 12},
-	{NULL, {64, 80, 16, 16}, {280, 100, 32, 32}, 13},
+	{NULL, {0, 80, 64, 80}, {234, 100, 300, 400}, 12}, //menu
+	{NULL, {0, 176, 64, 80}, {234, 100, 300, 400}, 13}, //option
+	{NULL, {64, 80, 16, 16}, {280, 200, 32, 32}, 14}, //pointer
 
-	{UI_boss_health_update, {0,0,336,16}, {100,550,600,32}, 14}, //boss-health
-	{NULL, {0,16,336,16}, {100,550,600,32}, 15}, //boss-maxhealth
-	{NULL, {0,160,336,16}, {100,550,600,32}, 16}, //boss-maxhealthdecor
+	{UI_boss_health_update, {0,0,336,16}, {100,550,600,32}, 15}, //boss-health
+	{NULL, {0,16,336,16}, {100,550,600,32}, 16}, //boss-maxhealth
+	{NULL, {0,160,336,16}, {100,550,600,32}, 17}, //boss-maxhealthdecor
 };
 
 void init_UI(dynList* ui_el_list)
@@ -324,6 +324,36 @@ void menu_exit(struct map* map)
 
 }
 
+void option_requests(struct map* map, SDL_Window *window)
+{
+	if(map->sm.request_fullscreen)
+	{
+		map->sm.request_fullscreen = false;
+		map->sm.fullscreen = !map->sm.fullscreen;
+		SDL_SetWindowFullscreen(window, map->sm.fullscreen);
+	}
+}
+
+static void (*mcp)(struct map* map) = menu_action;
+
+void option_action(struct map* map)
+{
+	switch(menu_index)
+	{
+		case 0:
+			menu_index = 0;
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_MENU_POINTER));
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_OPTION));
+			dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_MENU));
+			dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_MENU_POINTER));
+			mcp = menu_action;
+			break;
+		case 1:
+			map->sm.request_fullscreen = true;
+			break;
+	}
+}
+
 void menu_action(struct map* map)
 {
 	switch(menu_index)
@@ -332,11 +362,20 @@ void menu_action(struct map* map)
 			menu_exit(map);
 			break;
 		case 1:
-			printf("leave\n"); //TODO
+			menu_index = 0;
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_MENU));
+			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_MENU_POINTER));
+			dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_OPTION));
+			dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_MENU_POINTER));
+			mcp = option_action;
 			break;
 		case 2:
+			printf("leave\n"); //TODO
+			break;
+		case 3:
 			map->quit = true;
 			break;
+		
 	}
 }
 
@@ -349,20 +388,22 @@ void run_menu(struct map* map)
 		const Uint8* c = SDL_GetKeyboardState(NULL);
 		if(c[SDL_SCANCODE_W] || c[SDL_SCANCODE_UP]) 
 		{
-			menu_index <= 0 ? menu_index = 2: menu_index --;
+			menu_index <= 0 ? menu_index = 3: menu_index --;
 			menu_timer = 0;
+			//printf("%d\n", menu_index);
 		}
 		if(c[SDL_SCANCODE_S] || c[SDL_SCANCODE_DOWN])
 		{
 			//menu_index ++;
-			menu_index >= 2 ? menu_index = 0: menu_index ++ ;
+			menu_index >= 3 ? menu_index = 0: menu_index ++ ;
 			menu_timer = 0;
+			//printf("%d\n", menu_index);
 		}
 
 
 		if(c[SDL_SCANCODE_RETURN])
 		{
-			menu_action(map);
+			mcp(map);
 			menu_timer = 0;
 		}
 #if 0

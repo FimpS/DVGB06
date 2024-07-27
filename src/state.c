@@ -25,7 +25,7 @@ void logic_manager(struct map *map, dynList* eList)
 	map_manager(map, eList);
 }
 
-void run_tick(struct map *map, struct player *player)
+void run_tick(struct map *map, struct player *player, SDL_Window* window)
 {
 	switch(map->state)
 	{
@@ -44,6 +44,7 @@ void run_tick(struct map *map, struct player *player)
 			break;
 		case ST_MAP_PAUSE:
 			run_menu(map); //very weird works without args, since run_tick is map first? prob A C exclusive
+			option_requests(map, window);
 			break;
 		case ST_MAP_TRANSITION:
 		case ST_MAP_FADE_IN:

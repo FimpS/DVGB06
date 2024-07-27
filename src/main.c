@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
 	//dynList* ui_el_list = dynList_create();
 	init_UI(map.UI_el_list);
 	add_message(map.msg_list_UI, "TEST123", 0.5, 3.0, 0, 1);
-	double reduce;
 
 	//char maps[1024][32];
 	struct player player;
@@ -69,10 +68,10 @@ int main(int argc, char **argv) {
 	int quit = 0; 
 
 	//INIT
+	bool full = true;
 	initPlayer(&player, 20, 20);
-	reduce = player.health / player.maxhealth * 8 * TILE_LENGTH;
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	const char* tmp = "res/ch1_maps/ch1_boss2.txt";
+	const char* tmp = "res/ch3_maps/ch3_10.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];
@@ -102,7 +101,7 @@ int main(int argc, char **argv) {
 			map_load_scene(&map, map.map_name, map.mObject_list, &player);
 			sleep(1);
 		}
-		run_tick(&map, &player, renderer);
+		run_tick(&map, &player, window);
 #if 1
 		SDL_MouseMotionEvent m;
 		render_tick(&map, &player, renderer, tex);
