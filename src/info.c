@@ -194,7 +194,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.15;
 			pObject->damage = dmg;
-			pObject->transp = false;
+			pObject->transp = true;
 			pObject->sprite = init_sprite(0, 336, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -279,7 +279,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.2;
 			pObject->damage = dmg;
-			pObject->transp = false;
+			pObject->transp = true;
 			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
@@ -337,7 +337,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->change_map = false;
 	player->shock_counter = 6;
 	player->anim1counter = 0;
-	player->sword_damage = 100;
+	player->sword_damage = 600;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->se_list = dynList_create();

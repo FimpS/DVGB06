@@ -122,7 +122,7 @@ void gen_seed_map(struct map* m)
 		strcat(curr_chapter, (char*)magic);
 		for(int i = 0; i < SEED_CHAPTER_SIZE; i++)
 		{
-			if(current == SEED_CHAPTER_SIZE / 2)
+			if(i == SEED_CHAPTER_SIZE / 2)
 			{
 				get_rand_itemmapID(m->s_map.content[current++], curr_chapter);
 			}
@@ -146,6 +146,8 @@ struct screen_manager sm_init()
 {
 	struct screen_manager new = {0};
 	new.tone = 255;
+	new.request_fullscreen = false;
+	new.fullscreen = false;
 	return new;
 }
 struct map map_init()
@@ -155,7 +157,7 @@ struct map map_init()
 	memset(m.content, 0, CONTENT_SIZE);
 	memset(m.solid_content, 0, CONTENT_SIZE);
 	gen_seed_map(&m);
-	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT; i++)
+	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
 		printf("%s\n", m.s_map.content[i]);
 	m.s_map.index = 0;
 	m.quit = false;
@@ -489,7 +491,7 @@ void map_start_events(struct map *m, struct player *player)
 	}
 }
 
-static const char solids[] = {"# W!P-%|C+-*/_{[]}H"};
+static const char solids[] = {"# MWS!P-%|C+-*/_{[]}H"};
 
 bool solid_chars(char match)
 {
@@ -509,6 +511,7 @@ void load_map_file(struct map *m, char* filename)
 	if(!f)
 	{
 		printf("Could Not Open File/File does not exist\n");
+		printf("filename %s\n", filename);
 		return;
 	}
 	int i = 0;
@@ -524,17 +527,14 @@ void load_map_file(struct map *m, char* filename)
 	}
 	for(int i = 0; i < content_size; i++)
 	{
-#if 0
-		if(m->content[i] == '#' || m->content[i] == ' ' || m->content[i] == 'W' || m->content[i] == '!' || m->content[i] == 'P' || m->content[i] == '-' || m->content[i] == '%' || m->content[i] == '|' || m->content[i] == 'C')
-#endif
-			if(solid_chars(m->content[i]))
-			{
-				m->solid_content[i] = true;
-			}
-			else
-			{
-				m->solid_content[i] = false;
-			}
+		if(solid_chars(m->content[i]))
+		{
+			m->solid_content[i] = true;
+		}
+		else
+		{
+			m->solid_content[i] = false;
+		}
 	}
 	fclose(f);
 }
@@ -750,8 +750,8 @@ void get_chapterlight(struct map* map)
 			break;
 		case 3:
 			map->lightmap.red = 1;
-			map->lightmap.green = 0;
-			map->lightmap.blue= 0.25;
+			map->lightmap.green = 0.35;
+			map->lightmap.blue= 0.35;
 			break;
 	}
 #endif
@@ -768,6 +768,15 @@ void get_lightmap(struct map* map, struct cam *cam)
 		switch(map->content[i])
 		{
 			case 'L':
+				map->lightmap.content[i] = 3;
+				break;
+			case 'S':
+				map->lightmap.content[i] = 3;
+				break;
+			case 'A':
+				map->lightmap.content[i] = 3;
+				break;
+			case 'C':
 				map->lightmap.content[i] = 3;
 				break;
 			case 't':
@@ -807,6 +816,12 @@ static const SDL_Rect tile_info[] =
 	['.'] = {0, 32, 16, 16},
 	['#'] = {16, 32, 16, 16},
 	['H'] = {32, 0, 16, 16},
+	['S'] = {0, 128, 16, 16},
+	['M'] = {48, 0, 16, 16},
+	['A'] = {0, 144, 16, 16},
+	['C'] = {0, 160, 16, 16},
+	['<'] = {64, 112, 16, 16},
+	['>'] = {80, 112, 16, 16},
 	['_'] = {80, 48, 16, 16},
 	['|'] = {48, 48, 16, 16},
 	['%'] = {64, 48, 16, 16},
@@ -831,6 +846,16 @@ static const SDL_Rect tile_info[] =
 	['!'] = {128, 128, 16, 16},
 	[' '] = {128, 128, 16, 16},
 };
+
+static char tile_animations[] = {"LWSAC"};
+
+bool tile_anim_req(char tile)
+{
+	for(int i = 0; tile_animations[i]; i++)
+		if(tile == tile_animations[i])
+			return true;
+	return false;
+}
 
 void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Texture *tex, struct player* player)
 {
@@ -857,7 +882,7 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
 			//SDL_Rect R = {0, 0, 16, 16};
 			SDL_Rect R = tile_info[tile];
-			if(tile == 'L' || tile == 'W')
+			if(tile_anim_req(tile))
 			{
 				R.x = map->anim.frame;
 			}

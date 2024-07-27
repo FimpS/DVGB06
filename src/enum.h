@@ -258,6 +258,7 @@ typedef enum
 	UI_ROT,
 
 	UI_MENU,
+	UI_OPTION,
 	UI_MENU_POINTER,
 
 	UI_BOSS_BAR,

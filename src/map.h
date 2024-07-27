@@ -11,16 +11,19 @@
 #define SEED_CHAPTER_SIZE 5
 #define SEED_MAP_CHAR_MAX_LENGTH 128
 #define CONTENT_SIZE 4096
+#define SPECIAL_MAPS 3
 #define MAP_CARD 10
 
 struct screen_manager
 {
 	int tone;
+	bool request_fullscreen;
+	bool fullscreen;
 };
 
 struct seed_map
 {
-	char content[SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT][SEED_MAP_CHAR_MAX_LENGTH];
+	char content[SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS][SEED_MAP_CHAR_MAX_LENGTH];
 	int index;
 };
 
@@ -72,9 +75,9 @@ struct cam
 struct lightmap
 {
 	int content[CONTENT_SIZE];
-	unsigned short red;
-	unsigned short green;
-	unsigned short blue;
+	double red;
+	double green;
+	double blue;
 };
 
 struct map
