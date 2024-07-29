@@ -814,6 +814,27 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = identify_rune_sprite(mObject->r_info);
 			mObject->st.acp = rune_player_interaction;
 			break;
+		case MO_STARTRUN:
+			mObject->width = TILE_LENGTH * 1;
+			mObject->height = TILE_LENGTH * 1;
+			mObject->hittable = false;
+			mObject->killable = false;
+			mObject->st.type = st_placeholder;
+			mObject->sprite = init_sprite(256, 192, 16, 16);
+			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->st = init_mObject_state(startp_player_interaction, 0, 0, NULL);
+			//mObject->st.acp = rune_player_interaction;
+			break;
+		case MO_ENDRUN:
+			mObject->width = TILE_LENGTH * 1;
+			mObject->height = TILE_LENGTH * 1;
+			mObject->hittable = false;
+			mObject->killable = false;
+			mObject->st.type = st_placeholder;
+			mObject->sprite = init_sprite(256, 192, 16, 16);
+			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->st = init_mObject_state(endp_player_interaction, 0, 0, NULL);
+			break;
 	}
 	mObject->health = mObject->max_health;
 }

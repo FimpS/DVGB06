@@ -8,6 +8,35 @@
 #include "font.h"
 //go change arraylist to free the array
 
+void end_run_event(struct player* player, struct event* event, struct map* map)
+{
+	//gen_seed_map(map);
+	//map_leave_run(map);
+	clear_seed_map(map);
+
+	reset_player_run(player, map);
+	strcpy(map->s_map.content[map->s_map.index], "res/ch0_maps/ch0_hubmap.txt");
+	//printf("Lecuck%d\n", player->rune_list->size);
+	add_event(map->event_list, type_event_teleport, player, map, 0);
+	event->complete = true;
+	//for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
+	//	printf("%s\n", map->s_map.content[i]);
+	//generate a seed
+	//go to first map
+}
+
+void start_run_event(struct player* player, struct event* event, struct map* map)
+{
+	gen_seed_map(map);
+	map->s_map.index = 0;
+	event->complete = true;
+	add_event(map->event_list, type_event_teleport, player, map, 0);
+	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
+		printf("%s\n", map->s_map.content[i]);
+	//generate a seed
+	//go to first map
+}
+
 void teleport_event(struct player *player, struct event* event, struct map* map)
 {	
 	map->state = ST_MAP_TRANSITION;
@@ -230,6 +259,14 @@ void identify_start_tick(struct event* event)
 		case TYPE_EVENT_VORTEX:
 			event->start_event = vortex_start;
 			event->event_tick = vortex_cutscene;
+			break;
+		case TYPE_EVENT_START_RUN:
+			event->start_event = NULL;
+			event->event_tick = start_run_event;
+			break;
+		case TYPE_EVENT_END_RUN:
+			event->start_event = NULL;
+			event->event_tick = end_run_event;
 			break;
 		case type_event_teleport:
 			event->start_event = NULL;

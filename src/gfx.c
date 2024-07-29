@@ -4,6 +4,7 @@
 #include "global.h"
 #include "font.h"
 #include "gfx.h"
+#include "event.h"
 
 #define TEXTURE_AMOUNT 8
 
@@ -237,6 +238,22 @@ void render_UI_text(struct message* msg, SDL_Renderer *renderer, SDL_Texture *te
 	}
 }
 
+void run_reset_UI(struct map* map)
+{
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_BAR));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_FULL_BAR));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_DEC_BAR));
+}
+
 void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map, struct player* player)
 {
 	if(sm->tone < 255)
@@ -251,7 +268,7 @@ void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
 		SDL_RenderFillRect(renderer, NULL);
-		map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
+		map_load_scene(map, map->s_map.content[map->s_map.index++], map->mObject_list, player);
 		map->state = ST_MAP_FADE_IN;
 	}
 }
@@ -334,6 +351,16 @@ void option_requests(struct map* map, SDL_Window *window)
 	}
 }
 
+void map_leave_run(struct map* map)
+{
+	add_event(map->event_list, TYPE_EVENT_END_RUN, NULL, map, 0);
+	//clear_seed_map(map);
+	//strcpy(map->s_map.content[map->s_map.index], "res/ch0_maps/ch0_hubmap.txt");
+	menu_index = 0;
+	menu_action(map);
+
+}
+
 static void (*mcp)(struct map* map) = menu_action;
 
 void option_action(struct map* map)
@@ -370,7 +397,7 @@ void menu_action(struct map* map)
 			mcp = option_action;
 			break;
 		case 2:
-			printf("leave\n"); //TODO
+			map_leave_run(map);
 			break;
 		case 3:
 			map->quit = true;

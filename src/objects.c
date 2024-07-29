@@ -243,6 +243,32 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 	}
 }
 
+void endp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
+{
+	const Uint8* cks = SDL_GetKeyboardState(NULL);
+	if(cks[SDL_SCANCODE_E])
+	{
+		if(AABB((struct mObject*)player, mObject))
+		{
+			add_event(map->event_list, TYPE_EVENT_END_RUN, player, map, 0);
+		}
+	}
+	
+}
+
+void startp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
+{
+	const Uint8* cks = SDL_GetKeyboardState(NULL);
+	if(cks[SDL_SCANCODE_E])
+	{
+		if(AABB((struct mObject*)player, mObject))
+		{
+			add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
+		}
+	}
+	
+}
+
 void tp_player_interaction(struct mObject *mObject, struct player* player, struct map *map)
 {
 
@@ -370,6 +396,21 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 	}
 	player_invuln(player, map);
 	
+}
+
+void reset_player_run(struct player* player, struct map* map)
+{
+	player->maxhealth = 1000; //TODO;
+	player->health = player->maxhealth;
+	player->base_speed = 1.0;
+	player->attack_speed = 32;
+	player->sword_damage = 20.0;
+	player->kills = 0;
+	player->sword_effect_type = STATUS_NONE;
+	player->global_state = ST_P_NORMAL;
+	dynList_clear(player->rune_list);
+	run_reset_UI(map);
+	//dynList_delete(player->
 }
 
 void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)

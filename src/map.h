@@ -113,9 +113,14 @@ void control_cam_update();
 void cam_move_to();
 void screen_shake();
 
+void gen_seed_map(struct map* m);
+void clear_seed_map(struct map* m);
+
+
 void map_get_coord(struct map* m, char key, int* dest);
 void get_lightmap();
 void map_start_events();
+void map_leave_run();
 struct map map_init();
 //void get_rand_mapID();
 void get_chapterlight();
