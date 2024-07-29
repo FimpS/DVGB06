@@ -142,6 +142,12 @@ void gen_seed_map(struct map* m)
 	}
 }
 
+void clear_seed_map(struct map* m)
+{
+	m->s_map.index = 0;
+	memset(m->s_map.content, 0, sizeof(m->s_map.content));
+}
+
 struct screen_manager sm_init()
 {
 	struct screen_manager new = {0};
@@ -156,10 +162,10 @@ struct map map_init()
 
 	memset(m.content, 0, CONTENT_SIZE);
 	memset(m.solid_content, 0, CONTENT_SIZE);
-	gen_seed_map(&m);
-	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
-		printf("%s\n", m.s_map.content[i]);
-	m.s_map.index = 0;
+	//gen_seed_map(&m);
+	//for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
+	//	printf("%s\n", m.s_map.content[i]);
+	//m.s_map.index = 0;
 	m.quit = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
@@ -303,6 +309,14 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 				case 'E':
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'E');
 					m->content[x+y * m->width] = 'E';
+					break;
+				case 'I':
+					spawn_mObject(m, x, y, MO_STARTRUN, 'I');
+					m->content[x+y * m->width] = '.';
+					break;
+				case 'J':
+					spawn_mObject(m, x, y, MO_ENDRUN, 'J');
+					m->content[x+y * m->width] = '.';
 					break;
 				case 'D':
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'D');
@@ -458,8 +472,9 @@ int hash_map_name(const char *map_name)
 void map_start_events(struct map *m, struct player *player)
 {
 	//tmp solutions maybe an & check for this
-		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index], hash_map_name(m->s_map.content[m->s_map.index]));
-	switch(hash_map_name(m->s_map.content[m->s_map.index]))
+		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index - 1], hash_map_name(m->s_map.content[m->s_map.index - 1]));
+		printf("events: %d\n", m->s_map.index);
+	switch(hash_map_name(m->s_map.content[m->s_map.index - 1]))
 	{
 		case 247177:
 		case 247480:
@@ -471,7 +486,7 @@ void map_start_events(struct map *m, struct player *player)
 			break;
 	}
 
-	switch(hash_map_name(m->s_map.content[m->s_map.index]))
+	switch(hash_map_name(m->s_map.content[m->s_map.index - 1]))
 	{
 		case 247278:
 			add_event(m->event_list, TYPE_EVENT_VORTEX, player, m, BOSS_CUTSCENE_TIME / 2);
@@ -567,7 +582,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	load_map_file(m, filename);
 	strcpy(m->map_name, filename);
 	struct rune_info map_runes[3];
-	m->state = ST_MAP_FADE_IN;
+	m->state = ST_MAP_RUN_TICK;
 	get_lightmap(m, m->cam);
 	get_chapterlight(m);
 	//spawn_runes(m, map_runes); enable when real
@@ -735,9 +750,13 @@ void make_lightmap(int *m, int w, int h)
 
 void get_chapterlight(struct map* map)
 {
-#if 1
 	switch(map->current_chapter)
 	{
+		case 0:
+			map->lightmap.red = 0.75;
+			map->lightmap.green = 0.75;
+			map->lightmap.blue = 0.75;
+			break;
 		case 1:
 			map->lightmap.red = 0;
 			map->lightmap.green = 1;
@@ -754,7 +773,6 @@ void get_chapterlight(struct map* map)
 			map->lightmap.blue= 0.35;
 			break;
 	}
-#endif
 }
 
 void get_lightmap(struct map* map, struct cam *cam)
@@ -819,6 +837,7 @@ static const SDL_Rect tile_info[] =
 	['S'] = {0, 128, 16, 16},
 	['M'] = {48, 0, 16, 16},
 	['A'] = {0, 144, 16, 16},
+	['I'] = {16, 0, 16, 16},
 	['C'] = {0, 160, 16, 16},
 	['<'] = {64, 112, 16, 16},
 	['>'] = {80, 112, 16, 16},
@@ -890,107 +909,4 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 		}
 	}
 }
-
-#if 0
-#if 0
-switch(tile)
-{
-	case '.':
-		//player_lighting(map, i, j, cam, tex, player);
-		R = tile_info['.'];
-		//R.y += 32;
-		//R.x += 0;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '_':
-		R = tile_info[tile];
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '|':
-		R.x += 48;
-		R.y += 48;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '%':
-		R.x += 64;
-		R.y += 48;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '+':
-		R.x += 80;
-		R.y += 16;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '-':
-		R.x += 96;
-		R.y += 16;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '*':
-		R.x += 80;
-		R.y += 32;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '/':
-		R.x += 96;
-		R.y += 32;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '#':
-		R.y += 32;
-		R.x += 16;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'L':
-		//SDL_SetTextureColorMod(tex, 200, 200, 200);
-		R.y += 48;
-		R.x = 16 * (getTick() % 16 >= 8 && getTick() % 16 < 16 ? 1 : 0);
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'G':
-		R.y += 32;
-		R.x += 48;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'W':
-		R.x += 32;
-		R.y += 48;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'P':
-		R.x += 32;
-		R.y += 32;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case '^':
-		R.x += 64;
-		R.y += 16;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'V':
-		R.x += 64;
-		R.y += 32;
-		SDL_RenderCopy(renderer, tex, &R, &r_tile);
-		break;
-	case 'E':
-		SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-		SDL_RenderFillRect(renderer, &r_tile);
-		break;
-	case 'T':
-		//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
-		break;
-	case 'D':
-		//SDL_RenderCopy(renderer, tex, &img_tile4, &r_tile);
-		break;
-	case '!':
-	case ' ':
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderFillRect(renderer, &r_tile);
-		break;
-}
-//printf("d: %f\n", dist);
-#endif
-}
-}
-#endif
 

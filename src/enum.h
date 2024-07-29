@@ -54,7 +54,9 @@ typedef enum
 	MO_FIRE_TOWER,
 	MO_FIRE_BOMBER,
 	MO_FIRE_ARCHER,
-	MO_INTERACTABLE	
+	MO_INTERACTABLE,
+	MO_STARTRUN,	
+	MO_ENDRUN,	
 } mObject_type;
 
 typedef enum
@@ -221,6 +223,8 @@ typedef enum
 	TYPE_EVENT_CHIEFTAIN,
 	TYPE_EVENT_QUEEN,
 	TYPE_EVENT_VORTEX,
+	TYPE_EVENT_START_RUN,
+	TYPE_EVENT_END_RUN,
 	type_event_teleport,
 	type_event_inmaptp,
 	type_event_lock,

@@ -15,6 +15,7 @@ void render_UI_elements();
 void UI_curr_health_update();
 void UI_boss_health_update();
 size_t UI_el_index();
+void run_reset_UI();
 
 void option_requests();
 void menu_action();

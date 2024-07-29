@@ -185,6 +185,8 @@ void set_status_effect();
 void identify_status_effect();
 void apply_player_status_effect();
 void run_player_status_effects();
+void startp_player_interaction();
+void endp_player_interaction();
 //e
 void tp_player_interaction();
 void rune_player_interaction();
@@ -210,6 +212,7 @@ void spawn_pObject();
 void pObject_seek();
 //p
 void player_hit();
+void reset_player_run();
 void player_move();
 void initPlayer();
 void drawPlayer();

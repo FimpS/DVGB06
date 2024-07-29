@@ -25,6 +25,8 @@ void dynList_mem_alloc(dynList* a)
 {
 	if(dynList_size(a) + 1 > a->capacity)
 	{
+		if(a->capacity > 4000)
+			exit(1);
 		printf("size: %d\ncapa: %d\n", a->size, a->capacity);
 		a->capacity *= 2;
 		a->body = realloc(a->body, sizeof(void*) * a->capacity);
