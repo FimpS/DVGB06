@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 	struct map map = map_init();
 	//dynList* ui_el_list = dynList_create();
 	init_UI(map.UI_el_list);
-	add_message(map.msg_list_UI, "TEST123", 0.5, 3.0, 0, 1);
+	//add_message(map.msg_list_UI, "AAABBB", 0.5, 3.0, 0, 2);
 
 	//char maps[1024][32];
 	struct player player;

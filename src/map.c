@@ -308,7 +308,7 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					break;
 				case 'E':
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'E');
-					m->content[x+y * m->width] = 'E';
+					m->content[x+y * m->width] = '.';
 					break;
 				case 'I':
 					spawn_mObject(m, x, y, MO_STARTRUN, 'I');
@@ -758,9 +758,9 @@ void get_chapterlight(struct map* map)
 			map->lightmap.blue = 0.75;
 			break;
 		case 1:
-			map->lightmap.red = 0;
-			map->lightmap.green = 1;
-			map->lightmap.blue= 0;
+			map->lightmap.red = 0.35;
+			map->lightmap.green = 0.70;
+			map->lightmap.blue= 0.35;
 			break;
 		case 2:
 			map->lightmap.red = 0;

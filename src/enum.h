@@ -207,6 +207,9 @@ typedef enum
 	ST_ENEMYDEAD,
 	ST_DEATHRATTLE,
 	ST_CLEAR,
+	ST_STARTP_IDLE,
+	ST_STARTP_OPEN,
+	ST_STARTP_STAY,
 	st_placeholder
 } mObject_global_state;
 

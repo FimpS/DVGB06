@@ -243,6 +243,14 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 	}
 }
 
+void endp_player_whiten(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(mObject->st.timer ++ >= mObject->st.limit)
+	{
+		add_event(map->event_list, TYPE_EVENT_END_RUN, player, map, 0);
+	}
+}
+
 void endp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
 {
 	const Uint8* cks = SDL_GetKeyboardState(NULL);
@@ -250,10 +258,30 @@ void endp_player_interaction(struct mObject* mObject, struct player* player, str
 	{
 		if(AABB((struct mObject*)player, mObject))
 		{
-			add_event(map->event_list, TYPE_EVENT_END_RUN, player, map, 0);
+			//TODO maybe this spawn a rectangle that fills the screen but idk hard to get to renderer
+			set_mObject_state(mObject, st_placeholder, endp_player_whiten, 0, 128);
 		}
 	}
-	
+
+}
+
+
+void state_startp_stay(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(mObject->st.timer ++ >= mObject->st.limit && AABB(mObject, (struct mObject*)player))
+	{
+		add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
+	}
+}
+
+
+void state_startp_open(struct mObject* mObject, struct player* player, struct map* map)
+{
+	//printf("len:%d start:%d x:%d\n", mObject->anim.tile_length, mObject->anim.start_frame, mObject->sprite.x);
+	if(mObject->st.timer ++ >= mObject->st.limit)
+	{
+		set_mObject_state(mObject, ST_STARTP_STAY, state_startp_stay, 0, 64);
+	}
 }
 
 void startp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
@@ -263,10 +291,13 @@ void startp_player_interaction(struct mObject* mObject, struct player* player, s
 	{
 		if(AABB((struct mObject*)player, mObject))
 		{
-			add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
+			set_screen_shake(map, 0.1, 180);
+			add_message(map->msg_list, "ANOTHER TRY STARTED", X_MIDDLE_FONT, 4.0, 256, 2);
+			set_mObject_state(mObject, ST_STARTP_OPEN, state_startp_open, 0, 204);
+			//add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
 		}
 	}
-	
+
 }
 
 void tp_player_interaction(struct mObject *mObject, struct player* player, struct map *map)
@@ -395,16 +426,16 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 			break;
 	}
 	player_invuln(player, map);
-	
+
 }
 
 void reset_player_run(struct player* player, struct map* map)
 {
-	player->maxhealth = 1000; //TODO;
+	player->maxhealth = PLAYER_START_HP; //TODO;
 	player->health = player->maxhealth;
-	player->base_speed = 1.0;
-	player->attack_speed = 32;
-	player->sword_damage = 20.0;
+	player->base_speed = PLAYER_START_MS;
+	player->attack_speed = PLAYER_START_AS;
+	player->sword_damage = PLAYER_START_DMG;
 	player->kills = 0;
 	player->sword_effect_type = STATUS_NONE;
 	player->global_state = ST_P_NORMAL;

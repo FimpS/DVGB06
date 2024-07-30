@@ -78,6 +78,7 @@ struct UI_element *init_UI_el(int x, int y, UI_id type)
 void UI_curr_health_update(struct UI_element* el, struct player* player, struct map* map)
 {
 	if((el->dest.w > 384 * player->health / player->maxhealth)) (el->dest.w) -= 2;
+	if((el->dest.w < 384 * player->health / player->maxhealth)) (el->dest.w) += 2;
 }
 
 void UI_boss_health_update(struct UI_element* el, struct player* player, struct map* map)
@@ -150,6 +151,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
 	int red = 0, green = 0, blue = 0;
+	
 	if(mObject->status_effect.type == STATUS_FROSTBITE)
 	{
 		blue = 75;
@@ -168,6 +170,11 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	const int def = 100;
 	//SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
 	SDL_SetTextureColorMod(tex, def + red, def + green, def + blue);
+	if(mObject->id == 'J')
+	{
+		const int j = 255;
+		SDL_SetTextureColorMod(tex, j, j, j);
+	}
 
 	if(mObject->theta < PI/2 && mObject->theta > -1 * PI/2)
 	{
@@ -180,6 +187,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 		mObject->sprite.x += mObject->anim.tile_length;
 		mObject->sprite.x %= mObject->anim.frames * mObject->anim.tile_length;
 		mObject->sprite.x += mObject->anim.start_frame;
+		//X coordinaten måste vara delbar med 4 eller första x coordinaten måste % vara 0
 		return;
 	}
 	mObject->anim.timer ++;
@@ -223,7 +231,9 @@ void render_message(struct message* msg, struct cam* cam, SDL_Renderer *renderer
 	}
 	for(double i = 0; i < msg->size; i++)
 	{
-		SDL_Rect dest = {((msg->x + i / 2) - cam->offset_x) * TILE_LENGTH, (msg->y - cam->offset_y) * TILE_LENGTH, 16, 16};
+		//SDL_Rect dest = {((msg->x + i / 2) - cam->offset_x) * TILE_LENGTH, (msg->y - cam->offset_y) * TILE_LENGTH, 16, 16};
+		SDL_SetTextureColorMod(tex, msg->col.red, msg->col.green, msg->col.blue);
+		SDL_Rect dest = {(msg->x + msg->font_size*i) * 16, msg->y * 16, msg->font_size * 16, msg->font_size * 16};
 		SDL_RenderCopyEx(renderer, tex, &msg->s_chars[(int)i], &dest, 0.0, NULL, false);
 	}
 }
@@ -254,11 +264,12 @@ void run_reset_UI(struct map* map)
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_DEC_BAR));
 }
 
+#define lol 17
 void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map, struct player* player)
 {
 	if(sm->tone < 255)
 	{
-		sm->tone += 17;
+		sm->tone += lol;
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
 		SDL_RenderFillRect(renderer, NULL);
@@ -273,11 +284,12 @@ void fade_out(SDL_Renderer* renderer, struct screen_manager* sm, struct map* map
 	}
 }
 
+
 void fade_in(SDL_Renderer* renderer, struct screen_manager *sm, struct map* map, struct player* player)
 {
 	if(sm->tone > 0)
 	{
-		sm->tone -= 17;
+		sm->tone -= lol;
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, sm->tone);
 		SDL_RenderFillRect(renderer, NULL);

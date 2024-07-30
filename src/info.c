@@ -31,7 +31,7 @@ struct render_info init_render_info(int s, int ti, int f, int t, int l)
 {
 	struct render_info new = {0};
 	new.start_frame = s;
-	new.tile_length= ti;
+	new.tile_length = ti;
 	new.frames = f;
 	new.timer = t;
 	new.limit = l;
@@ -320,10 +320,10 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
 	player->height = TILE_LENGTH * 6/4;
-	player->base_speed = 1.0;
+	player->base_speed = PLAYER_START_MS;
 	player->speed = player->base_speed / 20;
 	player->theta = 0;
-	player->maxhealth = 1000;
+	player->maxhealth = PLAYER_START_HP;
 	player->health = player->maxhealth;
 	player->global_state = ST_P_NORMAL;
 	player->invuln = false;
@@ -332,12 +332,12 @@ void initPlayer(struct player *player, int width, int height)
 	player->dash_cooldown_timer = 0;
 	player->timer = 0;
 	player->invuln_limit = 0;
-	player->attack_speed = 32;
+	player->attack_speed = PLAYER_START_AS;
 	player->attack_speed_timer = 0;
 	player->change_map = false;
 	player->shock_counter = 6;
 	player->anim1counter = 0;
-	player->sword_damage = 600;
+	player->sword_damage = PLAYER_START_DMG;
 	player->pObject_knockkoef = 1;
 	player->kills = 0;
 	player->se_list = dynList_create();
@@ -792,12 +792,12 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH;
+			mObject->height = TILE_LENGTH * 2;
 			mObject->hittable = false;
 			mObject->st.type = st_placeholder;
 			mObject->killable = false;
-			mObject->sprite = init_sprite(256, 192, 16, 16);
-			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(448, 816, 16, 32);
+			mObject->anim = init_render_info(448, 16, 1, 0, 8);
 			mObject->st.acp = tp_player_interaction;
 			mObject->type_reg = st_placeholder;
 			mObject->st.kcp = NULL;
@@ -815,24 +815,25 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st.acp = rune_player_interaction;
 			break;
 		case MO_STARTRUN:
-			mObject->width = TILE_LENGTH * 1;
-			mObject->height = TILE_LENGTH * 1;
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 2;
 			mObject->hittable = false;
 			mObject->killable = false;
-			mObject->st.type = st_placeholder;
-			mObject->sprite = init_sprite(256, 192, 16, 16);
-			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(448, 784, 32, 32);
+			mObject->anim = init_render_info(448, 32, 1, 0, 8);
+			mObject->st.type = ST_STARTP_OPEN;
+			mObject->st.acp = tp_player_interaction;
 			mObject->st = init_mObject_state(startp_player_interaction, 0, 0, NULL);
 			//mObject->st.acp = rune_player_interaction;
 			break;
 		case MO_ENDRUN:
-			mObject->width = TILE_LENGTH * 1;
-			mObject->height = TILE_LENGTH * 1;
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 2;
 			mObject->hittable = false;
 			mObject->killable = false;
 			mObject->st.type = st_placeholder;
-			mObject->sprite = init_sprite(256, 192, 16, 16);
-			mObject->anim = init_render_info(256, 16, 4, 0, 8);
+			mObject->sprite = init_sprite(256, 800, 32, 32);
+			mObject->anim = init_render_info(256, 32, 4, 0, 16);
 			mObject->st = init_mObject_state(endp_player_interaction, 0, 0, NULL);
 			break;
 	}
@@ -1233,6 +1234,20 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->sprite.y = 248;
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 0;
+			break;
+		case ST_STARTP_OPEN:
+			mObject->sprite.x = 256;
+			mObject->sprite.y = 752;
+			mObject->anim.limit = mObject->st.limit / 8;
+			mObject->anim.frames = 8;
+			mObject->anim.start_frame = 256;
+			break;
+		case ST_STARTP_STAY:
+			mObject->sprite.x = 480;
+			mObject->sprite.y = 752;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 480;
+			mObject->anim.frames = 1;
 			break;
 		case ST_ENEMYKNOCKBACK:
 			switch(mObject->id)
