@@ -14,6 +14,8 @@
 #define SPECIAL_MAPS 3
 #define MAP_CARD 10
 
+#define X_MIDDLE_FONT 27.0
+
 struct screen_manager
 {
 	int tone;

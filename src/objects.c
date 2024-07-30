@@ -40,6 +40,17 @@ struct mObject* id_get_mObj(struct map* map, char id)
 	return NULL;
 }
 
+static int effect_limits[] = 
+{
+	128, //HEX
+	64, //STUN
+	564, //BOG
+	128, //BURN
+	360, //FROSTBITE
+	360, //ROT
+	128, //STASIS
+	360, //OMEN
+};
 
 void set_status_effect(struct mObject *mObject, int timer, int limit, object_status_effect type)
 {
@@ -243,6 +254,14 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 	}
 }
 
+void endp_player_whiten(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(mObject->st.timer ++ >= mObject->st.limit)
+	{
+		add_event(map->event_list, TYPE_EVENT_END_RUN, player, map, 0);
+	}
+}
+
 void endp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
 {
 	const Uint8* cks = SDL_GetKeyboardState(NULL);
@@ -250,10 +269,30 @@ void endp_player_interaction(struct mObject* mObject, struct player* player, str
 	{
 		if(AABB((struct mObject*)player, mObject))
 		{
-			add_event(map->event_list, TYPE_EVENT_END_RUN, player, map, 0);
+			//TODO maybe this spawn a rectangle that fills the screen but idk hard to get to renderer
+			set_mObject_state(mObject, st_placeholder, endp_player_whiten, 0, 128);
 		}
 	}
-	
+
+}
+
+
+void state_startp_stay(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(mObject->st.timer ++ >= mObject->st.limit && AABB(mObject, (struct mObject*)player))
+	{
+		add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
+	}
+}
+
+
+void state_startp_open(struct mObject* mObject, struct player* player, struct map* map)
+{
+	//printf("len:%d start:%d x:%d\n", mObject->anim.tile_length, mObject->anim.start_frame, mObject->sprite.x);
+	if(mObject->st.timer ++ >= mObject->st.limit)
+	{
+		set_mObject_state(mObject, ST_STARTP_STAY, state_startp_stay, 0, 64);
+	}
 }
 
 void startp_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
@@ -263,10 +302,13 @@ void startp_player_interaction(struct mObject* mObject, struct player* player, s
 	{
 		if(AABB((struct mObject*)player, mObject))
 		{
-			add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
+			set_screen_shake(map, 0.1, 180);
+			add_message(map->msg_list, "FRUIT JUMPSCARE", X_MIDDLE_FONT, 4.0, 256, 2);
+			set_mObject_state(mObject, ST_STARTP_OPEN, state_startp_open, 0, 204);
+			//add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
 		}
 	}
-	
+
 }
 
 void tp_player_interaction(struct mObject *mObject, struct player* player, struct map *map)
@@ -395,16 +437,16 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 			break;
 	}
 	player_invuln(player, map);
-	
+
 }
 
 void reset_player_run(struct player* player, struct map* map)
 {
-	player->maxhealth = 1000; //TODO;
+	player->maxhealth = PLAYER_START_HP; //TODO;
 	player->health = player->maxhealth;
-	player->base_speed = 1.0;
-	player->attack_speed = 32;
-	player->sword_damage = 20.0;
+	player->base_speed = PLAYER_START_MS;
+	player->attack_speed = PLAYER_START_AS;
+	player->sword_damage = PLAYER_START_DMG;
 	player->kills = 0;
 	player->sword_effect_type = STATUS_NONE;
 	player->global_state = ST_P_NORMAL;
@@ -646,7 +688,7 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->health -= source->damage;
 	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
-	set_status_effect(target, 0, 360, source->status_effect);
+	set_status_effect(target, 0, effect_limits[source->status_effect], source->status_effect); //TEST THIS
 	printf("damage dealt %d dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker || target->hyperarmor)
 		return;
@@ -663,6 +705,18 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	if(!player->invuln && AABB(mObject, (struct mObject*)player))
 	{
 		player_hit(player, mObject->contact_damage, mObject->theta);
+	}
+}
+
+void omen_status_effect(struct player* player, struct status_effect *effect)
+{
+	if(effect->timer == 0)
+	{
+		player->sword_damage -= 40.0;
+	}
+	if(effect->timer >= effect->limit)
+	{
+		player->sword_damage += 40.0;
 	}
 }
 
@@ -689,6 +743,7 @@ void stun_status_effect(struct player* player, struct status_effect *effect)
 		player->base_speed = 1.0;
 	}
 }
+
 void hex_status_effect(struct player* player, struct status_effect *effect)
 {
 	player->dash_cooldown_timer = 0;
@@ -703,6 +758,9 @@ void run_player_status_effects(struct player* player)
 		struct status_effect *effect = dynList_get(player->se_list, i);
 		switch(effect->type)
 		{
+			case STATUS_OMEN:
+				omen_status_effect(player, effect);
+				break;
 			case STATUS_BOGGED:
 				bogged_status_effect(player, effect);
 				break;
@@ -734,16 +792,18 @@ bool effect_exists(struct player* player, object_status_effect effect)
 	return false;
 }
 
+
+
 void apply_player_status_effect(struct player* player, object_status_effect effect)
 {
 	if(effect == STATUS_NONE || effect_exists(player, effect))
 		return;
 	struct status_effect *new = (struct status_effect*)malloc(sizeof(struct status_effect));
-	new->timer = 0;
-	new->limit = 128; //maybe fix later
 	new->type = effect;
+	new->timer = 0;
+	new->limit = effect_limits[effect]; 
 	dynList_add(player->se_list, (void*)new);
-	printf("%d %d\n", effect, player->se_list->size);
+	printf("%d %d\n", effect, new->limit);
 }
 
 void pObject_player_hitbox(struct pObject* pObject, struct player *player)

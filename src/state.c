@@ -64,9 +64,9 @@ void render_tick(struct map* map, struct player* player, SDL_Renderer *renderer,
 		case ST_MAP_CINEMATIC:
 		case ST_MAP_PAUSE:
 			map_draw(map, &map->cam, renderer, *tex, player);
-			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			draw_all_mObjects(renderer, map->mObject_list, &map->cam, tex[MOBJECT_SPRITESHEET], player);
 			draw_pObjects(renderer, map->pObject_list, &map->cam, tex[POBJECT_SPRITESHEET]);
+			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			render_UI_elements(map->UI_el_list, player, map, renderer, tex[UI_SPRITESHEET]);
 			render_messages(map->msg_list, &map->cam, renderer, tex[FONT_SPRITESHEET]);
 			render_UI_texts(map->msg_list_UI, renderer, tex[FONT_SPRITESHEET]);
@@ -75,14 +75,14 @@ void render_tick(struct map* map, struct player* player, SDL_Renderer *renderer,
 			break;
 		case ST_MAP_TRANSITION:
 			map_draw(map, &map->cam, renderer, *tex, player);
-			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			draw_all_mObjects(renderer, map->mObject_list, &map->cam, tex[MOBJECT_SPRITESHEET], player);
+			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			fade_out(renderer, &map->sm, map, player);
 			break;
 		case ST_MAP_FADE_IN:
 			map_draw(map, &map->cam, renderer, *tex, player);
-			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			draw_all_mObjects(renderer, map->mObject_list, &map->cam, tex[MOBJECT_SPRITESHEET], player);
+			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
 			fade_in(renderer, &map->sm, map, player);
 			break;
 	}
