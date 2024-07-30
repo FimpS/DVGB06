@@ -40,6 +40,17 @@ struct mObject* id_get_mObj(struct map* map, char id)
 	return NULL;
 }
 
+static int effect_limits[] = 
+{
+	128, //HEX
+	64, //STUN
+	564, //BOG
+	128, //BURN
+	360, //FROSTBITE
+	360, //ROT
+	128, //STASIS
+	360, //OMEN
+};
 
 void set_status_effect(struct mObject *mObject, int timer, int limit, object_status_effect type)
 {
@@ -292,7 +303,7 @@ void startp_player_interaction(struct mObject* mObject, struct player* player, s
 		if(AABB((struct mObject*)player, mObject))
 		{
 			set_screen_shake(map, 0.1, 180);
-			add_message(map->msg_list, "ANOTHER TRY STARTED", X_MIDDLE_FONT, 4.0, 256, 2);
+			add_message(map->msg_list, "FRUIT JUMPSCARE", X_MIDDLE_FONT, 4.0, 256, 2);
 			set_mObject_state(mObject, ST_STARTP_OPEN, state_startp_open, 0, 204);
 			//add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
 		}
@@ -677,7 +688,7 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->health -= source->damage;
 	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
-	set_status_effect(target, 0, 360, source->status_effect);
+	set_status_effect(target, 0, effect_limits[source->status_effect], source->status_effect); //TEST THIS
 	printf("damage dealt %d dmg: %f\n", healthbefore - target->health, source->damage);
 	if(!source->knockbacker || target->hyperarmor)
 		return;
@@ -694,6 +705,18 @@ void mObject_player_hitbox(struct mObject *mObject, struct player *player)
 	if(!player->invuln && AABB(mObject, (struct mObject*)player))
 	{
 		player_hit(player, mObject->contact_damage, mObject->theta);
+	}
+}
+
+void omen_status_effect(struct player* player, struct status_effect *effect)
+{
+	if(effect->timer == 0)
+	{
+		player->sword_damage -= 40.0;
+	}
+	if(effect->timer >= effect->limit)
+	{
+		player->sword_damage += 40.0;
 	}
 }
 
@@ -720,6 +743,7 @@ void stun_status_effect(struct player* player, struct status_effect *effect)
 		player->base_speed = 1.0;
 	}
 }
+
 void hex_status_effect(struct player* player, struct status_effect *effect)
 {
 	player->dash_cooldown_timer = 0;
@@ -734,6 +758,9 @@ void run_player_status_effects(struct player* player)
 		struct status_effect *effect = dynList_get(player->se_list, i);
 		switch(effect->type)
 		{
+			case STATUS_OMEN:
+				omen_status_effect(player, effect);
+				break;
 			case STATUS_BOGGED:
 				bogged_status_effect(player, effect);
 				break;
@@ -765,16 +792,18 @@ bool effect_exists(struct player* player, object_status_effect effect)
 	return false;
 }
 
+
+
 void apply_player_status_effect(struct player* player, object_status_effect effect)
 {
 	if(effect == STATUS_NONE || effect_exists(player, effect))
 		return;
 	struct status_effect *new = (struct status_effect*)malloc(sizeof(struct status_effect));
-	new->timer = 0;
-	new->limit = 128; //maybe fix later
 	new->type = effect;
+	new->timer = 0;
+	new->limit = effect_limits[effect]; 
 	dynList_add(player->se_list, (void*)new);
-	printf("%d %d\n", effect, player->se_list->size);
+	printf("%d %d\n", effect, new->limit);
 }
 
 void pObject_player_hitbox(struct pObject* pObject, struct player *player)

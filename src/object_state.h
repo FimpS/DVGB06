@@ -148,6 +148,14 @@ void state_golem_hit();
 void state_chieftain_summon();
 void state_chieftain_aware();
 void state_chieftain_ready();
+//runeguard
+void state_rune_guard_aware();
+void state_rune_guard_unholy();
+void state_rune_guard_gravity();
+void state_rune_guard_blood();
+void state_rune_guard_frost();
+void state_rune_guard_holy();
+void state_rune_guard_rot();
 //for all enemies
 void state_crawler_knockbacked();
 void state_enemy_default();
@@ -175,5 +183,10 @@ void state_blood_tax();
 void state_fire_sling_action();
 void state_lava_pool_action();
 void state_hex_arrow_action();
+void state_blood_seeker_action();
+void state_gravity_vortex_action();
+void state_rot_flies_action();
+void state_rot_flies_action_fly();
+void state_holy_omen_action();
 
 #endif

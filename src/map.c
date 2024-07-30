@@ -346,6 +346,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_GOLEM, 'o');
 					m->content[x+y * m->width] = '.';
 					break;
+				case 'd':
+					spawn_mObject(m, x, y, MO_RUNE_GUARD, 'd');
+					m->content[x+y * m->width] = '.';
+					break;
 				case 'R':
 					spawn_mObject(m, x, y, MO_RUNE_SHARD, 'R'); //disable when real
 					m->content[x+y * m->width] = '.';

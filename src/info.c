@@ -283,6 +283,50 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->sprite = init_sprite(0, 176, 16, 16);
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
+		case PO_BLOOD_SEEKER:
+			pObject->width = TILE_LENGTH * 2;
+			pObject->height = TILE_LENGTH * 2;
+			pObject->speed = 0.15;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->status_effect = STATUS_NONE;	
+			pObject->sprite = init_sprite(0, 240, 16, 16);
+			pObject->st = init_pObject_state(state_blood_seeker_action, 0, 360);
+			pObject->anim_tile_length = 16;
+			pObject->anim_frames = 4;
+			break;
+		case PO_GRAVITY_VORTEX:
+			pObject->width = TILE_LENGTH / 2;
+			pObject->height = TILE_LENGTH / 2;
+			pObject->speed = 0.2; //prev 0.05
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->thetaacc = 0;
+			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->st = init_pObject_state(state_gravity_vortex_action, 0, 78);
+			break;
+		case PO_ROT_FLIES:
+			pObject->width = TILE_LENGTH / 2;
+			pObject->height = TILE_LENGTH / 2;
+			pObject->speed = 0.01; //prev 0.05
+			pObject->damage = dmg;
+			pObject->theta = get_frand(2*PI, 0.0);
+			pObject->transp = false;
+			pObject->thetaacc = 0;
+			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->st = init_pObject_state(state_rot_flies_action, 0, 96 + rand() % 32);
+			break;
+		case PO_HOLY_OMEN:
+			pObject->width = TILE_LENGTH * 2;
+			pObject->height = TILE_LENGTH * 2;
+			pObject->speed = 0.05; //prev 0.05
+			pObject->status_effect = STATUS_OMEN;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->thetaacc = 0;
+			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->st = init_pObject_state(state_holy_omen_action, 0, 400);
+			break;
 		case PO_PLAYER_SPEAR:
 			pObject->width = TILE_LENGTH * 3;
 			pObject->height = TILE_LENGTH * 1;
@@ -789,6 +833,23 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->type_reg = ST_FIRE_ARCHER_AWARE;
 			mObject->hyperarmor = false;
 			mObject->st = init_mObject_state(state_fire_archer_idle, 0, 102, state_fire_archer_idle);
+			break;
+		case MO_RUNE_GUARD:
+			mObject->speed = 0;
+			mObject->max_health = 4000;
+			mObject->width = TILE_LENGTH * 6;
+			mObject->height = TILE_LENGTH * 6;
+			mObject->hit = false;
+			mObject->mass = 40;
+			mObject->wall_collide = false;
+			mObject->contact_damage = 0;
+			mObject->hittable = true;
+			mObject->killable = true;
+			mObject->anim = init_render_info(0, 32, 4, 0, 16);
+			mObject->sprite = init_sprite(0, 752, 32, 32);
+			mObject->type_reg = ST_RUNE_GUARD_AWARE;
+			mObject->hyperarmor = true;
+			mObject->st = init_mObject_state(state_rune_guard_aware, 0, 102, state_rune_guard_aware);
 			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;

@@ -1140,6 +1140,102 @@ void state_chieftain_aware(struct mObject *mObj, struct player *player, struct m
 
 }
 
+void state_rune_guard_aware(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		const int choice = rand() % 6;
+		switch(choice)
+		{
+			case 0: set_mObject_state(mObj, ST_RUNE_GUARD_UNHOLY, state_rune_guard_unholy, 0, 128); break;
+			case 1: set_mObject_state(mObj, ST_RUNE_GUARD_BLOOD, state_rune_guard_blood, 0, 128); break;
+			case 2: set_mObject_state(mObj, ST_RUNE_GUARD_GRAVITY, state_rune_guard_gravity, 0, 64); break;
+			case 3: set_mObject_state(mObj, ST_RUNE_GUARD_FROST, state_rune_guard_frost, 0, 128); break;
+			case 4: set_mObject_state(mObj, ST_RUNE_GUARD_ROT, state_rune_guard_rot, 0, 128); break;
+			case 5: set_mObject_state(mObj, ST_RUNE_GUARD_HOLY, state_rune_guard_holy, 0, 128); break;
+		}
+	}
+}
+
+void state_rune_guard_unholy(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		spawn_mObject(map, mObj->x + 5, mObj->y - 1, MO_DRIDER_FIGHTER, '9');
+		spawn_mObject(map, mObj->x - 1, mObj->y - 1, MO_DRIDER_FIGHTER, '9');
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
+// ADD ONE MORE GRAVITY STATE SO IT CANT SWITCH STATE WHILE VORTEXING
+void state_rune_guard_gravity(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if((1 + mObj->st.timer) % (mObj->st.limit / 6) == 0)
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			const double x_0 = MIDPOINTX(mObj), y_0 = MIDPOINTY(mObj), range = 16.0, theta = get_frand(2*PI, 0.0);
+			const double distX = x_0 + range*cos(theta), distY = y_0 + range*sin(theta);
+			const double dx = x_0 - distX, dy = y_0 - distY;
+			spawn_pObject(map->pObject_list, distX, distY, PO_GRAVITY_VORTEX, EAST, 30.0, atan2(dy, dx), player);
+		}
+	}
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
+void state_rune_guard_rot(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if((1 + mObj->st.timer) % (mObj->st.limit / 4) == 0)
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			spawn_pObject(map->pObject_list, MIDPOINTX(mObj) + get_frand(2.0, -1.0), MIDPOINTY(mObj) - 1 + get_frand(2.0, -1.0), PO_ROT_FLIES, EAST, 20.0, 0.0, player);
+		}
+	}
+
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
+void state_rune_guard_blood(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj), MIDPOINTY(mObj), PO_BLOOD_SEEKER, EAST, 100.0, 0.0, player);
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
+void state_rune_guard_frost(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		apply_player_status_effect(player, STATUS_BOGGED);
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
+void state_rune_guard_holy(struct mObject* mObj, struct player* player, struct map* map)
+{
+	if(mObj->st.timer ++ >= mObj->st.limit)
+	{
+		spawn_pObject(map->pObject_list, MIDPOINTX(mObj), MIDPOINTY(mObj), PO_HOLY_OMEN, EAST, 0.0, 0.0, player);
+		set_mObject_state(mObj, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 128);
+		return;
+	}
+}
+
 void check_sword_dir(struct pObject *pObject, struct player *player)
 {
 	switch(pObject->dir)
@@ -1373,6 +1469,90 @@ void state_hex_arrow_action(struct pObject* pObject, struct player* player, stru
 	pObject_move(pObject, player, map);
 	pObject_player_hitbox(pObject, player);
 	pObject->st.timer ++;
+}
+
+void state_blood_seeker_action(struct pObject *pObject, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
+	{
+		player_hit(player, pObject->damage, pObject->theta);
+		apply_player_status_effect(player, pObject->status_effect);
+		if(--pObject->penetration_index == 0)
+		{
+			struct mObject* rune_guard = id_get_mObj(map, 'd');
+			rune_guard->health += pObject->damage;
+			set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		}
+	}
+	pObject_seek(pObject, 0.05, atan2(dy, dx));
+	pObject_move(pObject, player, map);
+	pObject->st.timer ++;
+}
+
+void state_gravity_vortex_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	pObject_move(pObject, player, map);
+	pObject_player_hitbox(pObject, player);
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
+		return;
+	}
+	return;
+}
+
+void state_rot_flies_action_fly(struct pObject* pObject, struct player* player, struct map* map)
+{
+	pObject_move(pObject, player, map);
+	pObject_player_hitbox(pObject, player);
+	if((1 + pObject->st.timer) % (pObject->st.limit / 8) == 0)
+	{
+		pObject->speed += 0.05;
+	}
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 48);
+		return;
+	}
+}
+
+void state_rot_flies_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	pObject_move(pObject, player, map);
+	if((1 + pObject->st.timer) % (pObject->st.limit / 8) == 0)
+	{
+		pObject->theta = get_frand(2*PI, 0);
+	}
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+		const double offset = get_frand(2 * PI / 12, -PI / 12);
+		pObject->theta = atan2(dy, dx) + offset;
+		pObject->speed = 0.20;
+		//TODO maybe burn as status effect prob not
+		set_pObject_state(pObject, pObject->st.type, state_rot_flies_action_fly, 0, 48);
+		return;
+	}
+}
+
+
+void state_holy_omen_action(struct pObject* pObject, struct player* player, struct map* map)
+{
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
+	pObject_move(pObject, player, map);
+	pObject_seek(pObject, 0.05, atan2(dy, dx));
+	pObject_player_hitbox(pObject, player);
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 48);
+		return;
+	}
 }
 
 //player
@@ -1938,8 +2118,10 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 
 	if(!mObject->hittable || mObject->st.type == ST_DEATHRATTLE)
 		return;
-	if(mObject->id == 'E')
-		printf("lol\n");
+	if(mObject->health > mObject->max_health)
+	{
+		mObject->health = mObject->max_health;
+	}
 
 	identify_status_effect(mObject, player);
 	if(mObject->st.type == ST_ENEMYDEAD)
