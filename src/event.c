@@ -45,6 +45,18 @@ void teleport_event(struct player *player, struct event* event, struct map* map)
 	event->complete = true;
 }
 
+void build_bridge_event(struct player* player, struct event* event, struct map* map)
+{
+	for(int i = 0; i < 5; i++)
+	{
+		map->content[1630 + i*64] = '>';
+		map->content[1629 + i*64] = '<';
+		map->solid_content[1630 + i*64] = false;
+		map->solid_content[1629 + i*64] = false;
+	}
+	event->complete = true;
+}
+
 void inmap_teleport_event(struct player* player, struct event* event, struct map* map)
 {
 	int coords[2];
@@ -53,11 +65,75 @@ void inmap_teleport_event(struct player* player, struct event* event, struct map
 	player->y = coords[1];
 	event->complete = true;
 }
+
+void guard_start(struct player* player, struct event* event, struct map* map)
+{
+	map->state = ST_MAP_CINEMATIC;
+	struct mObject *rune= id_get_mObj(map, 'J');
+	map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(rune);
+	map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(rune);
+}
+
+void guard_cutscene4(struct player* player, struct event* event, struct map* map)
+{
+	if(event->clock ++ >= event->burst_time)
+	{
+		struct mObject *guard = id_get_mObj(map, 'd');
+		map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(guard);
+		//event->event_tick = guard_cutscene3;
+		map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(guard);
+		set_mObject_state(guard, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 196);
+		map->state = ST_MAP_RUN_TICK;
+		event->complete = true;
+	}
+}
+
+void guard_cutscene3(struct player* player, struct event* event, struct map* map)
+{
+	const int time = 128;
+	if(event->clock ++ >= 384)
+	{
+		struct mObject* guard = id_get_mObj(map, 'd');
+		event->event_tick = guard_cutscene4;
+		guard->st.type = ST_RUNE_GUARD_SHOW;
+		identify_mObject_sprite_location(guard);
+		SET_CAM_MID_CORDS(map->cam, guard);
+	}
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
+
+}
+
+void guard_cutscene2(struct player* player, struct event* event, struct map* map)
+{
+	const int time = 128;
+	if(event->clock ++ >= 256)
+	{
+		struct mObject *guard = id_get_mObj(map, 'd');
+		map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(guard);
+		event->event_tick = guard_cutscene3;
+		map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(guard);
+	}
+}
+
+void guard_cutscene(struct player* player, struct event* event, struct map* map)
+{
+	const int time = 128;
+	if(event->clock ++ >= time)
+	{
+		struct mObject* rune = id_get_mObj(map, 'J');
+		event->event_tick = guard_cutscene2;
+		SET_CAM_MID_CORDS(map->cam, rune);
+	}
+	map->cam.x += map->cam.cin_info.s_coord.x/time;
+	map->cam.y += map->cam.cin_info.s_coord.y/time;
+}
+
 void golem_start(struct player* player, struct event* event, struct map* map)
 {
 	map->state = ST_MAP_CINEMATIC;
 	size_t index = 0;
-	
+
 	struct mObject *golem = id_get_mObj(map, 'o');
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
@@ -65,7 +141,7 @@ void golem_start(struct player* player, struct event* event, struct map* map)
 		if(magus->id == '6')
 		{
 			map->cam.cin_info.s_coord.x = -map->cam.x + golem->x + golem->width/TILE_LENGTH/2,
-			map->cam.cin_info.s_coord.y = -map->cam.y + golem->y+ golem->height/TILE_LENGTH/2;
+				map->cam.cin_info.s_coord.y = -map->cam.y + golem->y+ golem->height/TILE_LENGTH/2;
 			double dx = magus->x - golem->x, dy = magus->y - golem->y;
 			magus->theta = atan2(-dy, -dx);
 		}
@@ -188,7 +264,7 @@ void queen_cutscene(struct player* player, struct event* event, struct map* map)
 	}
 	map->cam.x += map->cam.cin_info.s_coord.x/time;
 	map->cam.y += map->cam.cin_info.s_coord.y/time;
-	
+
 }
 
 void vortex_start(struct player* player, struct event* event, struct map* map)
@@ -222,7 +298,7 @@ void vortex_cutscene(struct player* player, struct event* event, struct map* map
 	}
 	map->cam.x += map->cam.cin_info.s_coord.x/time;
 	map->cam.y += map->cam.cin_info.s_coord.y/time;
-	
+
 }
 
 void lock(struct player *player, struct event* event, struct map* map)
@@ -244,6 +320,10 @@ void identify_start_tick(struct event* event)
 {
 	switch(event->e_type)
 	{
+		case TYPE_EVENT_GUARD:
+			event->start_event = guard_start;
+			event->event_tick = guard_cutscene;
+			break;
 		case TYPE_EVENT_GOLEM:
 			event->start_event = golem_start;
 			event->event_tick = golem_cutscene;
@@ -267,6 +347,10 @@ void identify_start_tick(struct event* event)
 		case TYPE_EVENT_END_RUN:
 			event->start_event = NULL;
 			event->event_tick = end_run_event;
+			break;
+		case TYPE_EVENT_BRIDGE:
+			event->start_event = NULL;
+			event->event_tick = build_bridge_event;
 			break;
 		case type_event_teleport:
 			event->start_event = NULL;

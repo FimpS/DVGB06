@@ -114,6 +114,7 @@ bool check_map_dupe(struct map* m, int stop)
 void gen_seed_map(struct map* m)
 {
 	size_t current = 0;
+	get_rand_bossID(m->s_map.content[current++], "ch3"); //generate specific boss layer
 	for(int j = 0; j < SEED_CHAPTER_AMOUNT; j++)
 	{
 		char curr_chapter[32] = "ch", magic[4];
@@ -138,7 +139,7 @@ void gen_seed_map(struct map* m)
 			}
 			current++;
 		}
-		get_rand_bossID(m->s_map.content[current++], curr_chapter); //generate specific boss layer
+		//get_rand_bossID(m->s_map.content[current++], curr_chapter); //generate specific boss layer
 	}
 }
 
@@ -484,6 +485,8 @@ void map_start_events(struct map *m, struct player *player)
 		case 247480:
 		case 247379:
 		case 247278:
+		case 247581:
+		case 247682:
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_FULL_BAR));
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_BAR));
 			dynList_add(m->UI_el_list, (void*)init_UI_el(-1, -1, UI_BOSS_DEC_BAR));
@@ -503,6 +506,10 @@ void map_start_events(struct map *m, struct player *player)
 			break;
 		case 247379:
 			add_event(m->event_list, TYPE_EVENT_CHIEFTAIN, player, m, BOSS_CUTSCENE_TIME / 2);
+			break;
+		case 247581:
+		case 247682:
+			add_event(m->event_list, TYPE_EVENT_GUARD, player, m, BOSS_CUTSCENE_TIME + 128);
 			break;
 		default:
 			return;

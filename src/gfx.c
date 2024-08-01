@@ -87,10 +87,11 @@ void UI_boss_health_update(struct UI_element* el, struct player* player, struct 
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
 		boss = (struct mObject*)dynList_get(map->mObject_list, i);
-		if(boss->id == 'o' || boss->id == 'c' || boss->id == 'q' || boss->id == 'v')
+		if(boss->id == 'o' || boss->id == 'c' || boss->id == 'q' || boss->id == 'v' || boss->id == 'd')
 			break;
 	}
 	if((el->dest.w > 600 * boss->health / boss->max_health)) (el->dest.w) -= 4;
+	if((el->dest.w < 600 * boss->health / boss->max_health)) (el->dest.w) += 4;
 	
 }
 
@@ -128,7 +129,14 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 		flip = true;
 	}
 	const int fill = 150;
-	SDL_SetTextureColorMod(tex, fill, fill, fill);
+	int red = 0, green = 0, blue = 0;
+	//I have given up
+	if(has_player_status_effect(player, STATUS_BURN)) red = 100;
+	if(has_player_status_effect(player, STATUS_BOGGED)) green = 100;
+	if(has_player_status_effect(player, STATUS_HEX)) {blue = 100; red = 100;}
+	if(has_player_status_effect(player, STATUS_OMEN)) {blue = 100; red = 100; green = 100;}
+
+	SDL_SetTextureColorMod(tex, fill + red, fill + green, fill + blue);
 	SDL_RenderCopyEx(renderer, tex, &player->sprite, &dR, 0, NULL, flip);
 	if(player->anim.timer >= player->anim.limit)
 	{
@@ -184,6 +192,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	if(mObject->anim.timer >= mObject->anim.limit)
 	{
 		mObject->anim.timer = 0;
+		mObject->sprite.x -= mObject->anim.start_frame;
 		mObject->sprite.x += mObject->anim.tile_length;
 		mObject->sprite.x %= mObject->anim.frames * mObject->anim.tile_length;
 		mObject->sprite.x += mObject->anim.start_frame;
@@ -209,9 +218,15 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
 		SDL_RenderFillRect(renderer, &dR);
 	}
+	if(pObject->type == PO_ROT_FLIES)
+	{
+		const int five = 255;
+		SDL_SetTextureColorMod(tex, five, five, five);
+	}
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
-	const int def = 150;
-	SDL_SetTextureColorMod(tex, def, def, def);
+	//const int def = 150;
+	//SDL_SetTextureColorMod(tex, def, def, def);
+	
 	if(pObject->anim_timer >= pObject->anim_limit)
 	{
 		pObject->anim_timer = 0;

@@ -185,10 +185,12 @@ void set_status_effect();
 void identify_status_effect();
 void apply_player_status_effect();
 void run_player_status_effects();
+bool has_player_status_effect();
 void startp_player_interaction();
 void endp_player_interaction();
 //e
 void tp_player_interaction();
+void tp_player_undone();
 void rune_player_interaction();
 void spawn_mObject(struct map* map, int x, int y, mObject_type type, char id);
 void delete_mObject();
