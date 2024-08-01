@@ -322,17 +322,18 @@ void tp_player_interaction(struct mObject *mObject, struct player* player, struc
 	const Uint8* currentKeyState = SDL_GetKeyboardState(NULL);
 	if(currentKeyState[SDL_SCANCODE_E])
 	{
-		if(AABB((struct mObject*)player, mObject) && mObject->id == 'E')
+		if(AABB((struct mObject*)player, mObject))
 		{
-			if(map->aggresive_mObj_count <= 0)
-				add_event(ev_list, type_event_teleport, player, map, 0);
-			else
-				printf("Enemies left: %d!\n", map->aggresive_mObj_count);
+			add_event(ev_list, type_event_teleport, player, map, 0);
 		}
-		if(AABB((struct mObject*)player, mObject) && mObject->id == 'T')
-		{
-			add_event(ev_list, type_event_inmaptp, player, map, 0);
-		}
+	}
+}
+
+void tp_player_undone(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(map->aggresive_mObj_count <= 0)
+	{
+		set_mObject_state(mObject, ST_INTERACTABLE, tp_player_interaction, 0, 0);
 	}
 }
 
@@ -747,6 +748,22 @@ void stun_status_effect(struct player* player, struct status_effect *effect)
 void hex_status_effect(struct player* player, struct status_effect *effect)
 {
 	player->dash_cooldown_timer = 0;
+}
+
+bool has_player_status_effect(struct player* player, object_status_effect effect)
+{
+	if(dynList_is_empty(player->se_list))
+		return false;
+#if 0
+	for(int i = 0; i < player->se_list->size; i++)
+	{
+		struct status_effect *curr = dynList_get(player->se_list, i);
+		if(curr->type == effect)
+			return true;
+	}
+	return false;
+#endif
+	return effect == ((struct status_effect*)dynList_get(player->se_list, 0))->type;
 }
 
 void run_player_status_effects(struct player* player)

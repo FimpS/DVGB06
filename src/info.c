@@ -284,14 +284,14 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
 			break;
 		case PO_BLOOD_SEEKER:
-			pObject->width = TILE_LENGTH * 2;
-			pObject->height = TILE_LENGTH * 2;
-			pObject->speed = 0.15;
+			pObject->width = TILE_LENGTH / 2;
+			pObject->height = TILE_LENGTH / 2;
+			pObject->speed = 0.1 + get_frand(0.1, 0.0);
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->status_effect = STATUS_NONE;	
-			pObject->sprite = init_sprite(0, 240, 16, 16);
-			pObject->st = init_pObject_state(state_blood_seeker_action, 0, 360);
+			pObject->sprite = init_sprite(0, 384, 16, 16);
+			pObject->st = init_pObject_state(state_blood_seeker_action, 0, 96 + rand() % 64);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
@@ -302,7 +302,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->thetaacc = 0;
-			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->sprite = init_sprite(0, 368, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_vortex_action, 0, 78);
 			break;
 		case PO_ROT_FLIES:
@@ -313,7 +313,8 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->theta = get_frand(2*PI, 0.0);
 			pObject->transp = false;
 			pObject->thetaacc = 0;
-			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->sprite = init_sprite(0, 352, 16, 16);
+			pObject->anim_limit = 4;
 			pObject->st = init_pObject_state(state_rot_flies_action, 0, 96 + rand() % 32);
 			break;
 		case PO_HOLY_OMEN:
@@ -324,7 +325,9 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->thetaacc = 0;
-			pObject->sprite = init_sprite(0, 96, 16, 16);
+			pObject->sprite = init_sprite(0, 400, 16, 16);
+			pObject->anim_limit = 8;
+			pObject->anim_frames = 4;
 			pObject->st = init_pObject_state(state_holy_omen_action, 0, 400);
 			break;
 		case PO_PLAYER_SPEAR:
@@ -499,6 +502,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->hit = false;
 			mObject->hittable = true;
 			mObject->killable = true;
+			if(mObject->id == 'z') mObject->killable = false;
 			mObject->contact_damage = 22;
 			mObject->sprite = init_sprite(0, 96, 16, 16);
 			mObject->anim = init_render_info(0, 16, 4, 0, 8);
@@ -775,6 +779,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 50;
 			mObject->hittable = true;
 			mObject->killable = true;
+			if(mObject->id == 'm') mObject->killable = false;
 			mObject->anim = init_render_info(256, 16, 4, 0, 8);
 			mObject->sprite = init_sprite(256, 96, 16, 24);
 			mObject->type_reg = ST_DRIDER_AWARE;
@@ -828,6 +833,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 50;
 			mObject->hittable = true;
 			mObject->killable = true;
+			if(mObject->id == 'n') mObject->killable = false;
 			mObject->anim = init_render_info(256, 16, 4, 0, 8);
 			mObject->sprite = init_sprite(256, 208, 16, 24);
 			mObject->type_reg = ST_FIRE_ARCHER_AWARE;
@@ -836,30 +842,31 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RUNE_GUARD:
 			mObject->speed = 0;
-			mObject->max_health = 4000;
-			mObject->width = TILE_LENGTH * 6;
-			mObject->height = TILE_LENGTH * 6;
+			mObject->max_health = 40;
+			mObject->width = TILE_LENGTH * 1.5;
+			mObject->height = TILE_LENGTH * 2.0;
 			mObject->hit = false;
 			mObject->mass = 40;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
+			mObject->contact_damage = 20.0;
 			mObject->hittable = true;
 			mObject->killable = true;
-			mObject->anim = init_render_info(0, 32, 4, 0, 16);
-			mObject->sprite = init_sprite(0, 752, 32, 32);
+			mObject->anim = init_render_info(0, 22, 4, 0, 12);
+			mObject->sprite = init_sprite(0, 752, 22, 32);
 			mObject->type_reg = ST_RUNE_GUARD_AWARE;
 			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_rune_guard_aware, 0, 102, state_rune_guard_aware);
 			break;
 		case MO_INTERACTABLE:
 			mObject->width = TILE_LENGTH;
-			mObject->height = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH;
 			mObject->hittable = false;
 			mObject->st.type = st_placeholder;
 			mObject->killable = false;
-			mObject->sprite = init_sprite(448, 816, 16, 32);
+			mObject->sprite = init_sprite(448, 832, 16, 16); //816
 			mObject->anim = init_render_info(448, 16, 1, 0, 8);
-			mObject->st.acp = tp_player_interaction;
+			mObject->st = init_mObject_state(tp_player_undone, 0, 0, NULL);
+			//mObject->st.acp = tp_player_interaction;
 			mObject->type_reg = st_placeholder;
 			mObject->st.kcp = NULL;
 			break;
@@ -1296,6 +1303,71 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 			mObject->anim.limit = mObject->st.limit / 4;
 			mObject->anim.start_frame = 0;
 			break;
+		case ST_RUNE_GUARD_SHOW:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 688;
+			mObject->anim.limit = 64;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_RUNE_GUARD_AWARE:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 752;
+			mObject->anim.limit = 12;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_RUNE_GUARD_BLOOD:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 784;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_RUNE_GUARD_ROT:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 816;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_RUNE_GUARD_FROST:
+			mObject->sprite.x = 96;
+			mObject->sprite.y = 816;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 96;
+			break;
+		case ST_RUNE_GUARD_FROST_SECOND:
+			mObject->sprite.x = 96;
+			mObject->sprite.y = 784;
+			mObject->anim.limit = 4;
+			mObject->anim.start_frame = 96;
+			break;
+		case ST_RUNE_GUARD_GRAVITY_SECOND:
+			mObject->sprite.x = 96;
+			mObject->sprite.y = 720;
+			mObject->anim.limit = 8;
+			mObject->anim.start_frame = 96;
+			break;
+		case ST_RUNE_GUARD_GRAVITY:
+			mObject->sprite.x = 96;
+			mObject->sprite.y = 752;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 96;
+			break;
+		case ST_RUNE_GUARD_UNHOLY:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 720;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_RUNE_GUARD_HOLY:
+			mObject->sprite.x = 0;
+			mObject->sprite.y = 848;
+			mObject->anim.limit = mObject->st.limit / 4;
+			mObject->anim.start_frame = 0;
+			break;
+		case ST_INTERACTABLE:
+			mObject->sprite.y = 816;
+			mObject->anim.limit = 10000;
+			mObject->anim.frames = 1;
+			break;
 		case ST_STARTP_OPEN:
 			mObject->sprite.x = 256;
 			mObject->sprite.y = 752;
@@ -1376,12 +1448,14 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
 				case '9':
+				case 'm':
 					mObject->sprite.x = 384;
 					mObject->sprite.y = 96;
 					mObject->anim.start_frame = 384;
 					mObject->anim.limit = mObject->st.limit + 124;
 					break;
 				case 'a':
+				case 'n':
 					mObject->sprite.x = 384;
 					mObject->sprite.y = 208;
 					mObject->anim.start_frame = 384;
@@ -1453,6 +1527,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 384;
 					break;
 				case '9':
+				case 'm':
 					mObject->sprite.y = 96;
 					mObject->sprite.x = 448;
 					mObject->anim.limit = mObject->st.limit / 4;
@@ -1471,6 +1546,7 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 320;
 					break;
 				case 'a':
+				case 'n':
 					mObject->sprite.x = 448;
 					mObject->sprite.y = 208;
 					mObject->anim.limit = mObject->st.limit / 4;
