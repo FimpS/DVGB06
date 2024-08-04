@@ -35,14 +35,14 @@ struct message init_message(double x, double y, int limit, const char *text, int
 	new.size = strlen(text);
 	int tile_length_of_string = strlen(text) * 16 / TILE_LENGTH;
 	new.x = x - ((strlen(text) / 2) * 0.0);//x; //- strlen(text) / 2; //idk seems bad easilty add with this ver
-	printf("start: %lf begin: %lf, strl: %ld\n", new.x, x, strlen(text));
+	//printf("start: %lf begin: %lf, strl: %ld\n", new.x, x, strlen(text));
 	const double d = strlen(text) / 2;
 	new.x = x - (ceil((d + 1.0)) * 2.0);
 	new.y = y;
 	new.complete = false;
 	new.font_size = font_size;
 	new.col.red = 255;
-	new.col.blue = 255;
+	new.col.blue = 100;
 	new.col.green = 100;
 	strcpy(new.text, text);
 	for(int i = 0; i < new.size; i++)

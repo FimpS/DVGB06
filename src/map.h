@@ -16,6 +16,22 @@
 
 #define X_MIDDLE_FONT 27.0
 
+struct save_packet
+{
+	int monsters_slain;
+	int rooms_completed;
+	int bosses_killed;
+	int runs_completed;
+
+
+	int recent_slain;
+	int recent_rooms_completed;
+	int recent_bosses_killed;
+	int recent_runs_completed;
+
+	bool finished;
+};
+
 struct screen_manager
 {
 	int tone;
@@ -98,6 +114,7 @@ struct map
 	struct m_anim_info anim;
 	struct seed_map s_map;
 	struct cam cam;
+	struct save_packet save;
 	dynList *mObject_list;
 	dynList *pObject_list;
 	dynList *event_list;
@@ -118,6 +135,8 @@ void screen_shake();
 void gen_seed_map(struct map* m);
 void clear_seed_map(struct map* m);
 
+void save_game();
+void add_recent_run_save();
 
 void map_get_coord(struct map* m, char key, int* dest);
 void get_lightmap();

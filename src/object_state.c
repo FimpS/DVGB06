@@ -1608,7 +1608,7 @@ void check_hit_abilities(struct player* player, struct map* map)
 		for(int i = 0; i < map->mObject_list->size; i++)
 		{
 			struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
-			if(curr->killable == true)
+			if(curr->hittable == true)
 				set_status_effect(curr, 0, 360, STATUS_ROT);
 		}
 	}
@@ -1627,7 +1627,7 @@ void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 	{   
 		//player->timer = 0; 
 		player->global_state = ST_P_NORMAL;
-		player->speed = player->base_speed / 20;
+		player->speed = player->base_speed / 16;
 		check_hit_abilities(player, map);
 		//player->invuln = false;
 	}
@@ -1651,9 +1651,7 @@ void player_invuln(struct player *player, struct map* map)
 
 void set_dash_vector(struct player* player)
 {
-	double speed = 0.45;
-	double speed2 = 0.45;
-	speed = player->speed * 8;
+	const double speed = player->speed * 7;
 	switch(player->dir)
 	{
 		case EAST:
@@ -1673,20 +1671,20 @@ void set_dash_vector(struct player* player)
 			player->vel_y = speed * sin(-1 * PI/2);
 			break;
 		case SOUTHEAST:
-			player->vel_x = speed2 * cos(PI/4);
-			player->vel_y = speed2 * sin(PI/4);
+			player->vel_x = speed * cos(PI/4);
+			player->vel_y = speed * sin(PI/4);
 			break;
 		case SOUTHWEST:
-			player->vel_x = speed2 * cos(3*PI/4);
-			player->vel_y = speed2 * sin(3*PI/4);
+			player->vel_x = speed * cos(3*PI/4);
+			player->vel_y = speed * sin(3*PI/4);
 			break;
 		case NORTHWEST:
-			player->vel_x = speed2 * cos(-1 * 3*PI/4);
-			player->vel_y = speed2 * sin(-1 * 3*PI/4);
+			player->vel_x = speed * cos(-1 * 3*PI/4);
+			player->vel_y = speed * sin(-1 * 3*PI/4);
 			break;
 		case NORTHEAST:
-			player->vel_x = speed2 * cos(-1 * PI/4);
-			player->vel_y = speed2 * sin(-1 * PI/4);
+			player->vel_x = speed * cos(-1 * PI/4);
+			player->vel_y = speed * sin(-1 * PI/4);
 			break;
 		default:
 			break;
@@ -1704,7 +1702,7 @@ void player_dash(struct player* player, struct map* map, struct cam* cam)
 	{
 		player->global_state = ST_P_NORMAL;
 		identify_player_sprite_location(player);
-		player->speed = player->base_speed / 20;
+		player->speed = player->base_speed / 16;
 		player->dash_timer = 0;
 	}
 	player->dash_timer ++;
@@ -1778,7 +1776,7 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	}
 	if(player->vel_x == 0 && player->vel_y == 0)
 	{
-		player->dir = SOUTH;
+		player->dir = player->dir;
 	}
 	if(cond)
 	{
@@ -1957,7 +1955,7 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
 		curr = (struct mObject*)dynList_get(map->mObject_list, i);
-		if(curr->killable == false)
+		if(curr->hittable == false)
 			continue;
 		dx = curr->x - pObject->x;
 		dy = curr->y - pObject->y;
@@ -2089,6 +2087,7 @@ void check_deathrattle_abilities(struct mObject* mObject, struct player* player,
 			break;
 		case 'd':
 			add_event(map->event_list, TYPE_EVENT_BRIDGE, player, map, 0, 0);
+			map->save.recent_runs_completed ++;
 		case 'c':
 		case 'v':
 		case 'o':
@@ -2096,6 +2095,7 @@ void check_deathrattle_abilities(struct mObject* mObject, struct player* player,
 			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_BAR));
 			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_DEC_BAR));
 			dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BOSS_FULL_BAR));
+			map->save.recent_bosses_killed ++;
 			break;
 		default:
 			break;
@@ -2166,7 +2166,10 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 	if(mObject->st.type == ST_ENEMYDEAD)
 	{
 		if(mObject->killable)
+		{
 			map->aggresive_mObj_count --;
+			map->save.recent_slain ++;
+		}
 		set_mObject_state(mObject, ST_DEATHRATTLE, state_deathrattle, 0, 64);
 		return;
 	}

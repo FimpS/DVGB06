@@ -84,7 +84,6 @@ struct player
 	card_dir dir;
 	int anim1counter;
 	int kills;
-
 	SDL_Rect sprite;
 	struct render_info anim;
 };
@@ -155,7 +154,7 @@ struct mObject
 	union 
 	{
 		int cheiftain_ticker;
-		double lol;
+		bool stat_checker;
 	} atts;
 
 	mObject_global_state type_reg;
@@ -188,6 +187,8 @@ void run_player_status_effects();
 bool has_player_status_effect();
 void startp_player_interaction();
 void endp_player_interaction();
+void stat_player_interaction();
+void display_all_stats();
 //e
 void tp_player_interaction();
 void tp_player_undone();

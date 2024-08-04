@@ -366,9 +366,9 @@ void initPlayer(struct player *player, int width, int height)
 	player->vel_x = 0;
 	player->vel_y = 0;
 	player->width = TILE_LENGTH * 1;
-	player->height = TILE_LENGTH * 6/4;
+	player->height = TILE_LENGTH * 1.5;
 	player->base_speed = PLAYER_START_MS;
-	player->speed = player->base_speed / 20;
+	player->speed = player->base_speed / 16;
 	player->theta = 0;
 	player->maxhealth = PLAYER_START_HP;
 	player->health = player->maxhealth;
@@ -874,7 +874,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->width = TILE_LENGTH * 2;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hittable = false;
-			mObject->killable = false;
+			mObject->killable = true;
 			mObject->st.type = st_placeholder;
 			mObject->r_info = get_rand_rune_info(map);
 			mObject->anim = init_render_info(0, 32, 4, 0, 12);
@@ -903,6 +903,16 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = init_sprite(256, 800, 32, 32);
 			mObject->anim = init_render_info(256, 32, 4, 0, 16);
 			mObject->st = init_mObject_state(endp_player_interaction, 0, 0, NULL);
+			break;
+		case MO_STATSIGN:
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 2;
+			mObject->hittable = false;
+			mObject->killable = false;
+			mObject->st.type = st_placeholder;
+			mObject->sprite = init_sprite(256, 832, 32, 32);
+			mObject->anim = init_render_info(256, 32, 1, 0, 16);
+			mObject->st = init_mObject_state(stat_player_interaction, 0, 360, NULL);
 			break;
 	}
 	mObject->health = mObject->max_health;

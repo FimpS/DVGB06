@@ -247,11 +247,25 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 				struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
 				if(curr->id == 'R')
 				{
+					map->aggresive_mObj_count --;
 					set_mObject_state(curr, ST_DEATHRATTLE, state_deathrattle, 0, 32);
 				}
 			}
 		}
 	}
+}
+
+void stat_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(AABB((struct mObject*)player, mObject))
+	{
+		if(mObject->atts.stat_checker == false && mObject->st.timer >= 128)
+		{
+			display_all_stats(map);
+			mObject->st.timer = 0;
+		}
+	}
+	mObject->st.timer ++;
 }
 
 void endp_player_whiten(struct mObject* mObject, struct player* player, struct map* map)
@@ -303,7 +317,7 @@ void startp_player_interaction(struct mObject* mObject, struct player* player, s
 		if(AABB((struct mObject*)player, mObject))
 		{
 			set_screen_shake(map, 0.1, 180);
-			add_message(map->msg_list, "FRUIT JUMPSCARE", X_MIDDLE_FONT, 4.0, 256, 2);
+			//add_message(map->msg_list, "FRUIT JUMPSCARE", X_MIDDLE_FONT, 4.0, 256, 2);
 			set_mObject_state(mObject, ST_STARTP_OPEN, state_startp_open, 0, 204);
 			//add_event(map->event_list, TYPE_EVENT_START_RUN, player, map, 0);
 		}
@@ -333,6 +347,8 @@ void tp_player_undone(struct mObject* mObject, struct player* player, struct map
 {
 	if(map->aggresive_mObj_count <= 0)
 	{
+		map->save.recent_rooms_completed ++;
+		add_message(map->msg_list, "!NO ENEMIES LEFT!", X_MIDDLE_FONT, 6.0, 128, 2);
 		set_mObject_state(mObject, ST_INTERACTABLE, tp_player_interaction, 0, 0);
 	}
 }
@@ -403,7 +419,74 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	if(player->y < 1)
 		player->y = 1;
 }
+#if 0
+void player_move(struct player *player, struct map *map, struct cam *cam)
+{
+	double new_x = 0, new_y = 0;
+	bool flight = false;
+	new_x = player->x + player->vel_x;
+	new_y = player->y + player->vel_y;
 
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == RN_HOLY)
+		flight = true;
+
+	const double offw = player->width/TILE_LENGTH;
+	const double offh = player->height/TILE_LENGTH;
+	const int fx = (int)(player->width/TILE_LENGTH);
+	const int fy = (int)(player->height/TILE_LENGTH);
+	const double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fx-offw) : 0.0);
+	const double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
+	const double f = 0.1;
+	if(!flight)
+	{
+		if(player->vel_x <= 0)
+		{
+			if(map_get_solid(map, (int)new_x, (int)player->y) || map_get_solid(map, (int)new_x, (int)(player->y + player->height/TILE_LENGTH - 0.1)))
+			{
+				new_x = (int)new_x + player->width/TILE_LENGTH * TILE_LENGTH/player->width;
+				player->vel_x = 0;
+			}
+		}
+		else
+		{
+			if(map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH), (int)player->y) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH), (int)(player->y + player->height/TILE_LENGTH - 0.1)))
+			{
+				new_x = (int)new_x + wunderkindw;
+				player->vel_x = 0;
+			}
+		}
+		if(player->vel_y <= 0)
+		{
+			if(map_get_solid(map, (int)new_x, (int)(new_y)) || map_get_solid(map, (int)(new_x + player->width/TILE_LENGTH - 0.1), (int)(new_y)))
+			{
+				new_y = (int)new_y + 1;
+				player->vel_y = 0;
+			}
+		}
+		else
+		{
+			if(map_get_solid(map, (int)(new_x), (int)(new_y + offh)) || map_get_solid(map, (int)(new_x + (offw - f)), (int)(new_y + offh)))
+			{
+				new_y = (int)new_y + wunderkindh;
+				player->vel_y = 0;
+			}
+		}
+	}
+	player->x = new_x;
+	player->y = new_y;
+
+	//extra clamp check
+	if(player->x >= (double)map->width-2)
+		player->x = (double)map->width-2;
+	if(player->y >= (double)map->height-2)
+		player->y = (double)map->height-2;
+	if(player->x < 1)
+		player->x = 1;
+	if(player->y < 1)
+		player->y = 1;
+}
+#endif
 void check_player_state(struct player* player, struct map* map, struct cam* cam, const Uint8* currentKeyStates)
 {
 	switch(player->global_state)
@@ -456,6 +539,39 @@ void reset_player_run(struct player* player, struct map* map)
 	//dynList_delete(player->
 }
 
+void display_stat(struct map* map, int stat, const char* str, double posx, double posy)
+{
+	char buff[64];
+	char tmp[16];
+	strcpy(buff, str); 
+	sprintf(tmp, "%d", stat);
+	for(int i = 1; i < strlen(tmp); i++)
+	{
+		buff[strlen(buff) - 1] = '\0';
+	}
+	strcat(buff, tmp);
+	add_message(map->msg_list, buff, posx, posy, 128, 1);
+}
+
+void display_all_stats(struct map* map)
+{
+	const double x = 21.0;
+	const double y = 3.0;
+	add_message(map->msg_list, "TOTAL;            ", x, y, 128, 1);
+	display_stat(map, map->save.monsters_slain, "MONSTERS SLAIN    ", x, y + 1);	
+	display_stat(map, map->save.rooms_completed, "ROOMS COMPLETED   ", x, y + 2);	
+	display_stat(map, map->save.bosses_killed, "BOSSES KILLED     ", x, y + 3);	
+	display_stat(map, map->save.runs_completed, "RUNS COMPLETED    ", x, y + 4);	
+	
+	add_message(map->msg_list, "RECENT;           ", x, y + 6, 128, 1);
+	display_stat(map, map->save.recent_slain, "MONSTERS SLAIN    ", x, y + 7);	
+	display_stat(map, map->save.recent_rooms_completed, "ROOMS COMPLETED   ", x, y + 8);	
+	display_stat(map, map->save.recent_bosses_killed, "BOSSES KILLED     ", x, y + 9);	
+	display_stat(map, map->save.recent_runs_completed, "RUNS COMPLETED    ", x, y + 10);
+}
+
+static int tocker = 0;
+
 void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynList *e_list, dynList *ev_list, dynList *pObject_list)
 {
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
@@ -463,6 +579,12 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 	player->vel_y = 0;
 	if(player->maxhealth < player->health)
 		player->health = player->maxhealth;
+	tocker ++;
+	if(currentKeyStates[SDL_SCANCODE_B] && tocker >= 60)
+	{
+		display_all_stats(map);
+		tocker = 0;
+	}
 
 	if(player->health <= 0 && (player->global_state != ST_P_DEAD && player->global_state != ST_P_GONE))
 	{

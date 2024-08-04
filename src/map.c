@@ -114,7 +114,6 @@ bool check_map_dupe(struct map* m, int stop)
 void gen_seed_map(struct map* m)
 {
 	size_t current = 0;
-	get_rand_bossID(m->s_map.content[current++], "ch3"); //generate specific boss layer
 	for(int j = 0; j < SEED_CHAPTER_AMOUNT; j++)
 	{
 		char curr_chapter[32] = "ch", magic[4];
@@ -139,7 +138,7 @@ void gen_seed_map(struct map* m)
 			}
 			current++;
 		}
-		//get_rand_bossID(m->s_map.content[current++], curr_chapter); //generate specific boss layer
+		get_rand_bossID(m->s_map.content[current++], curr_chapter); //generate specific boss layer
 	}
 }
 
@@ -157,6 +156,67 @@ struct screen_manager sm_init()
 	new.fullscreen = false;
 	return new;
 }
+
+void print_save_data(struct save_packet* save)
+{
+	printf("Total:\nMonsters -> %d\n", save->monsters_slain);
+	printf("Bosses -> %d\n", save->recent_bosses_killed);
+	printf("Rooms -> %d\n", save->rooms_completed);
+	printf("Runs -> %d\n", save->runs_completed);
+
+	printf("Recent:\nMonsters -> %d\n", save->recent_slain);
+	printf("Bosses -> %d\n", save->bosses_killed);
+	printf("Rooms -> %d\n", save->recent_rooms_completed);
+	printf("Runs -> %d\n", save->recent_runs_completed);
+}
+
+void add_recent_run_save(struct save_packet* save)
+{
+	if(!save->finished)
+	{
+		save->monsters_slain += save->recent_slain;
+		save->rooms_completed += save->recent_rooms_completed;
+		save->bosses_killed += save->recent_bosses_killed;
+		save->runs_completed += save->recent_runs_completed;
+		save->finished = true;
+	}
+}
+
+void load_game(struct save_packet* save)
+{
+	FILE *fp;
+	fp = fopen("save/s1.dat", "rb");
+	if(fp == NULL)
+	{
+		printf("Bad\n");
+		return;
+	}
+
+	fread(save, sizeof(struct save_packet), 1, fp);
+	fclose(fp);
+}
+
+struct save_packet sp_init(struct map* map)
+{
+	struct save_packet new = {0};
+	load_game(&new);
+	return new;
+}
+
+void save_game(struct map* map)
+{
+	FILE* fp;
+	fp = fopen("save/s1.dat", "wb");
+	if(fp == NULL)
+	{
+		printf("Bad\n");
+		return;
+	}
+
+	fwrite(&map->save, sizeof(struct save_packet), 1, fp);
+	fclose(fp);
+}
+
 struct map map_init()
 {
 	struct map m = {0};
@@ -172,6 +232,7 @@ struct map map_init()
 	m.height = MAP_HEIGHT;
 	m.sm = sm_init();
 	m.cam = cam_init();
+	m.save = sp_init(&m);
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
@@ -182,7 +243,7 @@ struct map map_init()
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 	m.anim.limit = 12;
-
+	//print_save_data(&m.save);
 	return m;
 }
 
@@ -323,6 +384,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'D');
 					m->content[x+y * m->width] = 'D';
 					break;
+				case 'Q':
+					spawn_mObject(m, x, y, MO_STATSIGN, 'Q');
+					m->content[x+y * m->width] = 'H';
+					break;
 				case 'T':
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'T');
 					m->content[x+y * m->width] = 'T';
@@ -371,7 +436,7 @@ void init_killcount(struct map *m)
 			m->aggresive_mObj_count ++;
 		}
 	}
-	printf("killables: %d\n", m->aggresive_mObj_count);
+	//printf("killables: %d\n", m->aggresive_mObj_count);
 }
 
 void reset_player(struct player *player)
@@ -392,7 +457,7 @@ bool check_rune_dupe(struct rune_info *map_runes, int stop)
 	for(i = 0; i < stop; i++)
 	{
 		if(map_runes[stop].rune_type == map_runes[i].rune_type)
-				return true;
+			return true;
 	}
 	return false;
 }
@@ -477,8 +542,10 @@ int hash_map_name(const char *map_name)
 void map_start_events(struct map *m, struct player *player)
 {
 	//tmp solutions maybe an & check for this
-		printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index - 1], hash_map_name(m->s_map.content[m->s_map.index - 1]));
-		printf("events: %d\n", m->s_map.index);
+#if 0
+	printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index - 1], hash_map_name(m->s_map.content[m->s_map.index - 1]));
+	printf("events: %d\n", m->s_map.index);
+#endif
 	switch(hash_map_name(m->s_map.content[m->s_map.index - 1]))
 	{
 		case 247177:
@@ -531,7 +598,7 @@ void load_map_file(struct map *m, char* filename)
 {
 	FILE *f;
 	char file[64];
-	printf("file: %s\n", filename);
+	//printf("file: %s\n", filename);
 	m->current_chapter = (int)filename[6] - '0';
 	f = fopen(filename, "r");
 	if(!f)
@@ -604,7 +671,7 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	//printf("%d\n", m->mObject_list->si
 	cam_update(&m->cam, m, player);
 	//map_start_events(m, player);
-	printf("chap:%d\n", m->current_chapter);
+	//printf("chap:%d\n", m->current_chapter);
 }
 
 void default_screen_shake(struct map *m)
@@ -677,8 +744,8 @@ void cam_update(struct cam *cam, struct map *map, struct player *player)
 
 	screen_shake(map);
 
-	cam->x = player->x + cam->shake_x;
-	cam->y = player->y + cam->shake_y; //LRU
+	cam->x = MIDPOINTX(player) + cam->shake_x;
+	cam->y = MIDPOINTY(player) + cam->shake_y; //LRU
 
 	cam->vis_tile_x = SCREEN_WIDTH / (TILE_LENGTH);
 	cam->vis_tile_y = SCREEN_HEIGHT / (TILE_LENGTH);
@@ -797,17 +864,10 @@ void get_lightmap(struct map* map, struct cam *cam)
 		switch(map->content[i])
 		{
 			case 'L':
-				map->lightmap.content[i] = 3;
-				break;
+			case 'u':
 			case 'S':
-				map->lightmap.content[i] = 3;
-				break;
 			case 'A':
-				map->lightmap.content[i] = 3;
-				break;
 			case 'C':
-				map->lightmap.content[i] = 3;
-				break;
 			case 't':
 				map->lightmap.content[i] = 3;
 				break;
@@ -864,6 +924,7 @@ static const SDL_Rect tile_info[] =
 	[']'] = {48, 80, 16, 16},
 	['}'] = {64, 80, 16, 16},
 	['L'] = {0, 112, 16, 16},
+	['u'] = {0, 176, 16, 16},
 	['W'] = {0, 96, 16, 16},
 	['G'] = {48, 32, 16, 16},
 	['P'] = {32, 32, 16, 16},
@@ -871,13 +932,16 @@ static const SDL_Rect tile_info[] =
 	['^'] = {64, 16, 16, 16},
 	['V'] = {64, 32, 16, 16},
 	['E'] = {128, 128, 16, 16},
+	['N'] = {96, 64, 16, 16},
+	['Y'] = {112, 64, 16, 16},
+	[';'] = {96, 80, 16, 16},
 	['T'] = {128, 128, 16, 16},
 	['D'] = {128, 128, 16, 16},
 	['!'] = {128, 128, 16, 16},
 	[' '] = {128, 128, 16, 16},
 };
 
-static char tile_animations[] = {"LWSAC"};
+static char tile_animations[] = {"LWSACu"};
 
 bool tile_anim_req(char tile)
 {

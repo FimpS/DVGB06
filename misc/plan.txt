@@ -19,7 +19,7 @@ TODO:
 
 	golem throw axe
 
-
+	if close to other aware enemies wake them up too
 Notes:
 	#macro for player->x - player->y / player->Zwidth + blablabal
 	- max: 64x64, min: 16x16
