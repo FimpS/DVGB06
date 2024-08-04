@@ -2,7 +2,34 @@
 . = empty
 1 = default enemy
 E = EXIT
-T,D = Teleport to Destination
 
 
-lanterns as mObject
+OBS
+Y = pot
+L = lamp
+u = couldron
+N = chalice
+
+
+En3
+8 = DOG
+9 = DNIGHT
+t = tower
+a = arch
+
+
+En2
+4 = arch
+5 = knight
+6 = mage 
+7 = summoner
+B = balista
+
+
+En1
+l = creep
+f = fknight
+w = well
+r = roller
+
+

@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 	bool full = true;
 	initPlayer(&player, 20, 20);
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
-	const char* tmp = "res/ch3_maps/ch3_boss1.txt";
+	const char* tmp = "res/ch0_maps/ch0_hubmap.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
 	SDL_Texture *tex[32];
@@ -128,6 +128,8 @@ int main(int argc, char **argv) {
 
 	}
 out:
+	add_recent_run_save(&map.save);
+	save_game(&map);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 

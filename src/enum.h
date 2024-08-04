@@ -57,6 +57,7 @@ typedef enum
 	MO_RUNE_GUARD,
 	MO_INTERACTABLE,
 	MO_STARTRUN,	
+	MO_STATSIGN,
 	MO_ENDRUN,	
 } mObject_type;
 

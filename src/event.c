@@ -14,6 +14,9 @@ void end_run_event(struct player* player, struct event* event, struct map* map)
 	//map_leave_run(map);
 	clear_seed_map(map);
 
+	//map->save.rooms_completed += map->save.recent_rooms_completed;
+	add_recent_run_save(&map->save);
+
 	reset_player_run(player, map);
 	strcpy(map->s_map.content[map->s_map.index], "res/ch0_maps/ch0_hubmap.txt");
 	//printf("Lecuck%d\n", player->rune_list->size);
@@ -30,6 +33,13 @@ void start_run_event(struct player* player, struct event* event, struct map* map
 	gen_seed_map(map);
 	map->s_map.index = 0;
 	event->complete = true;
+
+	map->save.recent_slain = 0;
+	map->save.recent_rooms_completed = 0;
+	map->save.recent_runs_completed = 0;
+	map->save.recent_bosses_killed = 0;
+	map->save.finished = false;
+
 	add_event(map->event_list, type_event_teleport, player, map, 0);
 	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
 		printf("%s\n", map->s_map.content[i]);
