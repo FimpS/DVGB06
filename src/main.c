@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC*/);
 
 	if(renderer == NULL)
 	{
@@ -90,6 +90,7 @@ int main(int argc, char **argv) {
 			}
 		}
 		const Uint8* cdr = SDL_GetKeyboardState(NULL);
+		int start_frame = SDL_GetTicks();
 		
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
@@ -113,6 +114,11 @@ int main(int argc, char **argv) {
 		update_tick();
 		//fade_in(renderer, &map.sm);
 		SDL_RenderPresent(renderer);
+		int end_frame = SDL_GetTicks() - start_frame;
+		if(1000/60 > end_frame)
+		{
+			SDL_Delay(1000/60 - end_frame);
+		}
 		//SDL_Delay(1000/70);
 #endif
 #if 0
