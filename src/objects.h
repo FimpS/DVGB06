@@ -71,6 +71,8 @@ struct player
 	int dash_timer;
 	int invuln_limit;
 	int dash_cooldown_timer;
+	int dash_invuln;
+	int dmg_invuln;
 	int shock_counter;
 	int hit_counter;
 	double sword_damage;

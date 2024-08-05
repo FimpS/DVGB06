@@ -343,13 +343,42 @@ void tp_player_interaction(struct mObject *mObject, struct player* player, struc
 	}
 }
 
+static char *stat_strs[] =
+{
+	"MAX HEALTH",
+	"DAMAGE",
+	"ATTACK SPEED",
+	"DAMAGE INVULNERABILITY",
+	"DASH INVULNERABILITY",
+	"MOVEMENT SPEED",
+};
+
+void add_map_end_stat(struct map* map, struct player* player)
+{
+	int stat_upgrade = rand() % 6;
+	player->health += 20;
+	switch(stat_upgrade)
+	{
+		case 0: player->maxhealth += 40; break;
+		case 1: player->sword_damage += 5.0; break;
+		case 2: player->attack_speed -= 4; break;
+		case 3: player->dmg_invuln += 8; break;
+		case 4: player->dash_invuln += 2; break;
+		case 5: player->base_speed += 0.025; break;
+	}
+	const char *stat_str = stat_strs[stat_upgrade];
+	add_message(map->msg_list, "UPGRADE;", X_MIDDLE_FONT, 4.0, 128, 2);
+	add_message(map->msg_list, stat_str, X_MIDDLE_FONT, 6.0, 128, 2);
+}
+
 void tp_player_undone(struct mObject* mObject, struct player* player, struct map* map)
 {
 	if(map->aggresive_mObj_count <= 0)
 	{
 		map->save.recent_rooms_completed ++;
-		add_message(map->msg_list, "!NO ENEMIES LEFT!", X_MIDDLE_FONT, 6.0, 128, 2);
+		add_message(map->msg_list, "!NO ENEMIES LEFT!", X_MIDDLE_FONT, 2.0, 128, 2);
 		set_mObject_state(mObject, ST_INTERACTABLE, tp_player_interaction, 0, 0);
+		add_map_end_stat(map, player);
 	}
 }
 
@@ -532,6 +561,8 @@ void reset_player_run(struct player* player, struct map* map)
 	player->attack_speed = PLAYER_START_AS;
 	player->sword_damage = PLAYER_START_DMG;
 	player->kills = 0;
+	player->dash_invuln = PLAYER_START_DASH_INVULN;
+	player->dmg_invuln = PLAYER_START_DMG_INVULN;
 	player->sword_effect_type = STATUS_NONE;
 	player->global_state = ST_P_NORMAL;
 	dynList_clear(player->rune_list);
@@ -796,7 +827,7 @@ void player_hit(struct player* player, double damage, double theta)
 {
 	player->invuln = true;
 	player->timer = 0;
-	player->invuln_limit = 48;
+	player->invuln_limit = player->dmg_invuln;
 	if(divine_shield(player) == true)
 		return;
 	player->health -= damage;
@@ -847,15 +878,18 @@ void burn_status_effect(struct player* player, struct status_effect *effect)
 {
 	if(effect->timer % 40 == 0)
 	{
-		player->health -= 100.0;
+		player->health -= 3.0;
 	}
 }
 void bogged_status_effect(struct player* player, struct status_effect *effect)
 {
-	player->base_speed = 0.5;
-	if(effect->timer >= effect->limit)
+	if(effect->timer == 0)
 	{
-		player->base_speed = 1.0;
+		player->base_speed -= 0.35;
+	}
+	if(effect->timer == effect->limit)
+	{
+		player->base_speed += 0.35;
 	}
 }
 void stun_status_effect(struct player* player, struct status_effect *effect)
@@ -876,15 +910,6 @@ bool has_player_status_effect(struct player* player, object_status_effect effect
 {
 	if(dynList_is_empty(player->se_list))
 		return false;
-#if 0
-	for(int i = 0; i < player->se_list->size; i++)
-	{
-		struct status_effect *curr = dynList_get(player->se_list, i);
-		if(curr->type == effect)
-			return true;
-	}
-	return false;
-#endif
 	return effect == ((struct status_effect*)dynList_get(player->se_list, 0))->type;
 }
 

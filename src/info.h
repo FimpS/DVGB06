@@ -1,10 +1,12 @@
 #ifndef INFO_H
 #define INFO_H
 
-#define PLAYER_START_HP 1000
-#define PLAYER_START_AS 32
-#define PLAYER_START_MS 1.0
-#define PLAYER_START_DMG 200
+#define PLAYER_START_HP 200
+#define PLAYER_START_AS 48
+#define PLAYER_START_MS 0.75
+#define PLAYER_START_DMG 40
+#define PLAYER_START_DASH_INVULN 8
+#define PLAYER_START_DMG_INVULN 40
 
 void init_pObject();
 void init_mObject();

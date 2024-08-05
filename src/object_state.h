@@ -20,21 +20,22 @@
 #define ROCK_WELL_CAST_RANGE 36
 #define ROCK_ROLLER_ROLL_RANGE 49
 #define VORTEX_CLOSE_CAST_RANGE 8
-#define ARCHER_INRANGE 49
-#define SWORDSMAN_INRANGE 4
+#define ARCHER_INRANGE 25
+#define FIRE_ARCHER_INRANGE 42
+#define SWORDSMAN_INRANGE 8
 #define DEATHRATTLE_LIMIT 16
-#define MAGUS_CAST_RANGE 16
+#define MAGUS_CAST_RANGE 49
 #define MAGUS_CAST_COOLDOWN 32
-#define SUMMONER_RANGE 49
+#define SUMMONER_RANGE 64
 #define CRAWLER_RANGE 144
 #define RIDER_CHARGE_RANGE 49
-#define DRIDER_FIRE_RANGE 36
+#define DRIDER_FIRE_RANGE 25
 #define FIRE_TOWER_RANGE 49
 #define CRAWLER_CHARGE_COOLDOWN 32
 //bosses
 #define GOLEM_STOMP_RANGE 16
 #define GOLEM_ATTACK_RANGE 64
-#define GOLEM_ABILITY_COOLDOWN 48
+#define GOLEM_ABILITY_COOLDOWN 64
 #define CULTIST_RANGE_SUMMON 144
 #define CULTIST_RANGE_CROSS 64
 
@@ -162,6 +163,7 @@ void state_enemy_default();
 
 //generic for pObjects
 void state_pObject_deathrattle();
+void check_pObject_mObject_hit();
 //pObject
 void state_player_spear_action();
 void state_sword_shockwave();

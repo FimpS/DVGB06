@@ -84,7 +84,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case PO_BALISTA_BOLT:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH/2;
-			pObject->speed = 0.1;
+			pObject->speed = 0.125;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
@@ -216,6 +216,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0.15;
+			pObject->anim_frames = 14.0;
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->status_effect = STATUS_BURN;	
@@ -238,24 +239,23 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case PO_HEX_ARROW:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH / 2;
-			pObject->speed = 0.15;
+			pObject->speed = 0.2;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			pObject->penetration_index = 1;
 			pObject->status_effect = STATUS_HEX;	
 			pObject->sprite = init_sprite(0, 272, 16, 16);
-			pObject->st = init_pObject_state(state_hex_arrow_action, 0, 16);
+			pObject->st = init_pObject_state(state_hex_arrow_action, 0, 48);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
 		case PO_GOLEM_ROCK:
-			pObject->speed = get_frand(0.1, 0.05);
-			int fuck_you = rand() % 20;
-			pObject->width = TILE_LENGTH + fuck_you;
-			pObject->height = TILE_LENGTH + fuck_you;
+			pObject->speed = get_frand(0.15, 0.05);
+			const int enbiggen = rand() % 20;
+			pObject->width = TILE_LENGTH + enbiggen;
+			pObject->height = TILE_LENGTH + enbiggen;
 			pObject->damage = dmg;
-			pObject->transp = false;
-			
+			pObject->transp = true;
 			pObject->sprite = init_sprite(0, 208, 16, 16);
 			pObject->st = init_pObject_state(state_golem_rock_travel, 0, 128);
 			pObject->anim_tile_length = 16;
@@ -264,7 +264,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case PO_GOLEM_MELEE_WEAPON:
 			pObject->width = TILE_LENGTH * 5/2;
 			pObject->height = TILE_LENGTH * 5/2;
-			pObject->speed = 0.15;
+			pObject->speed = 0.1;
 			pObject->damage = dmg;
 			pObject->transp = false;
 			
@@ -281,7 +281,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->damage = dmg;
 			pObject->transp = true;
 			pObject->sprite = init_sprite(0, 176, 16, 16);
-			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 48);
+			pObject->st = init_pObject_state(state_magic_bolt_travel, 0, 32);
 			break;
 		case PO_BLOOD_SEEKER:
 			pObject->width = TILE_LENGTH / 2;
@@ -374,6 +374,8 @@ void initPlayer(struct player *player, int width, int height)
 	player->health = player->maxhealth;
 	player->global_state = ST_P_NORMAL;
 	player->invuln = false;
+	player->dash_invuln = PLAYER_START_DASH_INVULN;
+	player->dmg_invuln = PLAYER_START_DMG_INVULN;
 	player->cd = 0;
 	player->dash_timer = 0;
 	player->dash_cooldown_timer = 0;
@@ -493,17 +495,17 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_crawler_idle, 0, 40, NULL);
 			break;
 		case MO_CRAWLER:
-			mObject->max_health = 100;
+			mObject->max_health = 40;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
-			mObject->speed = mObject->base_speed / 6.67;
+			mObject->speed = mObject->base_speed / 20;
 			mObject->mass = 30;
 			mObject->wall_collide = false;
 			mObject->hit = false;
 			mObject->hittable = true;
 			mObject->killable = true;
 			if(mObject->id == 'z') mObject->killable = false;
-			mObject->contact_damage = 22;
+			mObject->contact_damage = 5;
 			mObject->sprite = init_sprite(0, 96, 16, 16);
 			mObject->anim = init_render_info(0, 16, 4, 0, 8);
 			mObject->type_reg = ST_CRAWLER_IDLE;
@@ -551,8 +553,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->anim.rotatable = true;
 			break;
 		case MO_PEAK_LOCAL:
-			mObject->speed = mObject->base_speed / 24;
-			mObject->max_health = 150;
+			mObject->speed = mObject->base_speed / 28;
+			mObject->max_health = 80;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
@@ -568,11 +570,11 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_PEAK_KNIGHT:
 			mObject->speed = mObject->base_speed / 16;
-			mObject->max_health = 150;
+			mObject->max_health = 120;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
-			mObject->mass = 40;
+			mObject->mass = 55;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
@@ -584,8 +586,8 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_peak_knight_idle, 0, 40, state_peak_knight_aware);
 			break;
 		case MO_ROCK_WELL:
-			mObject->speed = mObject->base_speed / 24;
-			mObject->max_health = 150;
+			mObject->speed = mObject->base_speed / 28;
+			mObject->max_health = 60;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -603,13 +605,13 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ROCK_ROLLER:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->max_health = 150;
+			mObject->max_health = 120;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
 			mObject->mass = 60;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 50.0;
+			mObject->contact_damage = 14.0;
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->hyperarmor = false;
@@ -619,14 +621,14 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_rock_roller_idle, 0, 40, state_rock_roller_aware);
 			break;
 		case MO_ROCK_VORTEX:
-			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 2000;
+			mObject->speed = 0;
+			mObject->max_health = 1000;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
 			mObject->mass = 999;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 0;
+			mObject->contact_damage = 22;
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->anim = init_render_info(256, 32, 4, 0, 12);
@@ -637,7 +639,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_LOCAL_QUEEN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 2000;
+			mObject->max_health = 800;
 			mObject->width = TILE_LENGTH * 1;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
@@ -654,7 +656,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ARCHER:
 			mObject->speed = mObject->base_speed;
-			mObject->max_health = 150;
+			mObject->max_health = 120;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3/2;
 			mObject->hit = false;
@@ -670,7 +672,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_SWORDSMAN:
 			mObject->speed = mObject->base_speed;
-			mObject->max_health = 250;
+			mObject->max_health = 160;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
@@ -678,6 +680,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
+			mObject->hyperarmor = true;
 			mObject->killable = true;
 			mObject->sprite = init_sprite(0, 112, 16, 24);
 			mObject->anim = init_render_info(0, 16, 4, 0, 32);
@@ -686,11 +689,11 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;		
 		case MO_MAGUS:
 			mObject->speed = mObject->base_speed;
-			mObject->max_health = 75;
+			mObject->max_health = 120;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
-			mObject->mass = 25;
+			mObject->mass = 35;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
@@ -702,11 +705,11 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_SUMMONER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 200;
+			mObject->max_health = 160;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
-			mObject->mass = 30;
+			mObject->mass = 45;
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
@@ -718,7 +721,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_GOLEM:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 2000;
+			mObject->max_health = 1400;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
@@ -735,7 +738,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_CULTIST_CHIEFTAIN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 200;
+			mObject->max_health = 600;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
@@ -753,19 +756,19 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RIDER_FIGHTER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 400;
+			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH * 2;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
 			mObject->mass = 75;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 50;
+			mObject->contact_damage = 20;
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->anim = init_render_info(256, 32, 4, 0, 8);
 			mObject->sprite = init_sprite(256, 0, 32, 32);
 			mObject->type_reg = ST_RIDER_AWARE;
-			mObject->hyperarmor = false;
+			mObject->hyperarmor = true;
 			mObject->st = init_mObject_state(state_rider_idle, 0, 102, state_rider_idle);
 			break;
 		case MO_DRIDER_FIGHTER:
@@ -774,9 +777,9 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
-			mObject->mass = 40;
+			mObject->mass = 80;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 50;
+			mObject->contact_damage = 14;
 			mObject->hittable = true;
 			mObject->killable = true;
 			if(mObject->id == 'm') mObject->killable = false;
@@ -787,7 +790,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->st = init_mObject_state(state_drider_idle, 0, 102, state_drider_idle);
 			break;
 		case MO_FIRE_TOWER:
-			mObject->speed = mObject->base_speed / 20;
+			mObject->speed = 0.0;
 			mObject->max_health = 200;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 3;
@@ -806,7 +809,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_FIRE_BOMBER:
 			mObject->speed = mObject->base_speed / 24;
-			mObject->max_health = 100;
+			mObject->max_health = 40;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH;
 			mObject->hit = false;
@@ -824,13 +827,13 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_FIRE_ARCHER:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 400;
+			mObject->max_health = 175;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 1.5;
 			mObject->hit = false;
-			mObject->mass = 40;
+			mObject->mass = 55;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 50;
+			mObject->contact_damage = 0;
 			mObject->hittable = true;
 			mObject->killable = true;
 			if(mObject->id == 'n') mObject->killable = false;
@@ -842,13 +845,13 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RUNE_GUARD:
 			mObject->speed = 0;
-			mObject->max_health = 40;
+			mObject->max_health = 2000;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 2.0;
 			mObject->hit = false;
-			mObject->mass = 40;
+			mObject->mass = 999;
 			mObject->wall_collide = false;
-			mObject->contact_damage = 20.0;
+			mObject->contact_damage = 20;
 			mObject->hittable = true;
 			mObject->killable = true;
 			mObject->anim = init_render_info(0, 22, 4, 0, 12);
