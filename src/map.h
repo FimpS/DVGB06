@@ -105,6 +105,7 @@ struct map
 	int aggresive_mObj_count;
 	int current_chapter;
 	bool quit;
+	bool mouse_clicked;
 	char map_name[128];
 	struct lightmap lightmap;
 	//int lightmap[CONTENT_SIZE];

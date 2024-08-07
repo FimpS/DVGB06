@@ -122,6 +122,7 @@ void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Re
 
 void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
 {
+
 	const double conv = 57.29577;
 	bool flip = false;
 	if(player->theta < PI/2 && player->theta > -1 * PI/2)
@@ -140,7 +141,9 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 	SDL_RenderCopyEx(renderer, tex, &player->sprite, &dR, 0, NULL, flip);
 	if(player->anim.timer >= player->anim.limit)
 	{
+
 		player->anim.timer = 0;
+		player->sprite.x -= player->anim.start_frame;
 		player->sprite.x += player->anim.tile_length;
 		player->sprite.x %= player->anim.frames * player->anim.tile_length;
 		player->sprite.x += player->anim.start_frame;
@@ -159,7 +162,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
 	int red = 0, green = 0, blue = 0;
-	
+
 	if(mObject->status_effect.type == STATUS_FROSTBITE)
 	{
 		blue = 75;
@@ -167,6 +170,11 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	if(mObject->status_effect.type == STATUS_ROT)
 	{
 		green = 75;
+	}
+	if(mObject->status_effect.type == STATUS_STASIS)
+	{
+		blue = 75;
+		red = 75;
 	}
 	double dist = 0;
 	double dx = (mObject->x - player->x);
@@ -226,7 +234,7 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
 	//const int def = 150;
 	//SDL_SetTextureColorMod(tex, def, def, def);
-	
+
 	if(pObject->anim_timer >= pObject->anim_limit)
 	{
 		pObject->anim_timer = 0;
@@ -266,11 +274,20 @@ void render_UI_text(struct message* msg, SDL_Renderer *renderer, SDL_Texture *te
 void run_reset_UI(struct map* map)
 {
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
-	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
-	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
@@ -429,7 +446,7 @@ void menu_action(struct map* map)
 		case 3:
 			map->quit = true;
 			break;
-		
+
 	}
 }
 

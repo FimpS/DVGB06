@@ -69,8 +69,9 @@ int main(int argc, char **argv) {
 
 	//INIT
 	bool full = true;
-	initPlayer(&player, 20, 20);
+	initPlayer(&player, &map);
 	//map_load_scene(&map, "res/testmap.txt", map.mObject_list, &player);
+	//const char* tmp = "res/ch2_maps/ch2_6.txt";
 	const char* tmp = "res/ch0_maps/ch0_hubmap.txt";
 	map_load_scene(&map, tmp/*map.s_map.content[map.s_map.index]*/, map.mObject_list, &player);
 	//INIT
@@ -78,14 +79,19 @@ int main(int argc, char **argv) {
 	gfx_init(tex, renderer);
 	int start = SDL_GetTicks();
 	int framecount = 0;
+	bool boola = false;
 	while(!quit)
 	{
+		//TODO mvoe this?????!+?!?!???!+
 		while(SDL_PollEvent(&e))
 		{
 			switch(e.type)
 			{
 				case SDL_QUIT:
 					quit = 1;
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					if(e.button.button == SDL_BUTTON_LEFT) map.mouse_clicked = true;
 					break;
 			}
 		}

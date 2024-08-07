@@ -42,7 +42,7 @@ struct mObject* id_get_mObj(struct map* map, char id)
 
 static int effect_limits[] = 
 {
-	128, //HEX
+	64, //HEX
 	64, //STUN
 	564, //BOG
 	128, //BURN
@@ -81,22 +81,22 @@ void spawn_mObject(struct map* map, int x, int y, mObject_type type, char id)
 void check_damage_modifiers(struct mObject *target, struct pObject *source, struct player* player)
 {	
 	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
-	if(rune != NULL && rune->info.rune_type == RN_BLOOD)
-	{
-		player->health += player->sword_damage * 0.05;
-	}
-
 	rune = (struct rune*)dynList_get(player->rune_list, 2);
 	if(rune != NULL && rune->info.rune_type == RN_ROT && target->status_effect.type == STATUS_ROT)
 	{
 		target->health -= 0.5 * source->damage;
+	}
+	rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == RN_GRAVITY && target->hyperarmor)
+	{
+		target->health -= (source->knockkoef - 1) * source->damage;
 	}
 }
 
 void stasis_status_effect(struct mObject *mObject, struct player* player)
 {
 	mObject->base_speed = 0;
-	if(mObject->status_effect.timer > mObject->status_effect.limit)
+	if(mObject->status_effect.timer >= mObject->status_effect.limit)
 	{
 		mObject->base_speed = 1;
 		set_status_effect(mObject, 0, 0, STATUS_NONE);
@@ -107,12 +107,12 @@ void stasis_status_effect(struct mObject *mObject, struct player* player)
 void frozen_status_effect(struct mObject *mObject, struct player* player)
 {
 	mObject->base_speed = 0.25;
-	if(mObject->status_effect.timer > mObject->status_effect.limit)
+	if(mObject->status_effect.timer >= mObject->status_effect.limit)
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 3);
 		if(rune != NULL && rune->info.rune_type == RN_FROST)
 		{
-			mObject->health -= 100; //mObject->health * 0.5;
+			mObject->health -= player->sword_damage * 3; //mObject->health * 0.5;
 			printf("frost procced %d\n", mObject->health);
 		}
 		set_status_effect(mObject, 0, 0, STATUS_NONE);
@@ -126,7 +126,7 @@ void rot_status_effect(struct mObject *mObject)
 	if(getTick() % 60 == 0)
 	{
 		mObject->health -= 20;
-		printf("%d\n", mObject->health);
+		//printf("%d\n", mObject->health);
 	}
 	if(mObject->status_effect.timer > mObject->status_effect.limit)
 	{
@@ -359,12 +359,12 @@ void add_map_end_stat(struct map* map, struct player* player)
 	player->health += 20;
 	switch(stat_upgrade)
 	{
-		case 0: player->maxhealth += 40; break;
+		case 0: player->maxhealth += 40; player->health += 40; break;
 		case 1: player->sword_damage += 5.0; break;
-		case 2: player->attack_speed -= 4; break;
+		case 2: player->attack_speed -= 2; break;
 		case 3: player->dmg_invuln += 8; break;
 		case 4: player->dash_invuln += 2; break;
-		case 5: player->base_speed += 0.025; break;
+		case 5: player->base_speed += 0.0125; break;
 	}
 	const char *stat_str = stat_strs[stat_upgrade];
 	add_message(map->msg_list, "UPGRADE;", X_MIDDLE_FONT, 4.0, 128, 2);
@@ -388,10 +388,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	bool flight = false;
 	new_x = player->x + player->vel_x;
 	new_y = player->y + player->vel_y;
-
-	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-	if(rune != NULL && rune->info.rune_type == RN_HOLY)
-		flight = true;
 
 	double offw = player->width/TILE_LENGTH;
 	double offh = player->height/TILE_LENGTH;
@@ -455,10 +451,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	bool flight = false;
 	new_x = player->x + player->vel_x;
 	new_y = player->y + player->vel_y;
-
-	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
-	if(rune != NULL && rune->info.rune_type == RN_HOLY)
-		flight = true;
 
 	const double offw = player->width/TILE_LENGTH;
 	const double offh = player->height/TILE_LENGTH;
@@ -531,6 +523,8 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 			player_knockbacked(player, cam, map);
 			break;
 		case ST_P_DASH:
+			//input_attack(player, map, currentKeyStates);
+			player_dash_atk(player, map);
 			player_dash(player, map, cam);
 			break;
 		case ST_P_ATTACK:
@@ -619,6 +613,12 @@ void updatePlayer(struct player *player, struct map *map, struct cam *cam, dynLi
 
 	if(player->health <= 0 && (player->global_state != ST_P_DEAD && player->global_state != ST_P_GONE))
 	{
+		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 3);
+		if(rune != NULL && rune->info.rune_type == RN_HOLY)
+		{
+			player->health += 50 * rune->attribute --;
+			return;
+		}
 		player->global_state = ST_P_DEAD;
 		identify_player_sprite_location(player);
 	}
@@ -798,7 +798,7 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 				rune = (struct rune*)dynList_get(player->rune_list, 3);
 				if(rune != NULL && rune->info.rune_type == RN_GRAVITY)
 				{
-					set_status_effect_area(mObject, map, 4, STATUS_STASIS);
+					set_status_effect(mObject, 0, effect_limits[STATUS_STASIS], STATUS_STASIS);
 				}
 				mObject->health -= player->sword_damage * 1;
 				hit_wall = false;
@@ -960,6 +960,10 @@ bool effect_exists(struct player* player, object_status_effect effect)
 
 void apply_player_status_effect(struct player* player, object_status_effect effect)
 {
+
+	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 2);
+	if(rune != NULL && rune->info.rune_type == RN_HOLY)
+		return;
 	if(effect == STATUS_NONE || effect_exists(player, effect))
 		return;
 	struct status_effect *new = (struct status_effect*)malloc(sizeof(struct status_effect));
@@ -967,7 +971,6 @@ void apply_player_status_effect(struct player* player, object_status_effect effe
 	new->timer = 0;
 	new->limit = effect_limits[effect]; 
 	dynList_add(player->se_list, (void*)new);
-	printf("%d %d\n", effect, new->limit);
 }
 
 void pObject_player_hitbox(struct pObject* pObject, struct player *player)

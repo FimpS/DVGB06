@@ -1,24 +1,18 @@
 
 
 Enemies:
-Add aggresive counter upp when mObject on death
-Way too many enemies on ch2
-Roller gets hyperarmor
-maybe knight get it rewoked
-Maybe more attack on ch3 enemies, test
 Fix deathrattles for bosses
+add add_event destroy enemty so it doesnt destroy in update loop
 
-
-Runes:
-check dmg numbers on them all
-blood anchor way too op heal on deaht is better
-
+runes:
+	cant exit with anchor unhoyl
+	poison way too much dmg and time
+	rot can hit in deathrattle which double kilsl them
 Spear:
 maybe penetration 2?
 
-Maps:
-Chapter 3 one had random thing on it
-Chapter 2 2x1 tile make solid
+player:
+	player sets speed not only base_speed
 
 At last boss on average:
 

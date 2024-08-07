@@ -69,7 +69,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 	pObject->theta = theta;
 	pObject->anim_timer = 0;
 	pObject->knockbacker = true;
-	pObject->knockkoef = 1;
+	pObject->knockkoef = 1.0;
 	pObject->dir = dir;
 	pObject->penetration_index = 1;
 
@@ -97,9 +97,9 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
 
-			pObject->speed = 0.2;
+			pObject->speed = 0.15;
 			pObject->damage = dmg;
-			pObject->transp = false;
+			pObject->transp = true;
 			pObject->penetration_index = 1;
 			
 			pObject->sprite = init_sprite(0, 32, 16, 16);
@@ -132,11 +132,11 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->st = init_pObject_state(state_gravity_well_travel, 0, 300);
 			break;
 		case PO_GRAVITY_BOLT:
-			pObject->width = TILE_LENGTH / 1.5;
-			pObject->height = TILE_LENGTH / 1.5;
+			pObject->width = TILE_LENGTH / 2;
+			pObject->height = TILE_LENGTH / 2;
 			pObject->speed = 0.05; //prev 0.05
 			pObject->damage = dmg;
-			pObject->transp = true;
+			pObject->transp = false;
 			pObject->thetaacc = 0;
 			pObject->sprite = init_sprite(0, 96, 16, 16);
 			pObject->st = init_pObject_state(state_gravity_bolt_travel, 0, 120);
@@ -144,12 +144,12 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case PO_BLOOD_TAX:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.25;
+			pObject->speed = 0.125;
 			pObject->damage = dmg;
-			pObject->transp = true;
+			pObject->transp = false;
 			pObject->penetration_index = 1;
 			pObject->sprite = init_sprite(0, 0, 16, 16);
-			pObject->st = init_pObject_state(state_blood_tax, 0, 48);
+			pObject->st = init_pObject_state(state_blood_tax, 0, 56);
 			break;
 		case PO_SWAMP_POOL:
 			pObject->width = TILE_LENGTH * 2;
@@ -205,7 +205,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->height = TILE_LENGTH;
 			pObject->speed = 0;
 			pObject->damage = dmg;
-			pObject->transp = false;
+			pObject->transp = true;
 			
 			pObject->sprite = init_sprite(0, 192, 32, 16);
 			pObject->st = init_pObject_state(state_swordsman_sword_swing, 0, 16);
@@ -215,13 +215,13 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 		case PO_FIRE_SLING:
 			pObject->width = TILE_LENGTH;
 			pObject->height = TILE_LENGTH;
-			pObject->speed = 0.15;
+			pObject->speed = 0.1;
 			pObject->anim_frames = 14.0;
 			pObject->damage = dmg;
-			pObject->transp = true;
+			pObject->transp = false;
 			pObject->status_effect = STATUS_BURN;	
 			pObject->sprite = init_sprite(0, 240, 16, 16);
-			pObject->st = init_pObject_state(state_fire_sling_action, 0, 64);
+			pObject->st = init_pObject_state(state_fire_sling_action, 0, 80);
 			pObject->anim_tile_length = 16;
 			pObject->anim_frames = 4;
 			break;
@@ -336,9 +336,26 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->speed = 0;
 			pObject->damage = dmg;
 			pObject->transp = true;
+			pObject->knockkoef = player->pObject_knockkoef;
 			pObject->status_effect = player->sword_effect_type;
 			pObject->sprite = init_sprite(0, 48, 48, 16);
 			pObject->st = init_pObject_state(state_player_spear_action, 0, 8);
+			pObject->anim_tile_length = 32;
+			pObject->anim_frames = 1;
+			break;
+		case PO_PLAYER_SPEAR_DASH:
+			pObject->width = TILE_LENGTH * 3;
+			pObject->height = TILE_LENGTH * 1;
+			pObject->speed = 0;
+			pObject->damage = dmg;
+			pObject->transp = true;
+			pObject->status_effect = player->sword_effect_type;
+			pObject->knockkoef = player->pObject_knockkoef / 2;
+			pObject->thetaacc = pObject->theta + PI/3;
+			//pObject->theta -= PI/3;
+			pObject->theta -= PI/3;
+			pObject->sprite = init_sprite(0, 64, 48, 16);
+			pObject->st = init_pObject_state(state_player_spear_dash_action, 0, 6);
 			pObject->anim_tile_length = 32;
 			pObject->anim_frames = 1;
 			break;
@@ -359,7 +376,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			break;
 	}
 }
-void initPlayer(struct player *player, int width, int height)
+void initPlayer(struct player *player, struct map* map)
 { 
 	player->x = 2;
 	player->y = 2;
@@ -374,6 +391,7 @@ void initPlayer(struct player *player, int width, int height)
 	player->health = player->maxhealth;
 	player->global_state = ST_P_NORMAL;
 	player->invuln = false;
+	player->has_dash_atk = false;
 	player->dash_invuln = PLAYER_START_DASH_INVULN;
 	player->dmg_invuln = PLAYER_START_DMG_INVULN;
 	player->cd = 0;
@@ -387,13 +405,25 @@ void initPlayer(struct player *player, int width, int height)
 	player->shock_counter = 6;
 	player->anim1counter = 0;
 	player->sword_damage = PLAYER_START_DMG;
-	player->pObject_knockkoef = 1;
+	player->pObject_knockkoef = 1.0;
 	player->kills = 0;
 	player->se_list = dynList_create();
 	player->rune_list = dynList_create();
 	player->anim = init_render_info(0, 16, 4, 0, 16);
 	player->sprite = init_sprite(0, 0, 16, 24);
 	player->sword_effect_type = STATUS_NONE;
+#if 0
+	int type = RN_FROST;
+	struct rune_info r = init_rune_info(type, 0, "t");
+	add_rune(player, r, map);
+	r = init_rune_info(type, 1, "t");
+	add_rune(player, r, map);
+	r = init_rune_info(type, 2, "t");
+	add_rune(player, r, map);
+	r = init_rune_info(type, 3, "t");
+	add_rune(player, r, map);
+	//printf("%lf\n", player->base_speed);
+#endif
 }
 void identify_player_sprite_location(struct player* player)
 {
@@ -403,10 +433,9 @@ void identify_player_sprite_location(struct player* player)
 			player->sprite = init_sprite(0, 0, 16, 24);
 			player->anim = init_render_info(0, 16, 4, 0, 16);
 			break;
-
-		case ST_P_ATTACK:
-			player->sprite = init_sprite(0, 24, 16, 24);
-			player->anim = init_render_info(0, 16, 1, 0, (PLAYER_ATTACK_LIMIT + PLAYER_ATTACKING_LIMIT) / 4);
+		case ST_P_ATTACKING:
+			player->sprite = init_sprite(64, 48, 16, 24);
+			player->anim = init_render_info(64, 16, 4, 0, 5);
 			break;
 		case ST_P_DASH:
 			player->sprite = init_sprite(96, 0, 16, 24);
@@ -614,7 +643,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->contact_damage = 14.0;
 			mObject->hittable = true;
 			mObject->killable = true;
-			mObject->hyperarmor = false;
+			mObject->hyperarmor = true;
 			mObject->sprite = init_sprite(256, 448, 16, 16);
 			mObject->anim = init_render_info(256, 16, 8, 0, 16);
 			mObject->type_reg = ST_ROCK_ROLLER_AWARE;
@@ -680,7 +709,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->wall_collide = false;
 			mObject->contact_damage = 0;
 			mObject->hittable = true;
-			mObject->hyperarmor = true;
+			mObject->hyperarmor = false;
 			mObject->killable = true;
 			mObject->sprite = init_sprite(0, 112, 16, 24);
 			mObject->anim = init_render_info(0, 16, 4, 0, 32);

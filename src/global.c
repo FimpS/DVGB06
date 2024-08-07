@@ -15,6 +15,13 @@ double norm(double top, double bot)
 	return top/(sqrt(sum_square(top, bot)));
 }
 
+bool mouse_clicked(struct map* map)
+{
+	bool tmp = map->mouse_clicked;
+	map->mouse_clicked = false;
+	return tmp;
+}
+
 int tick = 0;
 int getTick()
 {

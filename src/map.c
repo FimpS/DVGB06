@@ -228,6 +228,7 @@ struct map map_init()
 	//	printf("%s\n", m.s_map.content[i]);
 	//m.s_map.index = 0;
 	m.quit = false;
+	m.mouse_clicked = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
 	m.sm = sm_init();
@@ -439,14 +440,19 @@ void init_killcount(struct map *m)
 	//printf("killables: %d\n", m->aggresive_mObj_count);
 }
 
-void reset_player(struct player *player)
+void reset_player(struct player *player, struct map* map)
 {
 	if(!dynList_is_empty(player->rune_list))
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
 		if(rune != NULL && rune->info.rune_type == RN_HOLY)
 		{
-			rune->attribute = true;
+			rune->attribute = 3;
+		}
+		rune = (struct rune*)dynList_get(player->rune_list, 3);
+		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
+		{
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, player->sword_damage / 2, 0.0, player);
 		}
 	}
 }
@@ -663,10 +669,10 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	m->state = ST_MAP_RUN_TICK;
 	get_lightmap(m, m->cam);
 	get_chapterlight(m);
-	//spawn_runes(m, map_runes); enable when real
+	spawn_runes(m, map_runes); //enable when real
 	spawn_mObjects(m, eList, player);
 	//replace_boss(m); what is this function??
-	reset_player(player);
+	reset_player(player, m);
 	//printf("%d\n", m->aggresive_mObj_count);
 	//printf("%d\n", m->mObject_list->si
 	cam_update(&m->cam, m, player);

@@ -6,6 +6,7 @@
 #include "gfx.h"
 #include "info.h"
 #include "event.h"
+#include <SDL2/SDL.h>
 
 void set_mObject_state(struct mObject *mObject, mObject_global_state type,
 		void (*acp)(struct mObject*, 
@@ -1637,10 +1638,11 @@ void player_invuln(struct player *player, struct map* map)
 {
 	if(player->invuln == true)
 	{
+		//printf("invuln %d\n", player->timer);
 		if(player->timer >= player->invuln_limit)
 		{
-			player->global_state = ST_P_NORMAL;
-			identify_player_sprite_location(player);
+			//player->global_state = ST_P_NORMAL;
+			//identify_player_sprite_location(player);
 			player->invuln = false;
 		}
 		player->timer++;
@@ -1694,15 +1696,42 @@ void set_dash_vector(struct player* player)
 	}
 }
 
+void player_dash_atk(struct player* player, struct map* map)
+{
+	if(mouse_clicked(map) && !player->has_dash_atk)
+	{
+		int mx1, my1;
+		SDL_GetMouseState(&mx1, &my1);
+		double mx = (double)mx1, my = (double)my1;
+		mx /= TILE_LENGTH;
+		my /= TILE_LENGTH;
+
+		const double dx = mx + (int)map->cam.offset_x - player->x;
+		const double dy = my + (int)map->cam.offset_y - player->y;
+		const double theta = atan2(dy, dx);
+		player->theta = theta;
+
+		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.0, PO_PLAYER_SPEAR_DASH, EAST, player->sword_damage * 0.5, theta, player);
+		//check_attack_mods(player, map, theta);
+		player->has_dash_atk = true;
+
+	}
+}
+
 void player_dash(struct player* player, struct map* map, struct cam* cam)
 {
 	set_dash_vector(player);
 	player_move(player, map, cam);
+	if(player->dash_timer >= PLAYER_DASH_LIMIT / 2)
+	{
+		player->speed -= (player->base_speed/24) / (PLAYER_DASH_LIMIT/2); //maybe maybe not
+	}
 	if(player->dash_timer >= PLAYER_DASH_LIMIT)
 	{
 		player->global_state = ST_P_NORMAL;
 		identify_player_sprite_location(player);
 		player->speed = player->base_speed / 16;
+		player->has_dash_atk = false;
 		player->dash_timer = 0;
 	}
 	player->dash_timer ++;
@@ -1795,10 +1824,10 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 
 void input_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
-	if(currentKeyStates[SDL_SCANCODE_Q] && player->attack_speed_timer >= player->attack_speed)
+
+	if(mouse_clicked(map) && player->attack_speed_timer >= player->attack_speed)
 	{
 		player->global_state = ST_P_ATTACK;
-		identify_player_sprite_location(player);
 		player->timer = 0;
 		return;
 	}
@@ -1839,27 +1868,30 @@ void check_attack_mods(struct player* player, struct map* map, double theta)
 }
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
-	if(player->timer >= PLAYER_ATTACK_LIMIT) 
-	{   
-		player->global_state = ST_P_ATTACKING;
-		//identify_player_sprite_location(player);
-		int mx1, my1;
-		SDL_GetMouseState(&mx1, &my1);
-		double mx = (double)mx1, my = (double)my1;
-		mx /= TILE_LENGTH;
-		my /= TILE_LENGTH;
+	//if(player->timer >= PLAYER_ATTACK_LIMIT) 
+	//{   
+	player->global_state = ST_P_ATTACKING;
+	identify_player_sprite_location(player);
+	//identify_player_sprite_location(player);
+	int mx1, my1;
+	SDL_GetMouseState(&mx1, &my1);
+	double mx = (double)mx1, my = (double)my1;
+	mx /= TILE_LENGTH;
+	my /= TILE_LENGTH;
+	mx += map->cam.offset_x;
+	my += map->cam.offset_y;
+	const double dx = mx - player->x;
+	const double dy = my - player->y;
+	//printf("x: %lf, y:%lf, %d %d\n", mx + (int)map->cam.offset_x, my + (int)map->cam.offset_y, mx1, my1);
+	double theta = atan2(dy, dx);
+	player->theta = theta;
 
-		const double dx = mx + (int)map->cam.offset_x - player->x;
-		const double dy = my + (int)map->cam.offset_y - player->y;
-		const double theta = atan2(dy, dx);
-		player->theta = theta;
-
-		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.4, PO_PLAYER_SPEAR, EAST, player->sword_damage, theta, player);
-		check_attack_mods(player, map, theta);
-		player->attack_speed_timer = 0;
-		player->timer = 0;
-		return;
-	}
+	spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.0, PO_PLAYER_SPEAR, EAST, player->sword_damage, theta, player);
+	check_attack_mods(player, map, theta);
+	player->attack_speed_timer = 0;
+	player->timer = 0;
+	return;
+	//}
 	player->timer++;
 }
 
@@ -2034,18 +2066,47 @@ void state_rot_smog_flower(struct pObject *pObject, struct player* player, struc
 	pObject->st.timer ++;
 }
 
-void state_player_spear_action(struct pObject *pObject, struct player* player, struct map* map)
+void state_player_spear_action2(struct pObject *pObject, struct player* player, struct map* map)
 {
-	if(pObject->st.timer >= pObject->st.limit)
+	if(pObject->st.timer ++ >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
-	pObject->speed = 0.10;
-	pObject_move(pObject, player, map);
+	pObject->x += 1.5*cos(pObject->theta)/pObject->st.limit;
+	pObject->y += 1.5*sin(pObject->theta)/pObject->st.limit;
+	check_pObject_mObject_polar(pObject, player, map);
+}
+
+
+
+void state_player_spear_action(struct pObject *pObject, struct player* player, struct map* map)
+{
+	if(pObject->st.timer >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, pObject->st.type, state_player_spear_action2, 0, 6);
+		//pObject->x += 1.5*cos(pObject->theta);
+		//pObject->y += 1.5*sin(pObject->theta) + 0.1;
+		return;
+	}
+	//pObject->speed = -0.05;
+	//pObject_move(pObject, player, map);
 	//if(sum_square(pObject->x, pObject->y) >=
 	check_pObject_mObject_polar(pObject, player, map);
 	pObject->st.timer ++;
+}
+
+void state_player_spear_dash_action(struct pObject* pObject, struct player* player, struct map *map)
+{
+	if(pObject->st.timer ++ >= pObject->st.limit)
+	{
+		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
+		return;
+	}
+	pObject->x = player->x + 0.4*cos(pObject->theta) - 1.0; 
+	pObject->y = player->y + 0.4*sin(pObject->theta) + 0.2;
+	pObject->theta += (pObject->thetaacc - pObject->theta) / pObject->st.limit;
+	check_pObject_mObject_polar(pObject, player, map);
 }
 
 void state_sword_shockwave(struct pObject *pObject, struct player* player, struct map* map)
@@ -2114,6 +2175,10 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
 			rune->attribute ++;
 
+		if(rune != NULL && rune->info.rune_type == RN_BLOOD)
+		{
+			player->health += player->sword_damage * 0.025;
+		}
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == RN_FROST)
 		{
@@ -2126,7 +2191,7 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
-			player->sword_damage += 3;
+			player->sword_damage += 1;
 		//BIG PROBLEM
 
 		rune = (struct rune*)dynList_get(player->rune_list, 3);
@@ -2134,8 +2199,8 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		{
 			//change list to map for fun results (C feature)
 			//printf("%d\n", 1);
-			for(int i = 0; i < 3; i++)
-				spawn_pObject(map->pObject_list, MIDPOINTX(mObject), MIDPOINTY(mObject), PO_BLOOD_TAX, EAST, player->sword_damage, get_frand(-PI/2, PI/2), player);
+			for(int i = 0; i < 4; i++)
+				spawn_pObject(map->pObject_list, MIDPOINTX(mObject), MIDPOINTY(mObject), PO_BLOOD_TAX, EAST, player->sword_damage, get_frand(2*PI, 0.0), player);
 		}
 	}
 	mObject->st.timer ++;

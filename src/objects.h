@@ -68,6 +68,7 @@ struct player
 	int timer;
 	int attack_speed_timer;
 	int attack_speed;
+	bool has_dash_atk;
 	int dash_timer;
 	int invuln_limit;
 	int dash_cooldown_timer;

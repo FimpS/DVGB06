@@ -40,5 +40,6 @@ int getTick();
 void update_tick();
 double sum_square(double, double);
 double norm(double, double);
+bool mouse_clicked(struct map*);
 
 #endif
