@@ -58,6 +58,7 @@ typedef enum
 	MO_INTERACTABLE,
 	MO_STARTRUN,	
 	MO_STATSIGN,
+	MO_TUTSIGN,
 	MO_ENDRUN,	
 } mObject_type;
 

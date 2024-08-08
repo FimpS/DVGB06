@@ -23,6 +23,7 @@ bool mouse_clicked(struct map* map)
 }
 
 int tick = 0;
+
 int getTick()
 {
 	return tick;

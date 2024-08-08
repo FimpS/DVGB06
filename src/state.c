@@ -7,24 +7,6 @@
 #include "font.h"
 #include "dynList.h"
 
-void map_manager(struct map *map, dynList* eList)
-{
-	const Uint8* key_code = SDL_GetKeyboardState(NULL);
-
-	if(key_code[SDL_SCANCODE_C] && 1 == 2)
-	{
-		sleep(1);
-		dynList_clear(eList);
-		map_load_scene(map, "../res/ch1_maps/ch1_2.txt", eList);
-	}
-
-}
-
-void logic_manager(struct map *map, dynList* eList)
-{
-	map_manager(map, eList);
-}
-
 void run_tick(struct map *map, struct player *player, SDL_Window* window)
 {
 	switch(map->state)

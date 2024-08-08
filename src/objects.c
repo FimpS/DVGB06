@@ -47,7 +47,7 @@ static int effect_limits[] =
 	564, //BOG
 	128, //BURN
 	360, //FROSTBITE
-	360, //ROT
+	200, //ROT
 	128, //STASIS
 	360, //OMEN
 };
@@ -113,7 +113,6 @@ void frozen_status_effect(struct mObject *mObject, struct player* player)
 		if(rune != NULL && rune->info.rune_type == RN_FROST)
 		{
 			mObject->health -= player->sword_damage * 3; //mObject->health * 0.5;
-			printf("frost procced %d\n", mObject->health);
 		}
 		set_status_effect(mObject, 0, 0, STATUS_NONE);
 		mObject->base_speed = 1;
@@ -125,14 +124,15 @@ void rot_status_effect(struct mObject *mObject)
 {
 	if(getTick() % 60 == 0)
 	{
-		mObject->health -= 20;
-		//printf("%d\n", mObject->health);
+		if(mObject->health > 10)
+		{
+			mObject->health -= 10;
+		}
 	}
-	if(mObject->status_effect.timer > mObject->status_effect.limit)
+	if(mObject->status_effect.timer ++ >= mObject->status_effect.limit)
 	{
 		set_status_effect(mObject, 0, 0, STATUS_NONE);
 	}
-	mObject->status_effect.timer ++;
 }
 
 void identify_status_effect(struct mObject *mObject, struct player* player)
@@ -186,7 +186,8 @@ void update_all_mObjects(dynList *mObject_list, struct player *player, struct ma
 		struct mObject *curr_mObj = (struct mObject*)dynList_get(mObject_list, i);
 		if(curr_mObj->st.type == ST_CLEAR)
 		{
-			dynList_del_index(mObject_list, i);
+			dynList_del_index(mObject_list, i --);
+			continue;
 		}
 		update_mObject(curr_mObj, player, map, mObject_list, ev_list);	
 	}
@@ -240,7 +241,6 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 		if(AABB((struct mObject*)player, mObject))
 		{
 			add_rune(player, mObject->r_info, map);
-			//add_message(map->msg_list, "YOU PICKED UP A RUNE", 10.0, 2.0, 240);
 			set_mObject_state(mObject, ST_DEATHRATTLE, NULL, 0, 32);
 			for(int i = 0; i < map->mObject_list->size; i++)
 			{
@@ -254,12 +254,24 @@ void rune_player_interaction(struct mObject *mObject, struct player* player, str
 		}
 	}
 }
+void tut_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
+{
+	if(AABB((struct mObject*)player, mObject))
+	{
+		if(mObject->st.timer >= 128)
+		{
+			display_tutorial(map);
+			mObject->st.timer = 0;
+		}
+	}
+	mObject->st.timer ++;
+} 
 
 void stat_player_interaction(struct mObject* mObject, struct player* player, struct map* map)
 {
 	if(AABB((struct mObject*)player, mObject))
 	{
-		if(mObject->atts.stat_checker == false && mObject->st.timer >= 128)
+		if(mObject->st.timer >= 128)
 		{
 			display_all_stats(map);
 			mObject->st.timer = 0;
@@ -283,7 +295,7 @@ void endp_player_interaction(struct mObject* mObject, struct player* player, str
 	{
 		if(AABB((struct mObject*)player, mObject))
 		{
-			//TODO maybe this spawn a rectangle that fills the screen but idk hard to get to renderer
+			add_message(map->msg_list, "RUN COMPLETED", X_MIDDLE_FONT, 4.0, 360, 2);
 			set_mObject_state(mObject, st_placeholder, endp_player_whiten, 0, 128);
 		}
 	}
@@ -302,7 +314,6 @@ void state_startp_stay(struct mObject* mObject, struct player* player, struct ma
 
 void state_startp_open(struct mObject* mObject, struct player* player, struct map* map)
 {
-	//printf("len:%d start:%d x:%d\n", mObject->anim.tile_length, mObject->anim.start_frame, mObject->sprite.x);
 	if(mObject->st.timer ++ >= mObject->st.limit)
 	{
 		set_mObject_state(mObject, ST_STARTP_STAY, state_startp_stay, 0, 64);
@@ -367,8 +378,8 @@ void add_map_end_stat(struct map* map, struct player* player)
 		case 5: player->base_speed += 0.0125; break;
 	}
 	const char *stat_str = stat_strs[stat_upgrade];
-	add_message(map->msg_list, "UPGRADE;", X_MIDDLE_FONT, 4.0, 128, 2);
-	add_message(map->msg_list, stat_str, X_MIDDLE_FONT, 6.0, 128, 2);
+	add_message(map->msg_list, "UPGRADE;", X_MIDDLE_FONT, 4.0, 280, 2);
+	add_message(map->msg_list, stat_str, X_MIDDLE_FONT, 6.0, 280, 2);
 }
 
 void tp_player_undone(struct mObject* mObject, struct player* player, struct map* map)
@@ -393,7 +404,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	double offh = player->height/TILE_LENGTH;
 	int fx = (int)(player->width/TILE_LENGTH);
 	int fy = (int)(player->height/TILE_LENGTH);
-	// 3/2 -> (1-offw) 5/2 ->
 	double wunderkindw = ((int)player->width <= TILE_LENGTH) ? 1 - (offw) : (offw - (int)offw != 0 ? -1 * (fx-offw) : 0.0);
 	double wunderkindh = ((int)player->height <= TILE_LENGTH) ? 1 - (offh) : (offh - (int)offh != 0 ? -1 * (fy-offh) : 0.0);
 	if(!flight)
@@ -434,7 +444,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	player->x = new_x;
 	player->y = new_y;
 
-	//extra clamp check
 	if(player->x >= (double)map->width-2)
 		player->x = (double)map->width-2;
 	if(player->y >= (double)map->height-2)
@@ -497,7 +506,6 @@ void player_move(struct player *player, struct map *map, struct cam *cam)
 	player->x = new_x;
 	player->y = new_y;
 
-	//extra clamp check
 	if(player->x >= (double)map->width-2)
 		player->x = (double)map->width-2;
 	if(player->y >= (double)map->height-2)
@@ -513,7 +521,6 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 	switch(player->global_state)
 	{
 		case ST_P_NORMAL:
-			//player_invuln(player);
 			dash_control(player, currentKeyStates);
 			player_inp_move(player, currentKeyStates);
 			player_move(player, map, cam);
@@ -523,7 +530,6 @@ void check_player_state(struct player* player, struct map* map, struct cam* cam,
 			player_knockbacked(player, cam, map);
 			break;
 		case ST_P_DASH:
-			//input_attack(player, map, currentKeyStates);
 			player_dash_atk(player, map);
 			player_dash(player, map, cam);
 			break;
@@ -561,7 +567,16 @@ void reset_player_run(struct player* player, struct map* map)
 	player->global_state = ST_P_NORMAL;
 	dynList_clear(player->rune_list);
 	run_reset_UI(map);
-	//dynList_delete(player->
+}
+
+void display_tutorial(struct map* map)
+{
+	add_message(map->msg_list, "TUTORIAL;", X_MIDDLE_FONT, 2.0, 128, 2);
+	add_message(map->msg_list, "SPACE TO DASH.", X_MIDDLE_FONT, 4.0, 128, 2);
+	add_message(map->msg_list, "M1 TO ATTACK.", X_MIDDLE_FONT, 6.0, 128, 2);
+	add_message(map->msg_list, "M1 WHILE ATTACKING", X_MIDDLE_FONT, 8.0, 128, 2);
+	add_message(map->msg_list, "TO DASH-ATTACK.", X_MIDDLE_FONT, 10.0, 128, 2);
+	add_message(map->msg_list, "E TO INTERACT.", X_MIDDLE_FONT, 12.0, 128, 2);
 }
 
 void display_stat(struct map* map, int stat, const char* str, double posx, double posy)
@@ -649,7 +664,6 @@ void pObject_seek(struct pObject* pObject, const double s_koef, const double dst
 
 void pObject_move(struct pObject *pObject, struct player *player, struct map *map)
 {
-	//double dx = player->x - mObject->x, dy = player->y - mObject->y;
 	double new_x = 0, new_y = 0;
 	bool hit_wall = false;
 
@@ -715,15 +729,15 @@ void pObject_move(struct pObject *pObject, struct player *player, struct map *ma
 	pObject->y = new_y;
 
 }
-void set_status_effect_area(struct mObject* mObject, struct map *map, int distancesquared, object_status_effect effect)
+void set_status_effect_area(struct player* player, struct map *map, int distancesquared, object_status_effect effect)
 {
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
-		struct mObject* mObj_cond = (struct mObject*)dynList_get(map->mObject_list, i);
-		double dx = mObject->x - mObj_cond->x, dy = mObject->y - mObj_cond->y;
-		if(sum_square(dy, dx) <= distancesquared)
+		struct mObject* mObj = (struct mObject*)dynList_get(map->mObject_list, i);
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
+		if(sum_square(dy, dx) <= distancesquared && mObj->hittable)
 		{
-			set_status_effect(mObj_cond, 0, 30, effect);
+			set_status_effect(mObj, 0, effect_limits[effect], effect);
 		}
 	}
 
@@ -731,7 +745,6 @@ void set_status_effect_area(struct mObject* mObject, struct map *map, int distan
 
 void mObject_move(struct mObject *mObject, struct player *player, struct map *map)
 {
-	//double dx = player->x - mObject->x, dy = player->y - mObject->y;
 	double new_x = 0, new_y = 0;
 	//write a paragraph about why this didnt work in reverse order
 	mObject->vel_x = mObject->speed*cos(mObject->theta);
@@ -814,8 +827,6 @@ void mObject_move(struct mObject *mObject, struct player *player, struct map *ma
 
 bool divine_shield(struct player *player)
 {
-	//maybe use div_shield as a counter instead
-	//and at tick 1800 it recharges seems underwhelming now
 	struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
 	if(!rune) return false;
 	bool res = rune->info.rune_type == RN_HOLY && rune->attribute == true ? true : false;
@@ -842,8 +853,7 @@ void mObject_damage(struct mObject* target, struct pObject *source, struct playe
 	target->health -= source->damage;
 	target->inv_frames = 0;
 	check_damage_modifiers(target, source, player);
-	set_status_effect(target, 0, effect_limits[source->status_effect], source->status_effect); //TEST THIS
-	printf("damage dealt %d dmg: %f\n", healthbefore - target->health, source->damage);
+	set_status_effect(target, 0, effect_limits[source->status_effect], source->status_effect);
 	if(!source->knockbacker || target->hyperarmor)
 		return;
 	const double dx = OBJDIFF(target, source, 'X'), dy = OBJDIFF(target, source, 'Y');
@@ -890,6 +900,7 @@ void bogged_status_effect(struct player* player, struct status_effect *effect)
 	if(effect->timer == effect->limit)
 	{
 		player->base_speed += 0.35;
+		player->speed = player->base_speed / 16;
 	}
 }
 void stun_status_effect(struct player* player, struct status_effect *effect)
@@ -1018,12 +1029,6 @@ void draw_pObject(SDL_Renderer *renderer, struct pObject *pObject, struct cam *c
 void draw_mObject(SDL_Renderer *renderer, struct mObject *mObject, struct cam *cam, SDL_Texture *tex, struct player* player)
 {
 	SDL_Rect r = {(mObject->x - cam->offset_x) * TILE_LENGTH - 0, (mObject->y - cam->offset_y) * TILE_LENGTH - (mObject->sprite.h * 0), mObject->width, mObject->height};
-	//TODO ooga booga
-#if 0
-	if(mObject->id != '6' && mObject->id != '7' && mObject->id != 'R' && mObject->id != '2' && mObject->id != 'z' && mObject->id != '5' && mObject->id != '4' && mObject->id != 'B' && mObject->id != 'c' && mObject->id != 'o' && mObject->id != '8' && mObject->id != '9' && mObject->id != 't' && mObject->id != 's')
-		return;
-#endif
-	//printf("GOT HRE\n");
 	render_mObject_animation(mObject, r, renderer, tex, player);
 
 }

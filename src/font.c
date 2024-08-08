@@ -7,7 +7,6 @@ static const char ch[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?=+-(); "};
 
 size_t find_char(char c)
 {
-	//printf("%d\n", strlen(ch));
 	int res = 0;
 	while(ch[res ++] != c)
 		if(ch[res] == '\0') return 64;
@@ -34,8 +33,7 @@ struct message init_message(double x, double y, int limit, const char *text, int
 	new.limit = limit;
 	new.size = strlen(text);
 	int tile_length_of_string = strlen(text) * 16 / TILE_LENGTH;
-	new.x = x - ((strlen(text) / 2) * 0.0);//x; //- strlen(text) / 2; //idk seems bad easilty add with this ver
-	//printf("start: %lf begin: %lf, strl: %ld\n", new.x, x, strlen(text));
+	new.x = x - ((strlen(text) / 2) * 0.0);
 	const double d = strlen(text) / 2;
 	new.x = x - (ceil((d + 1.0)) * 2.0);
 	new.y = y;
@@ -63,10 +61,8 @@ void add_message(dynList *msg_list, const char* text, double x, double y, int du
 	{
 		spos[i] = find_char(text[i]) * 16;
 	}
-	//print_res(text, spos);
 	struct message* msg = (struct message*)malloc(sizeof(struct message));
 	*msg = init_message(x, y, duration, text, spos, font_size);
-	//print_sprites(*msg);
 	dynList_add(msg_list, (void*)msg);
 }
 

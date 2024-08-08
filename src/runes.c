@@ -22,7 +22,6 @@ int get_stage(struct map* map)
 
 struct rune_info get_rand_rune_info(struct map* map)
 {
-	//works
 	core_type ct = get_rand_rune_type();
 	core_stage cs = get_stage(map);
 	const char *title = "rune";
@@ -39,14 +38,9 @@ void unholy_anchor_initial(struct player *player, struct map *map, struct rune* 
 
 void unholy_anchor_ability(struct player *player, struct map *map, struct rune* rune)
 {
-	int rng = rand() % 2;
 	if(rune->attribute > 0)
 	{   
-		if(rand() % 2 == 1 || 1)
-		{
-			//printf("att %d\n", rune->attribute);
-			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, player->sword_damage / 2, 0.0, player);
-		}
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, 20.0, 0.0, player);
 		rune->attribute --;
 	}
 }
@@ -60,13 +54,12 @@ void unholy_mending_initial(struct player* player, struct map* map, struct rune*
 {
 	player->maxhealth += 40;
 	player->health = player->maxhealth;
-	//printf("%f\n", player->health);
 }
 
 
 void unholy_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->maxhealth += 20;
+	player->maxhealth += 120;
 }
 
 //HOLY
@@ -116,8 +109,6 @@ void blood_complete_initial(struct player* player, struct map* map, struct rune*
 
 void blood_complete_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	//BRIMSTONE
-	//other now but works
 	
 }
 //Gravity
@@ -157,7 +148,6 @@ void frost_support_initial(struct player* player, struct map *map, struct rune* 
 
 void frost_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	//frost strom
 	player->attack_speed -= 8;	
 }
 
@@ -172,16 +162,19 @@ void rot_anchor_initial(struct player* player, struct map *map, struct rune* run
 {
 	player->sword_effect_type = STATUS_ROT;
 	player->base_speed += 0.025;
+	player->speed = player->base_speed / 16;
 }
 
 void rot_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->base_speed += 0.05;
+	player->speed = player->base_speed / 16;
 }
 
 void rot_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->base_speed += 0.025;
+	player->speed = player->base_speed / 16;
 }
 
 void rot_mending_ability(struct player* player, struct map* map, struct rune* rune)
@@ -357,7 +350,6 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					new.attribute = 0;
 					break;
 				case complete:
-					printf("#WISH GRANTED#\nfrost complete rune acquired\n");
 					new.ability = NULL;
 					new.initial = NULL;
 					new.attribute = 0;
@@ -389,6 +381,8 @@ struct rune init_rune(struct rune_info i, struct map* map)
 
 			}
 			break;
+		default:
+			break;
 	}
 
 	return new;
@@ -406,7 +400,6 @@ struct rune_info init_rune_info(core_type type, core_stage stage, const char *ti
 void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 {
 	player->sword_damage += 10;
-	//dynList_add()()()();
 	struct rune* new = (struct rune*)malloc(sizeof(struct rune));
 	*new = init_rune(rinfo, map);
 	dynList_add(player->rune_list, (void*)new);
@@ -415,15 +408,12 @@ void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 	int count = 0;
 	if(player->rune_list->size != 3)
 		return;
-	//printf("got here\n");
 	struct rune *r1 = (struct rune*)dynList_get(player->rune_list, 0);
 	struct rune *r2 = (struct rune*)dynList_get(player->rune_list, 1);
 	struct rune *r3 = (struct rune*)dynList_get(player->rune_list, 2);
-	//works
 	if(r1->info.rune_type == r2->info.rune_type && r1->info.rune_type == r3->info.rune_type && player->rune_list->size <= 3)
 	{
 		struct rune_info new1 = init_rune_info(r1->info.rune_type, complete, "comp");
 		add_rune(player, new1, map);
-		//printf("Rune mended\n");
 	}
 }

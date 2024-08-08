@@ -12,6 +12,9 @@ void init_pObject();
 void init_mObject();
 void initPlayer();
 
+
+struct render_info init_render_info();
+struct SDL_Rect identify_rune_sprite();
 void identify_mObject_sprite_location();
 void identify_pObject_sprite_location();
 void identify_player_sprite_location();

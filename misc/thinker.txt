@@ -1,18 +1,11 @@
 
 
 Enemies:
-Fix deathrattles for bosses
-add add_event destroy enemty so it doesnt destroy in update loop
-
 runes:
-	cant exit with anchor unhoyl
-	poison way too much dmg and time
-	rot can hit in deathrattle which double kilsl them
 Spear:
-maybe penetration 2?
+	maybe penetration 2?
 
 player:
-	player sets speed not only base_speed
 
 At last boss on average:
 

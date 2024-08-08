@@ -41,7 +41,7 @@ void set_pObject_state(struct pObject *pObject, pObject_global_state type,
 
 void state_crawler_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dy, dx) < CRAWLER_RANGE && mObj->st.timer >= mObj->st.limit)
 	{
 		mObj->theta = atan2(dy, dx);
@@ -54,7 +54,7 @@ void state_crawler_idle(struct mObject *mObj, struct player *player, struct map 
 
 void state_crawler_dash(struct mObject* mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObject_move(mObj, player, map);
 	mObject_player_hitbox(mObj, player);
 	if(mObj->st.timer >= mObj->st.limit)
@@ -67,13 +67,12 @@ void state_crawler_dash(struct mObject* mObj, struct player *player, struct map 
 
 void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(mObj->st.timer > mObj->st.limit || mObj->speed <= 0)
 	{
 		set_mObject_state(mObj, mObj->type_reg, mObj->st.kcp, 0, 40);
 		mObj->theta = atan2(dy, dx);
 		mObj->speed = 0;
-		//mObj->theta = atan2(dy, dx);
 	}
 	mObject_move(mObj, player, map);
 	mObj->speed -= 0.01 * (mObj->mass / 40);
@@ -83,12 +82,12 @@ void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct
 
 void state_rusher_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObject_player_hitbox(mObj, player);
 	if(mObj->st.timer > mObj->st.limit)
 	{
 		set_mObject_state(mObj, st_m1, state_rusher_idlewalk, 0, 40);
-		mObj->theta = get_frand(TAU, 0.0); //((double)rand()/(double)(RAND_MAX)) * 3.1415 * 2;
+		mObj->theta = get_frand(TAU, 0.0);
 	}
 	if(( (mObj->y < player->y + player->height/TILE_LENGTH && 
 					mObj->y + mObj->height/TILE_LENGTH > player->y) || 
@@ -104,7 +103,6 @@ void state_rusher_idle(struct mObject *mObj, struct player *player, struct map *
 
 void state_rusher_rush(struct mObject *mObj, struct player *player, struct map *map)
 {
-	//double dx = player->x - mObj->x, dy = player->y - mObj->y;
 	mObj->speed += 0.005;
 	mObject_player_hitbox(mObj, player);
 	mObject_move(mObj, player, map);
@@ -120,7 +118,7 @@ void state_rusher_rush(struct mObject *mObj, struct player *player, struct map *
 
 void state_rusher_idlewalk(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObject_move(mObj, player, map);
 	if(mObj->st.timer > mObj->st.limit)
 	{
@@ -141,8 +139,7 @@ void state_rusher_idlewalk(struct mObject *mObj, struct player *player, struct m
 
 void state_balista_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	//mObj->theta = PI/2;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dy , dx) < 64 && mObj->st.timer > mObj->st.limit)
 	{
 		mObj->theta = atan2(dy ,dx);
@@ -153,7 +150,7 @@ void state_balista_idle(struct mObject *mObj, struct player *player, struct map 
 
 void state_balista_aware(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(getTick() % 24 == 0)
 	{
 		mObj->theta = atan2(dy ,dx);
@@ -214,7 +211,6 @@ void state_peak_local_cast(struct mObject* mObj, struct player* player, struct m
 	}
 	return;
 }
-//TODO WTF IS GOING ON WITH KNOCKBACK something that was done today
 void state_peak_knight_idle(struct mObject* mObj, struct player* player, struct map* map)
 {
 	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
@@ -340,7 +336,7 @@ void state_rock_roller_droll(struct mObject* mObj, struct player* player, struct
 
 void state_archer_draw(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObj->theta = atan2(dy, dx);
 	if(mObj->st.timer >= mObj->st.limit)
 	{
@@ -375,7 +371,7 @@ void state_archer_dash(struct mObject *mObj, struct player *player, struct map* 
 
 void state_archer_aware(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dx, dy) <= ARCHER_INRANGE && mObj->st.timer >= mObj->st.limit / 3)
 	{
 		set_mObject_state(mObj, ST_ARCHER_DRAW, state_archer_draw, 0, 64);
@@ -397,7 +393,7 @@ void state_swordsman_slash(struct mObject *mObj, struct player *player, struct m
 {
 	if(mObj->st.timer >= mObj->st.limit)
 	{
-		double dx = player->x - mObj->x, dy = player->y - mObj->y;
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 		double theta = atan2(dy, dx);
 		mObj->theta = theta;
 		set_mObject_state(mObj, ST_SWORDSMAN_READY, state_swordsman_ready, 0, 32);
@@ -411,7 +407,7 @@ void state_swordsman_ready(struct mObject *mObj, struct player *player, struct m
 {
 	if(mObj->st.timer > mObj->st.limit)
 	{
-		double dx = player->x - mObj->x, dy = player->y - mObj->y;
+		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 		double theta = atan2(dy, dx);
 		mObj->theta = theta;
 		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 96);
@@ -434,7 +430,7 @@ void state_swordsman_dash(struct mObject *mObj, struct player *player, struct ma
 
 void state_swordsman_aware(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dx, dy) < SWORDSMAN_INRANGE)
 	{
 		set_mObject_state(mObj, ST_SWORDSMAN_SLASH, state_swordsman_slash, 0, 48);
@@ -454,7 +450,7 @@ void state_swordsman_aware(struct mObject *mObj, struct player *player, struct m
 
 void state_swordsman_idle(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dx, dy) <= HOSTILE_MOBJ_WAKEUP_DIST)
 	{
 		set_mObject_state(mObj, ST_SWORDSMAN_AWARE, state_swordsman_aware, 0, 100);
@@ -489,7 +485,7 @@ void state_magus_chase(struct mObject *mObj, struct player *player, struct map* 
 
 void state_magus_aware(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dx, dy) < MAGUS_CAST_RANGE && mObj->st.timer > MAGUS_CAST_COOLDOWN)
 	{
 		set_mObject_state(mObj, ST_MAGUS_READY, state_magus_ready, 0, 64 + rand() % 24);
@@ -505,7 +501,7 @@ void state_magus_aware(struct mObject *mObj, struct player *player, struct map* 
 
 void state_magus_idle(struct mObject *mObj, struct player *player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dx, dy) < HOSTILE_MOBJ_WAKEUP_DIST)
 	{
 		set_mObject_state(mObj, ST_MAGUS_AWARE, state_magus_aware, 0, 100);
@@ -517,7 +513,7 @@ void state_magus_idle(struct mObject *mObj, struct player *player, struct map* m
 
 void state_summoner_idle(struct mObject *mObj, struct player *player, struct map *map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(sum_square(dy, dx) < SUMMONER_RANGE)
 	{
 		mObj->speed = mObj->base_speed / 25;
@@ -529,8 +525,7 @@ void state_summoner_idle(struct mObject *mObj, struct player *player, struct map
 
 void state_summoner_dash(struct mObject *mObj, struct player* player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
-	//mObj->theta = atan2(dy, dx);
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObject_move(mObj, player, map);
 	if(sum_square(dy, dx) > SUMMONER_RANGE + 4 && mObj->st.timer > mObj->st.limit)
 	{
@@ -548,7 +543,7 @@ void state_summoner_dash(struct mObject *mObj, struct player* player, struct map
 void state_summoner_found(struct mObject *mObj, struct player *player, struct map *map)
 {
 
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	int count = 0;
 	if(mObj->st.timer > mObj->st.limit)
 	{
@@ -669,7 +664,6 @@ void state_drider_fire_charge(struct mObject* mObj, struct player* player, struc
 	{
 		const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 		spawn_pObject(map->pObject_list, mObj->x, mObj->y, PO_FIRE_SLING, EAST, 14.0, -1 * PI / 2, player);
-		//spawn projectile
 	}
 	if(mObj->st.timer >= mObj->st.limit)
 	{
@@ -724,7 +718,6 @@ void state_fire_bomber_aware(struct mObject* mObj, struct player* player, struct
 	if(sum_square(dy, dx) >= 1)
 	{
 		theta = atan2(dy, dx);
-		//mObj->theta = atan2(dy, dx);
 	}
 	pObject_seek((struct pObject*)mObj, 0.05, theta);
 	mObject_move(mObj, player, map);
@@ -879,7 +872,7 @@ void state_rock_vortex_aware(struct mObject* mObj, struct player* player, struct
 		}
 		if(choice == 0)
 		{
-			set_mObject_state(mObj, ST_ROCK_VORTEX_SUMMON, state_rock_vortex_summon, 0, 220);
+			set_mObject_state(mObj, ST_ROCK_VORTEX_SUMMON, state_rock_vortex_summon, 0, 164);
 			return;
 		}
 		if(choice == 1)
@@ -926,7 +919,6 @@ void state_rock_vortex_cast(struct mObject* mObj, struct player* player, struct 
 {
 	if(mObj->st.timer ++ >= mObj->st.limit)
 	{
-		//vortex explosion
 		set_mObject_state(mObj, ST_ROCK_VORTEX_DECAST, state_rock_vortex_decast, 0, 120);
 	}
 	return;
@@ -1047,7 +1039,7 @@ void state_golem_aware(struct mObject *mObj, struct player *player, struct map* 
 
 void state_chieftain_summon(struct mObject *mObj, struct player * player, struct map* map)
 {
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	int count = 0;
 	if(mObj->st.timer > mObj->st.limit)
 	{
@@ -1061,7 +1053,6 @@ void state_chieftain_summon(struct mObject *mObj, struct player * player, struct
 		{
 			spawn_mObject(map, MIDPOINTX(mObj) + 1, MIDPOINTY(mObj) - 1, MO_CRAWLER, 'z');
 			spawn_mObject(map, MIDPOINTX(mObj), MIDPOINTY(mObj) + 1, MO_CRAWLER, 'z');
-			//spawn_mObject(map, mObj->x + 1, mObj->y + 1, MO_CRAWLER, 'z');
 			spawn_mObject(map, MIDPOINTX(mObj) - 1, MIDPOINTY(mObj) - 1, MO_CRAWLER, 'z');
 		}
 	}
@@ -1089,7 +1080,6 @@ void state_chieftain_ready(struct mObject *mObj, struct player *player, struct m
 }
 
 
-//void state_chieftain_tired ?? maybe good ??
 
 void state_chieftain_dash(struct mObject *mObj, struct player *player, struct map* map)
 {
@@ -1103,20 +1093,15 @@ void state_chieftain_dash(struct mObject *mObj, struct player *player, struct ma
 
 void state_chieftain_aware(struct mObject *mObj, struct player *player, struct map *map)
 {
-	//cooldown/resttime
-	double dx = player->x - mObj->x, dy = player->y - mObj->y;
+	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	mObj->st.timer ++;
 	if(mObj->st.timer < mObj->st.limit)
 	{
 		return;
 	}
-	//skills
 
-	//int spell = rand() % 5;
 
-	//printf("got here\n");
 	bool flip = mObj->atts.cheiftain_ticker ++ % 2;
-	//printf("flip: %d\n", flip);
 	if(flip)
 		if(sum_square(dy, dx) > 9)
 		{
@@ -1156,7 +1141,6 @@ void state_rune_guard_aware(struct mObject* mObj, struct player* player, struct 
 	if(mObj->st.timer ++ >= mObj->st.limit)
 	{
 		int choice = rand() % 8;
-		//choice = 4;
 
 		switch(choice)
 		{
@@ -1322,7 +1306,7 @@ void state_pObject_deathrattle(struct pObject *pObject, struct player* player, s
 
 void state_swordsman_sword_swing(struct pObject* pObject, struct player* player, struct map* map)
 {
-	double dx = player->x - pObject->x, dy = player->y - pObject->y;
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
 	pObject->speed = 0.05;
 	pObject_move(pObject, player, map);
 	if(pObject->st.timer > pObject->st.limit)
@@ -1361,7 +1345,6 @@ void state_swamp_pool_action(struct pObject* pObject, struct player* player, str
 	if(pObject->st.timer ++ >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
-		//player->base_speed = += 0.5;
 		return;
 	}
 #if 1
@@ -1374,7 +1357,6 @@ void state_swamp_pool_action(struct pObject* pObject, struct player* player, str
 
 void state_spear_cast_action2(struct pObject* pObject, struct player* player, struct map* map)
 {
-	//pObject_player_hitbox(pObject, player);
 	if(!player->invuln && AABB((struct mObject*)pObject, (struct mObject*)player))
 	{
 		player_hit(player, pObject->damage, pObject->theta);
@@ -1430,7 +1412,6 @@ void state_golem_weapon_swing(struct pObject *pObject, struct player *player,str
 	pObject_seek(pObject, 0.03, atan2(dy,dx));
 	check_pObject_mObject_hit(pObject, player, map);
 
-	//half seeker pObject->theta += 0.055;
 	pObject->st.timer ++;
 	if(!player->invuln && AABB(pObject, player))
 	{
@@ -1458,7 +1439,7 @@ void state_balista_shot(struct pObject *pObject, struct player *player, struct m
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
-	double dx = player->x - pObject->x, dy = player->y - pObject->y;
+	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
 	pObject_move(pObject, player, map);
 
 	if(!player->invuln && AABB(pObject, player))
@@ -1499,7 +1480,6 @@ void state_hex_arrow_action(struct pObject* pObject, struct player* player, stru
 	const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
 	if(pObject->st.timer >= pObject->st.limit)
 	{
-		//spawn_pObject(map->pObject_list, pObject->x, pObject->y, PO_LAVA_POOL, EAST, 25.0, 0.0, player);
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
@@ -1573,7 +1553,6 @@ void state_rot_flies_action(struct pObject* pObject, struct player* player, stru
 		const double offset = get_frand(2 * PI / 12, -PI / 12);
 		pObject->theta = atan2(dy, dx) + offset;
 		pObject->speed = 0.20;
-		//TODO maybe burn as status effect prob not
 		set_pObject_state(pObject, pObject->st.type, state_rot_flies_action_fly, 0, 48);
 		return;
 	}
@@ -1606,12 +1585,7 @@ void check_hit_abilities(struct player* player, struct map* map)
 	rune = (struct rune*)dynList_get(player->rune_list, 2);
 	if(rune != NULL && rune->info.rune_type == RN_ROT)
 	{
-		for(int i = 0; i < map->mObject_list->size; i++)
-		{
-			struct mObject* curr = (struct mObject*)dynList_get(map->mObject_list, i);
-			if(curr->hittable == true)
-				set_status_effect(curr, 0, 360, STATUS_ROT);
-		}
+		set_status_effect_area(player, map, 49, STATUS_ROT);
 	}
 }
 
@@ -1619,18 +1593,15 @@ void check_hit_abilities(struct player* player, struct map* map)
 void player_knockbacked(struct player* player, struct cam* cam, struct map *map)
 {
 	player->speed -= 0.03;
-	//TODO Check this
 	player->vel_x = player->speed*cos(player->theta);
 	player->vel_y = player->speed*sin(player->theta);
 	player_move(player, map, cam);
 	player->timer++; 
 	if(player->timer > 16 || player->speed <= 0)
 	{   
-		//player->timer = 0; 
 		player->global_state = ST_P_NORMAL;
 		player->speed = player->base_speed / 16;
 		check_hit_abilities(player, map);
-		//player->invuln = false;
 	}
 }
 
@@ -1638,15 +1609,11 @@ void player_invuln(struct player *player, struct map* map)
 {
 	if(player->invuln == true)
 	{
-		//printf("invuln %d\n", player->timer);
 		if(player->timer >= player->invuln_limit)
 		{
-			//player->global_state = ST_P_NORMAL;
-			//identify_player_sprite_location(player);
 			player->invuln = false;
 		}
 		player->timer++;
-		//printf("%d\n", player->timer);
 	}
 
 }
@@ -1712,7 +1679,6 @@ void player_dash_atk(struct player* player, struct map* map)
 		player->theta = theta;
 
 		spawn_pObject(map->pObject_list, player->x + 0.2*cos(theta) - 0.8, player->y + 0.2*sin(theta) + 0.0, PO_PLAYER_SPEAR_DASH, EAST, player->sword_damage * 0.5, theta, player);
-		//check_attack_mods(player, map, theta);
 		player->has_dash_atk = true;
 
 	}
@@ -1724,7 +1690,7 @@ void player_dash(struct player* player, struct map* map, struct cam* cam)
 	player_move(player, map, cam);
 	if(player->dash_timer >= PLAYER_DASH_LIMIT / 2)
 	{
-		player->speed -= (player->base_speed/24) / (PLAYER_DASH_LIMIT/2); //maybe maybe not
+		player->speed -= (player->base_speed/24) / (PLAYER_DASH_LIMIT/2);
 	}
 	if(player->dash_timer >= PLAYER_DASH_LIMIT)
 	{
@@ -1814,7 +1780,6 @@ void player_inp_move(struct player* player, const Uint8 *currentKeyStates)
 	const double tmp = player->vel_x;	
 	//player->vel_x = player->vel_x != 0 || player->vel_y != 0 ? 0.075 : 0;
 	//player->vel_y = player->vel_y != 0 || player->vel_y != 0 ? 0.075 : 0;
-	//replace with just 1/1.414
 	player->vel_x = player->vel_x != 0 || player->vel_y != 0 ? player->base_speed / 12 * (player->vel_x/sqrt(player->vel_x * player->vel_x + player->vel_y * player->vel_y)) : 0;
 	player->vel_y = tmp != 0 || player->vel_y != 0 ? player->base_speed / 12 * (player->vel_y/sqrt(tmp * tmp + player->vel_y * player->vel_y)) : 0;
 	//player->vel_x = player->vel_x != 0 || player->vel_y != 0 ? (player->base_speed / 5) * player->vel_y*0.707106 : 0;
@@ -1868,11 +1833,8 @@ void check_attack_mods(struct player* player, struct map* map, double theta)
 }
 void player_attack(struct player* player, struct map* map, const Uint8 *currentKeyStates)
 {
-	//if(player->timer >= PLAYER_ATTACK_LIMIT) 
-	//{   
 	player->global_state = ST_P_ATTACKING;
 	identify_player_sprite_location(player);
-	//identify_player_sprite_location(player);
 	int mx1, my1;
 	SDL_GetMouseState(&mx1, &my1);
 	double mx = (double)mx1, my = (double)my1;
@@ -1882,7 +1844,6 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 	my += map->cam.offset_y;
 	const double dx = mx - player->x;
 	const double dy = my - player->y;
-	//printf("x: %lf, y:%lf, %d %d\n", mx + (int)map->cam.offset_x, my + (int)map->cam.offset_y, mx1, my1);
 	double theta = atan2(dy, dx);
 	player->theta = theta;
 
@@ -1891,7 +1852,6 @@ void player_attack(struct player* player, struct map* map, const Uint8 *currentK
 	player->attack_speed_timer = 0;
 	player->timer = 0;
 	return;
-	//}
 	player->timer++;
 }
 
@@ -1902,13 +1862,11 @@ void state_blood_tax(struct pObject *pObject, struct player *player, struct map 
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
 		return;
 	}
-#if 1
 	pObject_move(pObject, player, map);
 	double dx, dy; 
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{   
 		struct mObject* target = ((struct mObject*)dynList_get(map->mObject_list, i));
-		//fixed?
 		if(!target->hittable)
 			continue;
 		dx = pObject->x - target->x;
@@ -1920,7 +1878,6 @@ void state_blood_tax(struct pObject *pObject, struct player *player, struct map 
 			target->hit = true;
 		}
 	}
-#endif
 	pObject->st.timer ++;
 }
 
@@ -1938,21 +1895,17 @@ void check_pObject_mObject_hit(struct pObject *pObject, struct player* player, s
 		{
 			dx = pObject->x - target->x;
 			dy = pObject->y - target->y;
-			//target->theta = atan2(dy, dx);
 			mObject_damage(target, pObject, player);
 			target->hit = true;
 
 		}
 	}
 }
-// TODO IMPLEMENT PLEASE
-//
 
 void check_pObject_mObject_polar(struct pObject *pObject, struct player* player, struct map* map)
 {
 	struct mObject* target;
 	double dx, dy;
-	//printf("x:%lf y:%lf %lf\n", x, y, sqrt(sum_square(x, y)));	
 	for(int i = 0; i < map->mObject_list->size; i++)
 	{
 		target = (struct mObject*)dynList_get(map->mObject_list, i);
@@ -1962,7 +1915,6 @@ void check_pObject_mObject_polar(struct pObject *pObject, struct player* player,
 		{
 			dx = pObject->x - target->x;
 			dy = pObject->y - target->y;
-			//target->theta = atan2(dy, dx);
 			mObject_damage(target, pObject, player);
 			target->hit = true;
 
@@ -1977,7 +1929,6 @@ void state_wraith_follow(struct pObject *pObject, struct player *player, struct 
 	double dx, dy;
 	struct mObject *curr;
 	bool found = false;
-	//stick to a mObject maybe otherwise its gonna find [1] all the time
 	if(pObject->st.timer >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, ST_PO_DEATHRATTLE, state_pObject_deathrattle, 0, 16);
@@ -2028,13 +1979,10 @@ void state_gravity_well_travel(struct pObject *pObject, struct player* player, s
 		set_pObject_state(pObject, ST_PO_DEAD, NULL, 0, 0);
 		return;
 	}
-	//pObject_move(pObject, player, map);
 	if(getTick() % 20 == 0)
 	{
 		double angle = get_frand(2*PI);
 		spawn_pObject(map->pObject_list, pObject->x, pObject->y, PO_GRAVITY_BOLT, NORTH, player->sword_damage * 0.5, angle, player);
-		//spawn_pObject(map->pObject_list, pObject->x, pObject->y, PO_GRAVITY_BOLT, SOUTH, player->sword_damage * 0.5, angle + 2*PI/3, player);
-		//spawn_pObject(map->pObject_list, pObject->x, pObject->y, PO_GRAVITY_BOLT, NORTH, player->sword_damage * 0.5, angle - 2*PI/3, player);
 	}
 	pObject->st.timer ++;
 }
@@ -2051,7 +1999,6 @@ void state_gravity_bolt_travel(struct pObject *pObject, struct player* player, s
 	pObject->theta += 0.05; //prev 0.05 //0.15 - thetaacc
 	pObject_move(pObject, player, map);
 	check_pObject_mObject_hit(pObject, player, map);
-	//pObject->st.timer ++;
 
 }
 
@@ -2085,13 +2032,8 @@ void state_player_spear_action(struct pObject *pObject, struct player* player, s
 	if(pObject->st.timer >= pObject->st.limit)
 	{
 		set_pObject_state(pObject, pObject->st.type, state_player_spear_action2, 0, 6);
-		//pObject->x += 1.5*cos(pObject->theta);
-		//pObject->y += 1.5*sin(pObject->theta) + 0.1;
 		return;
 	}
-	//pObject->speed = -0.05;
-	//pObject_move(pObject, player, map);
-	//if(sum_square(pObject->x, pObject->y) >=
 	check_pObject_mObject_polar(pObject, player, map);
 	pObject->st.timer ++;
 }
@@ -2192,13 +2134,10 @@ void state_deathrattle(struct mObject *mObject, struct player *player, struct ma
 		rune = (struct rune*)dynList_get(player->rune_list, 2);
 		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
 			player->sword_damage += 1;
-		//BIG PROBLEM
 
 		rune = (struct rune*)dynList_get(player->rune_list, 3);
 		if(rune != NULL && rune->info.rune_type == RN_BLOOD)
 		{
-			//change list to map for fun results (C feature)
-			//printf("%d\n", 1);
 			for(int i = 0; i < 4; i++)
 				spawn_pObject(map->pObject_list, MIDPOINTX(mObject), MIDPOINTY(mObject), PO_BLOOD_TAX, EAST, player->sword_damage, get_frand(2*PI, 0.0), player);
 		}
@@ -2216,7 +2155,6 @@ void state_enemy_default(struct mObject *mObject, struct player* player, struct 
 			mObject->st.type = ST_CLEAR;
 			return;
 		}
-		//mObject->st.timer++;
 		return;
 	}
 

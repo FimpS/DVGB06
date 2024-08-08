@@ -103,7 +103,7 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->penetration_index = 1;
 			
 			pObject->sprite = init_sprite(0, 32, 16, 16);
-			pObject->st = init_pObject_state(state_wraith_follow, 0, player->maxhealth * 0.4);
+			pObject->st = init_pObject_state(state_wraith_follow, 0, 128 + (player->maxhealth - PLAYER_START_HP));
 			if(pObject->type == PO_BIG_WRAITH)
 			{
 				pObject->speed = 0.15;
@@ -352,7 +352,6 @@ void init_pObject(struct pObject *pObject, double x, double y, card_dir dir, dou
 			pObject->status_effect = player->sword_effect_type;
 			pObject->knockkoef = player->pObject_knockkoef / 2;
 			pObject->thetaacc = pObject->theta + PI/3;
-			//pObject->theta -= PI/3;
 			pObject->theta -= PI/3;
 			pObject->sprite = init_sprite(0, 64, 48, 16);
 			pObject->st = init_pObject_state(state_player_spear_dash_action, 0, 6);
@@ -413,7 +412,7 @@ void initPlayer(struct player *player, struct map* map)
 	player->sprite = init_sprite(0, 0, 16, 24);
 	player->sword_effect_type = STATUS_NONE;
 #if 0
-	int type = RN_FROST;
+	int type = RN_BLOOD;
 	struct rune_info r = init_rune_info(type, 0, "t");
 	add_rune(player, r, map);
 	r = init_rune_info(type, 1, "t");
@@ -422,7 +421,6 @@ void initPlayer(struct player *player, struct map* map)
 	add_rune(player, r, map);
 	r = init_rune_info(type, 3, "t");
 	add_rune(player, r, map);
-	//printf("%lf\n", player->base_speed);
 #endif
 }
 void identify_player_sprite_location(struct player* player)
@@ -562,8 +560,6 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			}
 			break;
 		case MO_BALISTA:
-			//TODO weird stuff with balista and blood_tax maybe target_hit problem
-			//mObject->base_speed = 0;
 			mObject->speed = mObject->base_speed;
 			mObject->max_health = 500;
 			mObject->width = TILE_LENGTH;
@@ -651,7 +647,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_ROCK_VORTEX:
 			mObject->speed = 0;
-			mObject->max_health = 1000;
+			mObject->max_health = 1400;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
@@ -668,7 +664,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_LOCAL_QUEEN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 800;
+			mObject->max_health = 1200;
 			mObject->width = TILE_LENGTH * 1;
 			mObject->height = TILE_LENGTH * 2;
 			mObject->hit = false;
@@ -750,7 +746,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_GOLEM:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 1400;
+			mObject->max_health = 1800;
 			mObject->width = TILE_LENGTH * 4;
 			mObject->height = TILE_LENGTH * 4;
 			mObject->hit = false;
@@ -767,7 +763,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_CULTIST_CHIEFTAIN:
 			mObject->speed = mObject->base_speed / 20;
-			mObject->max_health = 600;
+			mObject->max_health = 1000;
 			mObject->width = TILE_LENGTH;
 			mObject->height = TILE_LENGTH * 4/2;
 			mObject->hit = false;
@@ -874,7 +870,7 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			break;
 		case MO_RUNE_GUARD:
 			mObject->speed = 0;
-			mObject->max_health = 2000;
+			mObject->max_health = 2600;
 			mObject->width = TILE_LENGTH * 1.5;
 			mObject->height = TILE_LENGTH * 2.0;
 			mObject->hit = false;
@@ -898,7 +894,6 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = init_sprite(448, 832, 16, 16); //816
 			mObject->anim = init_render_info(448, 16, 1, 0, 8);
 			mObject->st = init_mObject_state(tp_player_undone, 0, 0, NULL);
-			//mObject->st.acp = tp_player_interaction;
 			mObject->type_reg = st_placeholder;
 			mObject->st.kcp = NULL;
 			break;
@@ -945,6 +940,16 @@ void init_mObject(struct mObject *mObject, int x, int y, struct map *map)
 			mObject->sprite = init_sprite(256, 832, 32, 32);
 			mObject->anim = init_render_info(256, 32, 1, 0, 16);
 			mObject->st = init_mObject_state(stat_player_interaction, 0, 360, NULL);
+			break;
+		case MO_TUTSIGN:
+			mObject->width = TILE_LENGTH * 2;
+			mObject->height = TILE_LENGTH * 2;
+			mObject->hittable = false;
+			mObject->killable = false;
+			mObject->st.type = st_placeholder;
+			mObject->sprite = init_sprite(256, 864, 32, 32);
+			mObject->anim = init_render_info(256, 32, 1, 0, 16);
+			mObject->st = init_mObject_state(tut_player_interaction, 0, 360, NULL);
 			break;
 	}
 	mObject->health = mObject->max_health;
@@ -1316,7 +1321,6 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 		case ST_GOLEM_BUILD:
 			mObject->sprite.x = 0;
 			mObject->sprite.y = 566;
-			//why does this happen???
 			mObject->anim.limit = mObject->st.limit / 8 + 4;
 			mObject->anim.start_frame = 0;
 			mObject->anim.frames = 8;
@@ -1605,12 +1609,38 @@ void identify_mObject_sprite_location(struct mObject *mObject)
 					mObject->anim.start_frame = 192;
 					mObject->anim.limit = mObject->st.limit / 4;
 					break;
+				case 'v':
+					mObject->sprite.x = 256;
+					mObject->sprite.y = 576;
+					mObject->anim.start_frame = 256;
+					mObject->anim.limit = mObject->st.limit / 4;
+					break;	
+				case 'q':
+					mObject->sprite.x = 384;
+					mObject->sprite.y = 672;
+					mObject->anim.start_frame = 384;
+					mObject->anim.limit = mObject->st.limit / 4;
+					break;	
 				case 'c':
 					mObject->sprite.x = 192;
 					mObject->sprite.y = 224;
 					mObject->anim.start_frame = 192;
 					mObject->anim.limit = mObject->st.limit / 4;
 					break;
+				case 'o':
+					mObject->sprite.x = 0;
+					mObject->sprite.y = 600;
+					mObject->anim.start_frame = 0;
+					mObject->anim.frames = 6;
+					mObject->anim.limit = mObject->st.limit / 6;
+					break;
+				case 'd':
+					mObject->sprite.x = 96;
+					mObject->sprite.y = 688;
+					mObject->anim.start_frame = 96;
+					mObject->anim.limit = mObject->st.limit / 4;
+					break;
+			
 			}
 			break;
 

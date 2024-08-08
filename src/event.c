@@ -6,26 +6,17 @@
 #include "objects.h"
 #include "info.h"
 #include "font.h"
-//go change arraylist to free the array
 
 void end_run_event(struct player* player, struct event* event, struct map* map)
 {
-	//gen_seed_map(map);
-	//map_leave_run(map);
 	clear_seed_map(map);
 
-	//map->save.rooms_completed += map->save.recent_rooms_completed;
 	add_recent_run_save(&map->save);
 
 	reset_player_run(player, map);
 	strcpy(map->s_map.content[map->s_map.index], "res/ch0_maps/ch0_hubmap.txt");
-	//printf("Lecuck%d\n", player->rune_list->size);
 	add_event(map->event_list, type_event_teleport, player, map, 0);
 	event->complete = true;
-	//for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
-	//	printf("%s\n", map->s_map.content[i]);
-	//generate a seed
-	//go to first map
 }
 
 void start_run_event(struct player* player, struct event* event, struct map* map)
@@ -41,17 +32,16 @@ void start_run_event(struct player* player, struct event* event, struct map* map
 	map->save.finished = false;
 
 	add_event(map->event_list, type_event_teleport, player, map, 0);
+#if 0
 	for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
 		printf("%s\n", map->s_map.content[i]);
-	//generate a seed
-	//go to first map
+#endif
 }
 
 void teleport_event(struct player *player, struct event* event, struct map* map)
 {	
 	map->state = ST_MAP_TRANSITION;
 	map->sm.tone = 0;
-	//map_load_scene(map, map->s_map.content[++map->s_map.index], map->mObject_list, player);
 	event->complete = true;
 }
 
@@ -90,7 +80,6 @@ void guard_cutscene4(struct player* player, struct event* event, struct map* map
 	{
 		struct mObject *guard = id_get_mObj(map, 'd');
 		map->cam.cin_info.s_coord.x = -map->cam.x + MIDPOINTX(guard);
-		//event->event_tick = guard_cutscene3;
 		map->cam.cin_info.s_coord.y = -map->cam.y + MIDPOINTY(guard);
 		set_mObject_state(guard, ST_RUNE_GUARD_AWARE, state_rune_guard_aware, 0, 196);
 		map->state = ST_MAP_RUN_TICK;
@@ -156,9 +145,6 @@ void golem_start(struct player* player, struct event* event, struct map* map)
 			magus->theta = atan2(-dy, -dx);
 		}
 	}
-	//map->cam.x = golem->x + golem->width/TILE_LENGTH/2;
-	//map->cam.y = golem->y + golem->width/TILE_LENGTH/2;
-	printf("in golem_start %c %lf\n", golem->id, map->cam.cin_info.s_coord.x);
 }
 
 void golem_cutscene2(struct player* player, struct event* event, struct map* map)
@@ -180,7 +166,6 @@ void golem_cutscene(struct player* player, struct event* event, struct map* map)
 	int time = 64;
 	if(event->clock >= time)
 	{
-		add_message(map->msg_list, "DEFEAT THE ANIMATED GOLEM", MIDPOINTX(golem), MIDPOINTY(golem) - 2, 460, 1);
 		for(int i = 0; i < map->mObject_list->size; i++)
 		{
 			struct mObject *magus = (struct mObject*)dynList_get(map->mObject_list, i);
@@ -212,7 +197,6 @@ void chieftain_start(struct player* player, struct event* event, struct map* map
 	struct mObject *golem = id_get_mObj(map, 'c');
 	map->cam.cin_info.s_coord.x = -map->cam.x + golem->x + golem->width/TILE_LENGTH/2;
 	map->cam.cin_info.s_coord.y = -map->cam.y + golem->y+ golem->height/TILE_LENGTH/2;
-	printf("in witch start %c\n", golem->id);
 }
 
 void chieftain_cutscene2(struct player* player, struct event* event, struct map* map)
@@ -386,7 +370,6 @@ void identify_start_tick(struct event* event)
 
 void init_event(struct event* new, event_type e_type, int burst)
 {
-	//add acp to skip gigaswitch
 	new->e_type = e_type;
 	new->complete = false;
 	new->burst_time = burst;
@@ -408,11 +391,8 @@ void add_event(dynList* ev_list, event_type type, struct player *player, struct 
 
 void run_event(dynList *ev_list, struct map* map, struct player *player)
 {
-	//THIS THING WORKS AS A QUENE AND SHOULD BE TREATED AS ONE foremanInsane
-	//DONT TRY TO RUN THIS AS ANIMATION HANDLER
 	if(dynList_is_empty(ev_list))
 		return;
-	//this will segfault soon
 	for(int i = 0; i < map->event_list->size; i++)
 	{
 		struct event* curr_event = ((struct event*)dynList_get(ev_list, i));
