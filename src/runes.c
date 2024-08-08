@@ -3,6 +3,7 @@
 #include "SDL2/SDL.h"
 #include "font.h"
 #include "gfx.h"
+#include "info.h"
 
 #define FIRST 36
 #define SECOND 80
@@ -21,7 +22,6 @@ int get_stage(struct map* map)
 
 struct rune_info get_rand_rune_info(struct map* map)
 {
-	//works
 	core_type ct = get_rand_rune_type();
 	core_stage cs = get_stage(map);
 	const char *title = "rune";
@@ -33,55 +33,62 @@ struct rune_info get_rand_rune_info(struct map* map)
 void unholy_anchor_initial(struct player *player, struct map *map, struct rune* rune)
 {
 	player->kills = 0;
+	player->maxhealth += 60;
 }
 
 void unholy_anchor_ability(struct player *player, struct map *map, struct rune* rune)
 {
-	int rng = rand() % 2;
 	if(rune->attribute > 0)
 	{   
-		if(rand() % 2 == 1 || 1)
-		{
-			printf("att %d\n", rune->attribute);
-			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, 50.0, 0.0, player);
-		}
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_WRAITH, EAST, 20.0, 0.0, player);
 		rune->attribute --;
 	}
 }
 
 void unholy_complete_initial(struct player *player, struct map* map, struct rune* rune)
 {
-	spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, 50.0, 0.0, player);
+	spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, player->sword_damage / 2, 0.0, player);
 }
+
+void unholy_mending_initial(struct player* player, struct map* map, struct rune* rune)
+{
+	player->maxhealth += 40;
+	player->health = player->maxhealth;
+}
+
 
 void unholy_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->maxhealth += 50;
-	player->health = player->maxhealth;
-	//printf("%f\n", player->health);
+	player->maxhealth += 120;
 }
 
 //HOLY
+void holy_anchor_initial(struct player *player, struct map* map, struct rune* rune)
+{
+	player->dash_invuln += 2;
+}
+
 void holy_support_initial(struct player *player, struct map* map, struct rune* rune)
 {
-
+	player->dash_invuln += 4;
 }
 
 void holy_mending_initial(struct player *player, struct map* map, struct rune* rune)
 {
-
+	player->dash_invuln += 2;
 }
 
 //BLOOD
 void blood_anchor_initial(struct player *player, struct map *map, struct rune* rune)
 {
-	player->maxhealth -= player->maxhealth * 0.25;
-	player->sword_damage += player->sword_damage * 0.5;
+	player->maxhealth -= 25;
+	player->sword_damage += PLAYER_START_DMG * 0.1;
 }
 
 void blood_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->sword_damage += player->sword_damage * 0.25;
+	player->maxhealth -= 35;
+	player->sword_damage += PLAYER_START_DMG * 0.15;
 }
 
 void blood_mending_ability(struct player* player, struct map* map, struct rune* rune)
@@ -91,25 +98,25 @@ void blood_mending_ability(struct player* player, struct map* map, struct rune* 
 
 void blood_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->maxhealth -= player->maxhealth * 0.25;
+	player->maxhealth -= 25;
+	player->sword_damage += PLAYER_START_DMG * 0.1;
 }
 
 void blood_complete_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	//delete prev ability
-	struct rune* blood_mending = (struct rune*)dynList_get(player->rune_list, 2);
-	
-	if(blood_mending != NULL)
-		blood_mending->ability = NULL;
+
 }
 
 void blood_complete_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	//BRIMSTONE
-	//other now but works
 	
 }
 //Gravity
+
+void gravity_anchor_initial(struct player* player, struct map *map, struct rune* rune)
+{
+	player->pObject_knockkoef += 0.125;
+}
 
 void gravity_anchor_ability(struct player* player, struct map *map, struct rune* rune)
 {
@@ -118,27 +125,30 @@ void gravity_anchor_ability(struct player* player, struct map *map, struct rune*
 
 void gravity_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->pObject_knockkoef += 0.5;
+	player->pObject_knockkoef += 0.175;
 }
 
+void gravity_mending_initial(struct player* player, struct map* map, struct rune* rune)
+{
+	player->pObject_knockkoef += 0.125;
+}
 
 //Frost
 
 void frost_anchor_initial(struct player* player, struct map* map, struct rune* rune)
 {
 	player->sword_effect_type = STATUS_FROSTBITE;
-	player->attack_speed -= player->attack_speed * 0.20;
+	player->attack_speed -= 8;
 }
 
 void frost_support_initial(struct player* player, struct map *map, struct rune* rune)
 {
-	player->attack_speed -= player->attack_speed * 0.25;
+	player->attack_speed -= 12;
 }
 
 void frost_mending_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	//frost strom
-	
+	player->attack_speed -= 8;	
 }
 
 void frost_mending_ability(struct player* player, struct map* map, struct rune* rune)
@@ -151,26 +161,28 @@ void frost_mending_ability(struct player* player, struct map* map, struct rune* 
 void rot_anchor_initial(struct player* player, struct map *map, struct rune* rune)
 {
 	player->sword_effect_type = STATUS_ROT;
-	player->base_speed += 0.25;
-	player->speed = player->base_speed / 5;
+	player->base_speed += 0.025;
+	player->speed = player->base_speed / 16;
 }
 
 void rot_support_initial(struct player* player, struct map* map, struct rune* rune)
 {
-	player->base_speed += 0.5;
-	player->speed = player->base_speed / 5;
+	player->base_speed += 0.05;
+	player->speed = player->base_speed / 16;
+}
+
+void rot_mending_initial(struct player* player, struct map* map, struct rune* rune)
+{
+	player->base_speed += 0.025;
+	player->speed = player->base_speed / 16;
 }
 
 void rot_mending_ability(struct player* player, struct map* map, struct rune* rune)
 {
-	
+
 }
 
 //Generic
-void print(struct player* player, struct map* map, struct rune* rune)
-{
-	printf("Rune ability *POW*\n");
-}
 
 void rune_abilities(struct player *player, struct map *map, struct rune* rune)
 {
@@ -231,21 +243,21 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
-					new.initial = NULL;
+					new.initial = holy_anchor_initial;
 					break;
 				case support:
 					add_message(map->msg_list, "HOLY SUPPORT", X_MIDDLE_FONT, 32.0, 360, 2);
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, SECOND, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
-					new.initial = NULL;
+					new.initial = holy_support_initial;
 					break;
 				case mending:
 					add_message(map->msg_list, "HOLY MENDING", X_MIDDLE_FONT, 32.0, 360, 2);
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_HOLY));
 					new.attribute = true;
 					new.ability = NULL;
-					new.initial = NULL;
+					new.initial = holy_mending_initial;
 					break;
 				case complete:
 					new.attribute = 3;
@@ -261,9 +273,7 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, FIRST, UI_BLOOD));
 					add_message(map->msg_list, "BLOOD ANCHOR", X_MIDDLE_FONT, 32.0, 360, 2);
 					new.ability = NULL;
-					new.initial = blood_mending_initial;
-					new.ability = blood_mending_ability;
-					//new.initial = blood_anchor_initial;
+					new.initial = blood_anchor_initial;
 					break;
 				case support:
 					add_message(map->msg_list, "BLOOD SUPPORT", X_MIDDLE_FONT, 32.0, 360, 2);
@@ -293,7 +303,7 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					add_message(map->msg_list, "GRAVITY ANCHOR", X_MIDDLE_FONT, 32.0, 360, 2);
 					new.attribute = 0;
 					new.ability = gravity_anchor_ability;
-					new.initial = NULL;
+					new.initial = gravity_anchor_initial;
 					break;
 				case support:
 					add_message(map->msg_list, "GRAVITY SUPPORT", X_MIDDLE_FONT, 32.0, 360, 2);
@@ -307,7 +317,7 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_GRAVITY));
 					new.attribute = 0;
 					new.ability = NULL;
-					new.initial = NULL;
+					new.initial = gravity_mending_initial;
 					break;
 				case complete:
 					new.attribute = 0;
@@ -336,11 +346,10 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					add_message(map->msg_list, "FROST MENDING", X_MIDDLE_FONT, 32.0, 360, 2);
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_FROST));
 					new.ability = frost_mending_ability;
-					new.initial = NULL;
+					new.initial = frost_mending_initial;
 					new.attribute = 0;
 					break;
 				case complete:
-					printf("#WISH GRANTED#\nfrost complete rune acquired\n");
 					new.ability = NULL;
 					new.initial = NULL;
 					new.attribute = 0;
@@ -367,10 +376,12 @@ struct rune init_rune(struct rune_info i, struct map* map)
 					dynList_add(map->UI_el_list, (void*)init_UI_el(ALWAYS, THIRD, UI_ROT));
 					new.attribute = 0;
 					new.ability = rot_mending_ability;
-					new.initial = NULL;
+					new.initial = rot_mending_initial;
 					break;
 
 			}
+			break;
+		default:
 			break;
 	}
 
@@ -388,7 +399,7 @@ struct rune_info init_rune_info(core_type type, core_stage stage, const char *ti
 
 void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 {
-	//dynList_add()()()();
+	player->sword_damage += 10;
 	struct rune* new = (struct rune*)malloc(sizeof(struct rune));
 	*new = init_rune(rinfo, map);
 	dynList_add(player->rune_list, (void*)new);
@@ -397,16 +408,12 @@ void add_rune(struct player *player, struct rune_info rinfo, struct map *map)
 	int count = 0;
 	if(player->rune_list->size != 3)
 		return;
-	printf("got here\n");
 	struct rune *r1 = (struct rune*)dynList_get(player->rune_list, 0);
 	struct rune *r2 = (struct rune*)dynList_get(player->rune_list, 1);
 	struct rune *r3 = (struct rune*)dynList_get(player->rune_list, 2);
-	//works
 	if(r1->info.rune_type == r2->info.rune_type && r1->info.rune_type == r3->info.rune_type && player->rune_list->size <= 3)
 	{
 		struct rune_info new1 = init_rune_info(r1->info.rune_type, complete, "comp");
 		add_rune(player, new1, map);
-		printf("Rune mended\n");
 	}
-
 }

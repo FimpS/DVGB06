@@ -68,6 +68,7 @@ struct player
 	int timer;
 	int attack_speed_timer;
 	int attack_speed;
+	bool has_dash_atk;
 	int dash_timer;
 	int invuln_limit;
 	int dash_cooldown_timer;
@@ -183,6 +184,7 @@ bool AABBpp();
 bool AABBpm();
 struct mObject* id_get_mObj(struct map* map, char id);
 void set_status_effect();
+void set_status_effect_area();
 void identify_status_effect();
 void apply_player_status_effect();
 void run_player_status_effects();
@@ -190,7 +192,9 @@ bool has_player_status_effect();
 void startp_player_interaction();
 void endp_player_interaction();
 void stat_player_interaction();
+void tut_player_interaction();
 void display_all_stats();
+void display_tutorial();
 //e
 void tp_player_interaction();
 void tp_player_undone();

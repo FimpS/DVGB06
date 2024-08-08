@@ -7,24 +7,6 @@
 #include "font.h"
 #include "dynList.h"
 
-void map_manager(struct map *map, dynList* eList)
-{
-	const Uint8* key_code = SDL_GetKeyboardState(NULL);
-
-	if(key_code[SDL_SCANCODE_C] && 1 == 2)
-	{
-		sleep(1);
-		dynList_clear(eList);
-		map_load_scene(map, "../res/ch1_maps/ch1_2.txt", eList);
-	}
-
-}
-
-void logic_manager(struct map *map, dynList* eList)
-{
-	map_manager(map, eList);
-}
-
 void run_tick(struct map *map, struct player *player, SDL_Window* window)
 {
 	switch(map->state)
@@ -65,8 +47,8 @@ void render_tick(struct map* map, struct player* player, SDL_Renderer *renderer,
 		case ST_MAP_PAUSE:
 			map_draw(map, &map->cam, renderer, *tex, player);
 			draw_all_mObjects(renderer, map->mObject_list, &map->cam, tex[MOBJECT_SPRITESHEET], player);
-			draw_pObjects(renderer, map->pObject_list, &map->cam, tex[POBJECT_SPRITESHEET]);
 			drawPlayer(renderer, player, &map->cam, tex[PLAYER_SPRITESHEET]);
+			draw_pObjects(renderer, map->pObject_list, &map->cam, tex[POBJECT_SPRITESHEET]);
 			render_UI_elements(map->UI_el_list, player, map, renderer, tex[UI_SPRITESHEET]);
 			render_messages(map->msg_list, &map->cam, renderer, tex[FONT_SPRITESHEET]);
 			render_UI_texts(map->msg_list_UI, renderer, tex[FONT_SPRITESHEET]);

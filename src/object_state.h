@@ -7,10 +7,10 @@
 
 //p
 #define PLAYER_DASH_COOLDOWN_LIMIT 20
-#define PLAYER_DASH_LIMIT 6
+#define PLAYER_DASH_LIMIT 8
 #define PLAYER_DASH_INVULN_LIMIT 12
 #define PLAYER_ATTACK_LIMIT 4
-#define PLAYER_ATTACKING_LIMIT 8
+#define PLAYER_ATTACKING_LIMIT 20
 #define PLAYER_DEATHRATTLE_LIMIT 64
 //mObj
 #define HOSTILE_MOBJ_WAKEUP_DIST 64
@@ -42,10 +42,12 @@
 void set_mObject_state();
 void set_pObject_state();
 //for player
+void check_attack_mods();
 void player_deathrattle();
 void input_attack();
 void check_sword_dir();
 void player_dash();
+void player_dash_atk();
 void dash_control();
 void player_attack();
 void player_attacking();
@@ -166,6 +168,7 @@ void state_pObject_deathrattle();
 void check_pObject_mObject_hit();
 //pObject
 void state_player_spear_action();
+void state_player_spear_dash_action();
 void state_sword_shockwave();
 void state_magic_bolt_travel();
 void state_swamp_pool_action();

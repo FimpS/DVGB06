@@ -122,6 +122,7 @@ void render_pObject_deathrattle(SDL_Renderer *renderer, SDL_Texture* tex, SDL_Re
 
 void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *renderer, SDL_Texture *tex)
 {
+
 	const double conv = 57.29577;
 	bool flip = false;
 	if(player->theta < PI/2 && player->theta > -1 * PI/2)
@@ -130,7 +131,6 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 	}
 	const int fill = 150;
 	int red = 0, green = 0, blue = 0;
-	//I have given up
 	if(has_player_status_effect(player, STATUS_BURN)) red = 100;
 	if(has_player_status_effect(player, STATUS_BOGGED)) green = 100;
 	if(has_player_status_effect(player, STATUS_HEX)) {blue = 100; red = 100;}
@@ -140,7 +140,9 @@ void render_player_animation(struct player *player, SDL_Rect dR, SDL_Renderer *r
 	SDL_RenderCopyEx(renderer, tex, &player->sprite, &dR, 0, NULL, flip);
 	if(player->anim.timer >= player->anim.limit)
 	{
+
 		player->anim.timer = 0;
+		player->sprite.x -= player->anim.start_frame;
 		player->sprite.x += player->anim.tile_length;
 		player->sprite.x %= player->anim.frames * player->anim.tile_length;
 		player->sprite.x += player->anim.start_frame;
@@ -159,7 +161,7 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	SDL_SetTextureColorMod(tex, fill, fill, fill);
 
 	int red = 0, green = 0, blue = 0;
-	
+
 	if(mObject->status_effect.type == STATUS_FROSTBITE)
 	{
 		blue = 75;
@@ -167,6 +169,11 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	if(mObject->status_effect.type == STATUS_ROT)
 	{
 		green = 75;
+	}
+	if(mObject->status_effect.type == STATUS_STASIS)
+	{
+		blue = 75;
+		red = 75;
 	}
 	double dist = 0;
 	double dx = (mObject->x - player->x);
@@ -176,7 +183,6 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 	dist = dist <= 100 ? 100 : dist;
 	dist = dist >= 180 ? 180 : dist;
 	const int def = 100;
-	//SDL_SetTextureColorMod(tex, dist + red, dist + green, dist+ blue);
 	SDL_SetTextureColorMod(tex, def + red, def + green, def + blue);
 	if(mObject->id == 'J')
 	{
@@ -196,7 +202,6 @@ void render_mObject_animation(struct mObject *mObject, SDL_Rect dR, SDL_Renderer
 		mObject->sprite.x += mObject->anim.tile_length;
 		mObject->sprite.x %= mObject->anim.frames * mObject->anim.tile_length;
 		mObject->sprite.x += mObject->anim.start_frame;
-		//X coordinaten måste vara delbar med 4 eller första x coordinaten måste % vara 0
 		return;
 	}
 	mObject->anim.timer ++;
@@ -211,7 +216,6 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 	{
 		cond = !cond;
 		sleep(1);
-		//return;
 	}
 	if(cond)
 	{
@@ -224,9 +228,7 @@ void render_animation(struct pObject* pObject, SDL_Texture *tex, SDL_Rect dR, SD
 		SDL_SetTextureColorMod(tex, five, five, five);
 	}
 	SDL_RenderCopyEx(renderer, tex, &pObject->sprite, &dR, pObject->theta*conv, NULL, 0);
-	//const int def = 150;
-	//SDL_SetTextureColorMod(tex, def, def, def);
-	
+
 	if(pObject->anim_timer >= pObject->anim_limit)
 	{
 		pObject->anim_timer = 0;
@@ -246,7 +248,6 @@ void render_message(struct message* msg, struct cam* cam, SDL_Renderer *renderer
 	}
 	for(double i = 0; i < msg->size; i++)
 	{
-		//SDL_Rect dest = {((msg->x + i / 2) - cam->offset_x) * TILE_LENGTH, (msg->y - cam->offset_y) * TILE_LENGTH, 16, 16};
 		SDL_SetTextureColorMod(tex, msg->col.red, msg->col.green, msg->col.blue);
 		SDL_Rect dest = {(msg->x + msg->font_size*i) * 16, msg->y * 16, msg->font_size * 16, msg->font_size * 16};
 		SDL_RenderCopyEx(renderer, tex, &msg->s_chars[(int)i], &dest, 0.0, NULL, false);
@@ -266,11 +267,20 @@ void render_UI_text(struct message* msg, SDL_Renderer *renderer, SDL_Texture *te
 void run_reset_UI(struct map* map)
 {
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_BLOOD));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
-	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_FROST));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_UNHOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_GRAVITY));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
-	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
+	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_HOLY));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
 	dynList_del_index(map->UI_el_list, UI_el_index(map->UI_el_list, UI_ROT));
@@ -342,7 +352,6 @@ void init_menu(struct map* map)
 {
 	dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_MENU));
 	dynList_add(map->UI_el_list, (void*)init_UI_el(-1.0, -1.0, UI_MENU_POINTER));
-	//add_message(map->msg_list_UI, "MENU", 20.0, 8.0, 0, 2);
 }
 
 void menu_put(struct map* map)
@@ -381,8 +390,6 @@ void option_requests(struct map* map, SDL_Window *window)
 void map_leave_run(struct map* map)
 {
 	add_event(map->event_list, TYPE_EVENT_END_RUN, NULL, map, 0);
-	//clear_seed_map(map);
-	//strcpy(map->s_map.content[map->s_map.index], "res/ch0_maps/ch0_hubmap.txt");
 	menu_index = 0;
 	menu_action(map);
 
@@ -429,7 +436,7 @@ void menu_action(struct map* map)
 		case 3:
 			map->quit = true;
 			break;
-		
+
 	}
 }
 
@@ -444,14 +451,11 @@ void run_menu(struct map* map)
 		{
 			menu_index <= 0 ? menu_index = 3: menu_index --;
 			menu_timer = 0;
-			//printf("%d\n", menu_index);
 		}
 		if(c[SDL_SCANCODE_S] || c[SDL_SCANCODE_DOWN])
 		{
-			//menu_index ++;
 			menu_index >= 3 ? menu_index = 0: menu_index ++ ;
 			menu_timer = 0;
-			//printf("%d\n", menu_index);
 		}
 
 
@@ -460,31 +464,6 @@ void run_menu(struct map* map)
 			mcp(map);
 			menu_timer = 0;
 		}
-#if 0
-		if(c[SDL_SCANCODE_ESCAPE])
-		{
-			menu_exit(map);
-		};
-#endif
 	}
 
 }
-
-#if 0
-SDL_Rect dest = {8, 8, 384, 16};
-SDL_Rect src1 = {0, 16, 336, 16};
-SDL_RenderCopy(renderer, tex, &src1, &dest);
-SDL_Rect src = {0, 0, 336, 16};
-struct UI_element *curr = (struct UI_element*)dynList_get(ui_el_list, 0);	
-//printf("%d %d %d %d\n", curr->sprite.x, curr->sprite.y, curr->sprite.w, curr->sprite.h);
-dest.w = curr->reduce;
-if((curr->reduce > 384 * player->health / player->maxhealth))
-	(curr->reduce) -= 2;
-
-	//	SDL_RenderCopyEx(renderer, tex, &curr->sprite, &dest, 0, NULL, false);
-	SDL_RenderCopy(renderer, tex, &src, &dest);
-	dest.w = 400;
-	src1.y += 16;
-	dest.x -= 16;
-	SDL_RenderCopy(renderer, tex, &src1, &dest);
-#endif

@@ -2,7 +2,7 @@
 #define FONT_H
 #define INFO_CORD_X 14
 #define INO_CORD_Y 4
-#define MAX_TEXT_SIZE 32
+#define MAX_TEXT_SIZE 64
 
 typedef struct color
 {

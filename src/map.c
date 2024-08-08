@@ -22,7 +22,6 @@ char map_get_tile(struct map *m, int x, int y)
 }
 
 
-//finds coords and puts them in array dest[0] = x, dest[1] = y
 void map_get_coord(struct map* m, char key, int *dest)
 {
 	for(int i = 0; i < content_size; i++)
@@ -129,7 +128,6 @@ void gen_seed_map(struct map* m)
 			bool dupe = true;
 			while(dupe)
 			{
-				//break somewhere to add itemrooms?
 				get_rand_mapID(m->s_map.content[current], curr_chapter);
 				if(!check_map_dupe(m, current))
 				{
@@ -188,7 +186,6 @@ void load_game(struct save_packet* save)
 	fp = fopen("save/s1.dat", "rb");
 	if(fp == NULL)
 	{
-		printf("Bad\n");
 		return;
 	}
 
@@ -209,7 +206,6 @@ void save_game(struct map* map)
 	fp = fopen("save/s1.dat", "wb");
 	if(fp == NULL)
 	{
-		printf("Bad\n");
 		return;
 	}
 
@@ -223,11 +219,8 @@ struct map map_init()
 
 	memset(m.content, 0, CONTENT_SIZE);
 	memset(m.solid_content, 0, CONTENT_SIZE);
-	//gen_seed_map(&m);
-	//for(int i = 0; i < SEED_CHAPTER_AMOUNT * SEED_CHAPTER_SIZE + SEED_CHAPTER_AMOUNT + SPECIAL_MAPS; i++)
-	//	printf("%s\n", m.s_map.content[i]);
-	//m.s_map.index = 0;
 	m.quit = false;
+	m.mouse_clicked = false;
 	m.width = MAP_WIDTH;
 	m.height = MAP_HEIGHT;
 	m.sm = sm_init();
@@ -243,7 +236,6 @@ struct map map_init()
 	m.state = ST_MAP_RUN_TICK;
 	m.aggresive_mObj_count = 0;
 	m.anim.limit = 12;
-	//print_save_data(&m.save);
 	return m;
 }
 
@@ -254,7 +246,6 @@ void map_run_init(dynList *maps)
 	{
 		struct map *new = (struct map*)malloc(sizeof(struct map));
 		*new = map_init();
-		//get_rand_mapID(fn, "ch1");
 		memset(fn, 0, strlen(fn));
 	}
 }
@@ -388,6 +379,10 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					spawn_mObject(m, x, y, MO_STATSIGN, 'Q');
 					m->content[x+y * m->width] = 'H';
 					break;
+				case '=':
+					spawn_mObject(m, x, y, MO_TUTSIGN, '=');
+					m->content[x+y * m->width] = '.';
+					break;
 				case 'T':
 					spawn_mObject(m, x, y, MO_INTERACTABLE, 'T');
 					m->content[x+y * m->width] = 'T';
@@ -417,7 +412,6 @@ void spawn_mObjects(struct map *m, dynList *eList, struct player* player)
 					m->content[x+y * m->width] = '.';
 					break;
 				case 'R':
-					spawn_mObject(m, x, y, MO_RUNE_SHARD, 'R'); //disable when real
 					m->content[x+y * m->width] = '.';
 					break;
 			}
@@ -436,17 +430,21 @@ void init_killcount(struct map *m)
 			m->aggresive_mObj_count ++;
 		}
 	}
-	//printf("killables: %d\n", m->aggresive_mObj_count);
 }
 
-void reset_player(struct player *player)
+void reset_player(struct player *player, struct map* map)
 {
 	if(!dynList_is_empty(player->rune_list))
 	{
 		struct rune* rune = (struct rune*)dynList_get(player->rune_list, 0);
 		if(rune != NULL && rune->info.rune_type == RN_HOLY)
 		{
-			rune->attribute = true;
+			rune->attribute = 3;
+		}
+		rune = (struct rune*)dynList_get(player->rune_list, 3);
+		if(rune != NULL && rune->info.rune_type == RN_UNHOLY)
+		{
+			spawn_pObject(map->pObject_list, player->x, player->y, PO_BIG_WRAITH, EAST, player->sword_damage / 2, 0.0, player);
 		}
 	}
 }
@@ -465,7 +463,6 @@ bool check_rune_dupe(struct rune_info *map_runes, int stop)
 void get_rune_coords(struct map* m, int *coords)
 {
 	int index = 0;
-	//y1,x1,y2,x2,y3,x3
 	for(int i = 0; i < m->width * m->height; i++)
 	{
 		if(m->content[i] == 'R')
@@ -498,8 +495,7 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 		while(dupe)
 		{
 			map_runes[current].rune_type = get_rand_rune_type();
-			//rune_type = blood, curr = 0
-			//rune_tpye = blood, curr = 1
+			map_runes[current].rune_stage = get_stage(m);
 			if(!check_rune_dupe(map_runes, current))
 			{
 				dupe = false;
@@ -511,7 +507,6 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 	get_rune_coords(m, coords);
 	for(int i = 0; i < 3; i++)
 	{
-		//cant run init here so we do it manually
 		struct mObject *new = (struct mObject*)malloc(sizeof(struct mObject));
 		new->x = coords[2*i + 1];
 		new->y = coords[2*i];
@@ -520,10 +515,12 @@ void spawn_runes(struct map* m, struct rune_info *map_runes)
 		new->width = TILE_LENGTH * 2;
 		new->height = TILE_LENGTH * 2;
 		new->hittable = false;
-		new->killable = false;
+		new->killable = true;
 		new->st.type = st_placeholder;
-		new->st.acp = NULL;
+		new->st.acp = rune_player_interaction;
 		new->r_info = map_runes[i];
+		new->anim = init_render_info(0, 32, 4, 0, 12);
+		new->sprite = identify_rune_sprite(new->r_info);
 		dynList_add(m->mObject_list, (void*)new);
 	}
 }
@@ -534,18 +531,12 @@ int hash_map_name(const char *map_name)
 	while(*map_name != '\0')
 	{
 		fuck_you +=  101 * *map_name++ + 40;
-		//*map_name ++;
 	}
 	return fuck_you;
 }
 
 void map_start_events(struct map *m, struct player *player)
 {
-	//tmp solutions maybe an & check for this
-#if 0
-	printf("m->c %s\nhash %d\n", m->s_map.content[m->s_map.index - 1], hash_map_name(m->s_map.content[m->s_map.index - 1]));
-	printf("events: %d\n", m->s_map.index);
-#endif
 	switch(hash_map_name(m->s_map.content[m->s_map.index - 1]))
 	{
 		case 247177:
@@ -598,7 +589,6 @@ void load_map_file(struct map *m, char* filename)
 {
 	FILE *f;
 	char file[64];
-	//printf("file: %s\n", filename);
 	m->current_chapter = (int)filename[6] - '0';
 	f = fopen(filename, "r");
 	if(!f)
@@ -616,7 +606,6 @@ void load_map_file(struct map *m, char* filename)
 		if(m->content[i] == '\n')
 			m->content[i--] = '\0';
 		i++;
-		//printf("%c", m->content[i++]);
 	}
 	for(int i = 0; i < content_size; i++)
 	{
@@ -655,7 +644,6 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 {
 	dynList_clear(m->mObject_list);
 	dynList_clear(m->pObject_list);
-	//m->sm.tone = 255;
 	m->aggresive_mObj_count = 0;
 	load_map_file(m, filename);
 	strcpy(m->map_name, filename);
@@ -663,15 +651,10 @@ void map_load_scene(struct map *m, char *filename, dynList* eList, struct player
 	m->state = ST_MAP_RUN_TICK;
 	get_lightmap(m, m->cam);
 	get_chapterlight(m);
-	//spawn_runes(m, map_runes); enable when real
+	spawn_runes(m, map_runes); 
 	spawn_mObjects(m, eList, player);
-	//replace_boss(m); what is this function??
-	reset_player(player);
-	//printf("%d\n", m->aggresive_mObj_count);
-	//printf("%d\n", m->mObject_list->si
+	reset_player(player, m);
 	cam_update(&m->cam, m, player);
-	//map_start_events(m, player);
-	//printf("chap:%d\n", m->current_chapter);
 }
 
 void default_screen_shake(struct map *m)
@@ -691,12 +674,8 @@ void set_screen_shake(struct map *m, const double shake_koef, const int limit)
 
 void screen_shake(struct map *m)
 {
-#if 1
 	if(getTick() % 4 != 0)
 		return;
-	//cool effect
-#endif 
-	//tmp sol should implement a cam_state
 	if(m->cam.shake_timer >= m->cam.shake_limit / 4)
 	{
 		m->cam.shake_timer = 0;
@@ -718,7 +697,6 @@ void cam_move_to(struct cam *cam, double dsttheta)
 	if(!cam->move)
 		return;
 	cam->shake_x += 0.05;
-	//cam->shake_y += 0.05;
 }
 
 void control_cam_update(struct cam* cam, struct map *map, struct player *player)
@@ -745,7 +723,7 @@ void cam_update(struct cam *cam, struct map *map, struct player *player)
 	screen_shake(map);
 
 	cam->x = MIDPOINTX(player) + cam->shake_x;
-	cam->y = MIDPOINTY(player) + cam->shake_y; //LRU
+	cam->y = MIDPOINTY(player) + cam->shake_y; 
 
 	cam->vis_tile_x = SCREEN_WIDTH / (TILE_LENGTH);
 	cam->vis_tile_y = SCREEN_HEIGHT / (TILE_LENGTH);
@@ -788,10 +766,7 @@ void map_switch_frame(struct map* map, struct cam *cam)
 
 bool is_valid(int *m, int x, int y, int x1, int y1, int w, int h)
 {
-	//printf("x1:%d y1:%d\n", x1, y1);
-	//printf("m*%d\n", m[x1 + y1 * w]);
 	return x1 >= 0 && y1 >= 0 /*&& x1 / 10 == x / 10 && y / 10 == y1 / 10 */&& m[x1 + y1 * w] != 3 && m[x1 + y1 * w] != 2;
-	//care
 }
 
 void populate(int *m, int x, int y, int w, int h)
@@ -874,16 +849,6 @@ void get_lightmap(struct map* map, struct cam *cam)
 		}
 	}
 	make_lightmap(map->lightmap.content, map->width, map->height);
-#if 0
-	for(int i = 0; i < map->height; i++)
-	{
-		for(int j = 0; j < map->width; j++)
-		{
-			printf("%d ", map->lightmap.content[j +  i * map->width]);
-		}
-		printf("\n");
-	}
-#endif
 }
 
 void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture *tex, struct player* player)
@@ -893,7 +858,6 @@ void player_lighting(struct map* map, int i, int j, struct cam *cam, SDL_Texture
 	double dy = ((j + (int)cam->offset_y) - player->y);
 	dist = dx * dx + dy * dy;
 	dist = 255 - dist*12;
-	//dist += rand() % 8;
 	dist = dist <= 100 ? 100 : dist;
 	dist = dist >= 160 ? 160 : dist;
 	SDL_SetTextureColorMod(tex, dist, dist, dist);
@@ -953,10 +917,6 @@ bool tile_anim_req(char tile)
 
 void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Texture *tex, struct player* player)
 {
-	//SDL_Surface *sur = IMG_Load("assets/Untitled.png");
-	//SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, sur);
-	//tmp stuff
-	//
 	map_switch_frame(map, cam);
 	double dx = 0;
 	double dy = 0;
@@ -974,7 +934,6 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			const int defB = 120 * map->lightmap.blue;
 
 			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
-			//SDL_Rect R = {0, 0, 16, 16};
 			SDL_Rect R = tile_info[tile];
 			if(tile_anim_req(tile))
 			{
