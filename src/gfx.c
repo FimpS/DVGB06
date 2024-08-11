@@ -50,6 +50,7 @@ const struct UI_element UI_sprite_info[] = {
 	{UI_boss_health_update, {0,0,336,16}, {100,550,600,32}, 15}, //boss-health
 	{NULL, {0,16,336,16}, {100,550,600,32}, 16}, //boss-maxhealth
 	{NULL, {0,160,336,16}, {100,550,600,32}, 17}, //boss-maxhealthdecor
+	{UI_cursor_update, {80, 80, 16, 16}, {280, 200, 32, 32}, 17}, //pointer
 };
 
 void init_UI(dynList* ui_el_list)
@@ -61,6 +62,8 @@ void init_UI(dynList* ui_el_list)
 	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_1));
 	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_2));
 	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_RUNE_SLOT_3));
+
+	dynList_add(ui_el_list, (void*)init_UI_el(-1, -1, UI_CURSOR));
 }
 
 struct UI_element *init_UI_el(int x, int y, UI_id type)
@@ -73,6 +76,15 @@ struct UI_element *init_UI_el(int x, int y, UI_id type)
 		new->dest.y = y;
 	}
 	return new;
+}
+
+void UI_cursor_update(struct UI_element* el, struct player* player, struct map* map)
+{
+	int mx, my;
+	SDL_GetMouseState(&mx, &my);
+	el->dest.x = mx;
+	el->dest.y = my;
+	
 }
 
 void UI_curr_health_update(struct UI_element* el, struct player* player, struct map* map)

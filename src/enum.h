@@ -294,6 +294,8 @@ typedef enum
 	UI_BOSS_BAR,
 	UI_BOSS_FULL_BAR,
 	UI_BOSS_DEC_BAR,
+
+	UI_CURSOR,
 	
 } UI_id;
 #if 0
