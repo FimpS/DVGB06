@@ -574,9 +574,10 @@ void display_tutorial(struct map* map)
 	add_message(map->msg_list, "TUTORIAL;", X_MIDDLE_FONT, 2.0, 128, 2);
 	add_message(map->msg_list, "SPACE TO DASH.", X_MIDDLE_FONT, 4.0, 128, 2);
 	add_message(map->msg_list, "M1 TO ATTACK.", X_MIDDLE_FONT, 6.0, 128, 2);
-	add_message(map->msg_list, "M1 WHILE ATTACKING", X_MIDDLE_FONT, 8.0, 128, 2);
+	add_message(map->msg_list, "M1 WHILE DASHING", X_MIDDLE_FONT, 8.0, 128, 2);
 	add_message(map->msg_list, "TO DASH-ATTACK.", X_MIDDLE_FONT, 10.0, 128, 2);
 	add_message(map->msg_list, "E TO INTERACT.", X_MIDDLE_FONT, 12.0, 128, 2);
+	add_message(map->msg_list, "ESC FOR MENU.", X_MIDDLE_FONT, 14.0, 128, 2);
 }
 
 void display_stat(struct map* map, int stat, const char* str, double posx, double posy)

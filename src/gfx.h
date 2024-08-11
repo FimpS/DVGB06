@@ -12,6 +12,7 @@ struct UI_element *init_UI_el();
 void init_UI();
 SDL_Rect init_sprite();
 void render_UI_elements();
+void UI_cursor_update();
 void UI_curr_health_update();
 void UI_boss_health_update();
 size_t UI_el_index();

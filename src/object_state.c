@@ -70,7 +70,7 @@ void state_enemy_knockbacked(struct mObject* mObj, struct player *player, struct
 	const double dx = OBJDIFFX(player, mObj), dy = OBJDIFFY(player, mObj);
 	if(mObj->st.timer > mObj->st.limit || mObj->speed <= 0)
 	{
-		set_mObject_state(mObj, mObj->type_reg, mObj->st.kcp, 0, 40);
+		set_mObject_state(mObj, mObj->type_reg, mObj->st.kcp, 0, 16);
 		mObj->theta = atan2(dy, dx);
 		mObj->speed = 0;
 	}
@@ -1550,7 +1550,7 @@ void state_rot_flies_action(struct pObject* pObject, struct player* player, stru
 	if(pObject->st.timer ++ >= pObject->st.limit)
 	{
 		const double dx = OBJDIFFX(player, pObject), dy = OBJDIFFY(player, pObject);
-		const double offset = get_frand(2 * PI / 12, -PI / 12);
+		const double offset = get_frand(2 * PI / 15, -PI / 15);
 		pObject->theta = atan2(dy, dx) + offset;
 		pObject->speed = 0.20;
 		set_pObject_state(pObject, pObject->st.type, state_rot_flies_action_fly, 0, 48);

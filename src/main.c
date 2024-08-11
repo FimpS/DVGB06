@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
 	//INIT
 	SDL_Texture *tex[32];
 	gfx_init(tex, renderer);
+	SDL_ShowCursor(false);
 	int start = SDL_GetTicks();
 	int framecount = 0;
 	bool boola = false;
