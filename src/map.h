@@ -96,6 +96,7 @@ struct lightmap
 	double red;
 	double green;
 	double blue;
+	int change;
 };
 
 struct map

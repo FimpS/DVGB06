@@ -424,6 +424,12 @@ void option_action(struct map* map)
 		case 1:
 			map->sm.request_fullscreen = true;
 			break;
+		case 2:
+			map->lightmap.change -= 100;
+			map->lightmap.change += 20;
+			map->lightmap.change %= 100;
+			map->lightmap.change += 100;
+			break;
 	}
 }
 
