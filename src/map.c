@@ -226,6 +226,7 @@ struct map map_init()
 	m.sm = sm_init();
 	m.cam = cam_init();
 	m.save = sp_init(&m);
+	m.lightmap.change = 100;
 	m.mObject_list = dynList_create();
 	m.pObject_list = dynList_create();
 	m.event_list = dynList_create();
@@ -929,11 +930,16 @@ void map_draw(struct map *map, struct cam *cam, SDL_Renderer *renderer, SDL_Text
 			SDL_Rect r_tile = {i * TILE_LENGTH - cam->tile_offset_x, j * TILE_LENGTH - cam->tile_offset_y, TILE_LENGTH, TILE_LENGTH};
 
 			const int light = map_get_light(map, i + (int)cam->offset_x, j + (int)cam->offset_y) * 40 + rand() % 10;
-			const int defR = 120 * map->lightmap.red;
-			const int defG = 120 * map->lightmap.green;
-			const int defB = 120 * map->lightmap.blue;
 
-			SDL_SetTextureColorMod(tex, 0 + defR + light * map->lightmap.red, defG + light * map->lightmap.green, defB + light * map->lightmap.blue);
+			const int defR = map->lightmap.change * map->lightmap.red;
+			const int defG = map->lightmap.change * map->lightmap.green;
+			const int defB = map->lightmap.change * map->lightmap.blue;
+
+			const int resR = defR + light * map->lightmap.red;
+			const int resG = defG + light * map->lightmap.green;
+			const int resB = defB + light * map->lightmap.blue;
+
+			SDL_SetTextureColorMod(tex, resR > 250 ? 255 : resR, resG > 250 ? 255 : resG, resB > 250 ? 255 : resB);
 			SDL_Rect R = tile_info[tile];
 			if(tile_anim_req(tile))
 			{
